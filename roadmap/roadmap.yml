@@ -199,7 +199,7 @@ epics:
         tasks:
           - id: TASK-009
             title: "Engine types + state shape (BattleState, Crew, Move, Action)"
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces: ["packages/core"]
@@ -212,8 +212,8 @@ epics:
               switch, forfeit). Affinity union: 'kraken'|'ironclad'|'phantom'|
               'bloodborne'. No I/O. Export from src/index.ts.
             depends_on: ["TASK-002"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/11
+            completed: '2026-05-08T17:09:00Z'
             blocked_reason: null
             last_attempted: '2026-05-08T17:06:00Z'
             attempt_count: 1
