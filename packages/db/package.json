@@ -12,6 +12,7 @@
     }
   },
   "scripts": {
+    "postinstall": "prisma generate",
     "build": "tsc -b",
     "prisma": "prisma",
     "generate": "prisma generate",
