@@ -58,3 +58,16 @@ gaps.
 
 ---
 
+### Run [2026-05-08 13:06]
+- Task: TASK-004 — Scaffold apps/web (Vite + React) with placeholder route
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/7
+- Test counts: server=0, web=0
+- Files changed: apps/web/package.json, apps/web/tsconfig.json, apps/web/tsconfig.app.json, apps/web/tsconfig.node.json, apps/web/vite.config.ts, apps/web/index.html, apps/web/src/main.tsx, apps/web/src/App.tsx, tsconfig.json, .gitignore, package-lock.json
+- Regression alert: false
+- Review proposed: false
+- Deploy: pending (about to invoke /deploy)
+- Lessons learned: composite + noEmit don't compose; split tsconfig.json into solution + tsconfig.app.json (src) + tsconfig.node.json (vite.config) so app config can use bundler resolution + DOM types without pulling node types into React source.
+
+---
+
