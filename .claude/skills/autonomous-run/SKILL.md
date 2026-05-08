@@ -1,6 +1,6 @@
 ---
 name: autonomous-run
-description: THE scheduled entry point. Runs one autonomous dev cycle: sync main, recover any stuck CI, select next task, branch, implement, validate locally, open PR with auto-merge, log. Every 10th-13th step handles optional VPS auto-deploy. Do NOT invoke when a self-improvement review is pending approval.
+description: THE scheduled entry point. Runs one autonomous dev cycle: sync main, recover any stuck CI, select next task, branch, implement, validate locally, open PR with auto-merge, log, notify via PushNotification. Every 12th-14th step handles optional VPS auto-deploy. Self-improvement reviews (every N successes) are PR-driven and do not pause execution.
 user-invocable: true
 disable-model-invocation: true
 ---
@@ -9,24 +9,13 @@ disable-model-invocation: true
 
 One cycle of the autonomous dev loop. Designed to be safe to re-run.
 
-This is a **13-step** procedure. Steps 11–13 only fire when VPS auto-deploy
+This is a **14-step** procedure. Steps 12–14 only fire when VPS auto-deploy
 is configured (`project.json.deploy.autoDeployOnMerge: true`).
 
-## Pre-run: check for pending review
-
-FIRST, before anything else:
-
-```bash
-test -f .claude/approvals/PENDING.md && echo "PENDING"
-```
-
-If `PENDING.md` exists AND is not marked `approved: true` in its frontmatter:
-- Write an AGENT-LOG entry with `outcome: skipped`, `reason: review_pending`
-- Notify user: "Self-improvement review pending — run `/autonomous-approve` to clear"
-- **Stop execution.** Do not continue to Step 1.
-
-If `PENDING.md` exists AND is `approved: true`: hand off to
-`autonomous-approve` to finalize and resume.
+There is **no approval gate**. Self-improvement refinements are proposed
+and auto-merged via PRs (see `/autonomous-review`); a bad refinement is
+revertible via `git revert` or `gh pr close`. Nothing pauses the hourly
+cadence short of `systemctl stop claude-pirate-battle.timer`.
 
 ---
 
@@ -84,8 +73,8 @@ local validation before pushing. Exit codes:
   unreadable)
 
 If exit=1: write AGENT-LOG `outcome: blocked, reason:
-ci_auto_fix_failed`, include the JSON summary in the entry body, and
-stop the run (don't pick a new task while one is stuck).
+ci_auto_fix_failed`, include the JSON summary in the entry body, and stop
+the run (don't pick a new task while one is stuck).
 
 If exit=2: write AGENT-LOG `outcome: blocked, reason: infra` and stop.
 
@@ -161,17 +150,14 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ## Step 8 — LOCAL VALIDATION
 
-Before running validation, apply Prettier (or the stack-equivalent
-formatter) to the files you edited. New files and edits that cross the
-print-width boundary reliably trip `format:check` on the first pass,
-costing a full fix-cycle for a mechanical reformatting:
+Before running validation, apply Prettier to the files you edited. New
+files and edits that cross the print-width boundary reliably trip
+`format:check` on the first pass (seen across TASK-006, TASK-007, and
+TASK-010), costing a fix-cycle for a mechanical reformatting:
 
 ```bash
 npx prettier --write <every file you touched in Step 7>
 ```
-
-For non-Node stacks, substitute the equivalent: `black`, `ruff format`,
-`gofmt`, `rustfmt`, etc.
 
 Then run every workspace command from `project.json.commands`:
 
@@ -242,16 +228,16 @@ Then enable auto-merge:
 gh pr merge <num> --auto --squash --delete-branch
 ```
 
-## Step 10 — LOG + MAYBE REVIEW
+## Step 10 — LOG CYCLE
 
-Append to `AGENT-LOG.md` via the helper script `scripts/append-agent-log.sh`.
-The helper stamps a canonical `YYYY-MM-DD HH:MM` UTC timestamp, appends
-after the last existing `### Run` block, and normalises the trailing `---`
-separator — all invariants that `scripts/notify-cycle.sh`'s selector
-depends on. **Do not write the heading line by hand or use `Edit` / `Write`
-to prepend near the top of the file** — format drift there silently breaks
-notifications (the lexicographic-max selector falls back to a prior entry
-and ntfy pushes announce the wrong cycle).
+Append to `AGENT-LOG.md` via the helper script
+`scripts/append-agent-log.sh`. The helper stamps a canonical
+`YYYY-MM-DD HH:MM` UTC timestamp, appends after the last existing
+`### Run` block, and normalises the trailing `---` separator — all the
+invariants `scripts/notify-cycle.sh`'s selector depends on. **Do not
+write the heading line by hand or use `Edit` / `Write` to prepend near
+the top of the file** — format drift there silently breaks
+notifications.
 
 Feed the entry body (everything below the heading) via stdin:
 
@@ -263,23 +249,23 @@ scripts/append-agent-log.sh <<'EOF'
 - Test counts: <workspace>=<N>, <workspace>=<N>, ...
 - Files changed: <list>
 - Regression alert: <true if any count decreased, else false>
-- Review proposed: <true if success-threshold reached, else false>
-- Deploy: <filled in Step 13 if applicable>
+- Review proposed: <filled in Step 15 if applicable>
+- Deploy: <filled in Step 14 if applicable>
 - Tokens: <input>/<output>/<total> (cost: $<USD>)   # omit if CLI didn't expose it
 - Lessons learned: <optional free text>
 EOF
 ```
 
 The helper prints the heading it used (e.g. `### Run [2026-04-23 07:30]`)
-on stdout — capture it if Steps 11–13 need to amend the entry in place
-with `Edit`.
+on stdout — capture it if Steps 14 / 15 need to amend this entry in
+place with `Edit`.
 
 **Regression check:** run `scripts/regression-check.mjs` with the current
 test counts; it parses the previous `success` entry's counts from
 AGENT-LOG and compares per workspace.
 
 ```bash
-node scripts/regression-check.mjs 'core=938, content=181, web=551'
+node scripts/regression-check.mjs 'core=938, content=181, web=551, server=48, shared=18'
 ```
 
 The script emits JSON `{regressed, workspaces: {name: {prev, curr, delta}}, missingInCurrent}`
@@ -288,9 +274,15 @@ If exit=1, set `regression_alert: true` and outcome →
 `success_with_warning`. If exit=2, treat the comparison as not-applicable
 (first run of the cycle, fresh log) and leave `regression_alert: false`.
 
-**Review trigger:** count trailing consecutive `success` / `success_with_warning`
-entries. If `>= successThreshold` AND no REVIEW-LOG entry exists in that
-streak, invoke `/autonomous-review` (adds a PENDING.md + pauses cron).
+**Do NOT push the log entry to main yet.** Strict branch protection with
+required status checks means any commit pushed to main *between* enabling
+auto-merge (Step 9) and the PR actually landing puts the feature branch
+into `mergeStateStatus: BEHIND` and auto-merge stalls indefinitely. Stage
+the AGENT-LOG edit in the working tree here; Step 12 pushes it once the
+PR has merged (and `git pull origin main` has brought in its squash
+commit). The **review trigger is deliberately moved to Step 15 — AFTER
+deploy completes and its outcome is logged** so that `/autonomous-review`'s
+PR branch is created against the fully up-to-date main.
 
 **Cross-project mirror (autodev-mcp).** If the MCP server is configured
 in `.mcp.json` (connection name `autodev-mcp`), also mirror this cycle
@@ -310,11 +302,31 @@ tool errors (e.g. the MCP HTTP server is down), log a warning line and
 continue. Never fail the cycle over a cross-project mirror failure;
 the local `AGENT-LOG.md` remains the source of truth.
 
+## Step 11 — (no skill-side notification)
+
+**Do NOT fire any notification from this skill.** Notifications are
+handled entirely by the systemd wrapper (`claude-pirate-battle.service`),
+which runs `scripts/notify-cycle.sh` after this skill exits. That script
+reads the latest AGENT-LOG entry and pushes to ntfy.sh.
+
+If you invoke this skill interactively (not via systemd) and want a
+manual notification, run the script separately *after* the skill
+completes:
+
+```
+bash scripts/notify-cycle.sh
+```
+
+**The skill itself must never call notify-cycle.sh, never call
+PushNotification, never curl ntfy.sh.** Every such call from inside the
+cycle would duplicate the wrapper's push (both under systemd and
+interactively when you add a second call yourself).
+
 ---
 
-**Steps 11–13 only run if `deploy.autoDeployOnMerge: true`.**
+**Steps 12–14 only run if `deploy.autoDeployOnMerge: true`.**
 
-## Step 11 — WAIT FOR MERGE + DEPLOY
+## Step 12 — WAIT FOR MERGE + DEPLOY
 
 Poll for up to 10 minutes (120 * 5s) waiting for PR merge:
 
@@ -328,28 +340,70 @@ Once merged, pull main:
 git checkout main && git pull origin main
 ```
 
-Invoke the `/deploy` skill.
+Now push the deferred AGENT-LOG entry from Step 10 (the squash-merge is
+already on main, so this commit lands on top of it without racing the
+feature branch):
 
-If PR doesn't merge in 10 min (CI slow or failing): write AGENT-LOG
-`deploy: deferred, reason: pr_not_merged_in_time` and stop (next run picks up).
+```bash
+git add AGENT-LOG.md
+git commit -m "log: <TASK-ID> cycle entry (success, awaiting deploy)"
+git push origin main
+```
 
-## Step 12 — HEALTH CHECK
+Invoke the `/deploy` skill. After it returns, edit the same AGENT-LOG
+entry to fill in the `Deploy:` line with the outcome, then commit + push
+again:
+
+```bash
+git add AGENT-LOG.md
+git commit -m "log: <TASK-ID> deploy outcome (<success|rolled_back>)"
+git push origin main
+```
+
+If PR doesn't merge in 10 min (CI slow or failing): append the log entry
+to AGENT-LOG with `deploy: deferred, reason: pr_not_merged_in_time`,
+commit + push to main (the feature PR's auto-merge has given up by then,
+so the BEHIND race no longer applies), and stop (next run picks up).
+
+## Step 13 — HEALTH CHECK
 
 `/deploy` runs `scripts/healthcheck.sh` which polls `deploy.healthCheckUrl`
 until 200 OK or `healthCheckTimeoutSec` elapses.
 
-## Step 13 — ROLLBACK (if health fails)
+## Step 14 — ROLLBACK (if health fails)
 
 If health check times out:
 1. `/deploy` runs `scripts/rollback.sh` (restores previous image tag)
 2. Mark THIS TASK as `blocked` with `blocked_reason: "deploy failed health check"`
    on main (direct commit — exceptional case)
 3. Write AGENT-LOG `deploy: rolled_back`
-4. Send notification
+4. Update the PushNotification from Step 11 (or re-send) with the
+   `deploy.rolled_back` template from the table — this overrides the
+   success notification that was sent pre-deploy-check
 5. Do NOT cascade: other tasks are still pickupable. Next run proceeds.
+
+## Step 15 — MAYBE REVIEW (fires LAST so main is up to date)
+
+Count trailing consecutive `success` / `success_with_warning` entries in
+AGENT-LOG.md. If the count is `>= successThreshold` AND:
+- No REVIEW-LOG entry exists within that window
+- No open PR matches `auto/review-*`
+
+...then invoke `/autonomous-review`.
+
+This step runs **last** — after Steps 10–14 have pushed AGENT-LOG + deploy-
+outcome commits to main — so that the review skill's branch is created
+against the fully up-to-date main. This eliminates the `mergeStateStatus:
+BEHIND` race that otherwise stalls review PRs.
+
+`/autonomous-review` is responsible for its own auto-merge + BEHIND-handling
+(see its Steps 9 and 10). This skill just invokes it and returns.
+
+If the review was triggered: amend the AGENT-LOG entry from Step 10 to set
+`Review proposed: true` and include the review-PR number.
 
 ---
 
-## After Step 13 (or Step 10 if no deploy): done.
+## After Step 15 (or Step 11 if no deploy AND no review): done.
 
 Return control to the scheduler. Next fire will be on the configured cron.
