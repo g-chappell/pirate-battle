@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 6 (13%)
-- **Ready:** 41
-- **In progress:** 0
+- **Ready:** 40
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -102,7 +102,7 @@ implementation.
 
 - **STORY-03** — Battle engine v1 (deterministic, replay-able)
   > Pure-TS engine in packages/core: turn loop, action queue, swap-in, faint, 4-affinity type matrix, basic moves. Same seed → same outcome.
-  - :black_circle: **TASK-009** — Engine types + state shape (BattleState, Crew, Move, Action)  `high` `medium` _(packages/core)_  
+  - :large_orange_diamond: **TASK-009** — Engine types + state shape (BattleState, Crew, Move, Action)  `high` `medium` _(packages/core)_  
     _depends on: TASK-002_
     > packages/core/src/types.ts: TS types for BattleState (turn,
     > activeA, activeB, benchA, benchB, log, rngSeed, rngState),
