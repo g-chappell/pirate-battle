@@ -71,3 +71,15 @@ gaps.
 
 ---
 
+### Run [2026-05-08 14:07]
+- Task: TASK-007 — Prisma schema: users, captains, crews, moves, items
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/8
+- Test counts: server=0, web=0
+- Files changed: .gitignore, package-lock.json, packages/db/package.json, packages/db/prisma/schema.prisma, packages/db/prisma/seed.ts
+- Regression alert: false
+- Review proposed: false
+- Lessons learned: Prisma 6 emits a deprecation warn for `package.json#prisma` (migrate to prisma.config.ts in Prisma 7). Schema validates + generates without DATABASE_URL; migration deferred to TASK-008.
+
+---
+
