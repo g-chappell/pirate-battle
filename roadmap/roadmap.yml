@@ -172,7 +172,7 @@ epics:
 
           - id: TASK-008
             title: "Prisma schema: battles + battle_events + initial migration"
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces: ["packages/db"]
@@ -187,8 +187,8 @@ epics:
               Verify generated client compiles + exports the models.
               Export a configured PrismaClient from packages/db/src/index.ts.
             depends_on: ["TASK-007"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/9
+            completed: '2026-05-08T15:06:00Z'
             blocked_reason: null
             last_attempted: '2026-05-08T15:01:00Z'
             attempt_count: 1
