@@ -29,7 +29,8 @@
   "ghBin": "/usr/bin/gh",
   "schedule": {
     "cron": "0 * * * *",
-    "enabled": false
+    "enabled": true,
+    "executor": "systemd-timer:claude-pirate-battle.timer"
   },
   "host": {
     "method": "systemd",
