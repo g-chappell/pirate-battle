@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 4 (9%)
-- **Ready:** 43
-- **In progress:** 0
+- **Ready:** 42
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -76,7 +76,7 @@ implementation.
 
 - **STORY-02** — Postgres schema + Prisma migrations
   > packages/db with Prisma schema covering users, captains, crews, moves, items, battles, battle_events. Dev seed + migration workflow.
-  - :black_circle: **TASK-007** — Prisma schema: users, captains, crews, moves, items  `high` `medium` _(packages/db)_  
+  - :large_orange_diamond: **TASK-007** — Prisma schema: users, captains, crews, moves, items  `high` `medium` _(packages/db)_  
     _depends on: TASK-002_
     > packages/db/prisma/schema.prisma with models:
     > - User (id, stakeAddr unique nullable, createdAt)

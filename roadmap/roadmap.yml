@@ -148,7 +148,7 @@ epics:
         tasks:
           - id: TASK-007
             title: "Prisma schema: users, captains, crews, moves, items"
-            status: ready
+            status: in-progress
             priority: high
             complexity: medium
             workspaces: ["packages/db"]
@@ -167,8 +167,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-08T14:03:00Z'
+            attempt_count: 1
 
           - id: TASK-008
             title: "Prisma schema: battles + battle_events + initial migration"
