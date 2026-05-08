@@ -42,3 +42,19 @@ gaps.
 
 ---
 
+### Run [2026-05-08 12:09]
+- Task: TASK-003 — Scaffold apps/server (Fastify) with /health endpoint
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/6
+- Test counts: server=0 (vitest run --passWithNoTests; no test files yet)
+- Files changed: 6 (apps/server/{package.json, tsconfig.json, src/index.ts}; root package.json, tsconfig.json, package-lock.json)
+- Regression alert: false
+- Review proposed: false (success streak 2; threshold 5)
+- Deploy: deferred — Dockerfile still COPYs `apps/web/package.json` (line 13); `apps/web/` doesn't exist until TASK-004. `bash scripts/deploy.sh` exits 1 at build step; no containers started, nothing to roll back. Task NOT marked blocked — implementation is correct, deploy infra is one task ahead of source. Re-attempts when TASK-004 (apps/web scaffold) lands.
+- Lessons learned:
+  - Adding apps/* to root workspaces was a one-line change but required at TASK-003 since TASK-001 only included packages/* (apps/ directory didn't exist yet).
+  - Vitest 4 exits 1 on "no test files" without --passWithNoTests; future scaffold tasks that pre-include vitest should use the flag (or commit a single placeholder test) so first-run CI is green.
+  - Fastify 5 + tsx 4 + @types/node ^20 typecheck cleanly under composite NodeNext + verbatimModuleSyntax with zero extra config.
+
+---
+
