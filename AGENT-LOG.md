@@ -97,3 +97,16 @@ gaps.
 
 ---
 
+### Run [2026-05-08 17:09]
+- Task: TASK-009 — Engine types + state shape (BattleState, Crew, Move, Action)
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/11
+- Test counts: server=0, web=0
+- Files changed: packages/core/src/types.ts (new), packages/core/src/index.ts (re-exports)
+- Regression alert: false
+- Review proposed: pending Step 15
+- Deploy: awaiting Step 12
+- Lessons learned: started cycle on stale review branch with dirty AGENT-LOG referencing retired PENDING.md gate; cleaned up by discarding the stale entry and switching to main before Step 3
+
+---
+
