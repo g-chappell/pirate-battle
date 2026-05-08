@@ -220,7 +220,7 @@ epics:
 
           - id: TASK-010
             title: "Engine: turn loop + action queue + swap-in + faint"
-            status: ready
+            status: in-progress
             priority: high
             complexity: large
             workspaces: ["packages/core"]
@@ -237,8 +237,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-08T18:02:00Z'
+            attempt_count: 1
 
           - id: TASK-011
             title: "Engine: damage formula, accuracy, status effects, type matrix"

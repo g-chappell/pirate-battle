@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 7 (15%)
-- **Ready:** 40
-- **In progress:** 0
+- **Ready:** 39
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -111,7 +111,7 @@ implementation.
     > kind: damage/status/buff, statusEffect?), Action union (move,
     > switch, forfeit). Affinity union: 'kraken'|'ironclad'|'phantom'|
     > 'bloodborne'. No I/O. Export from src/index.ts.
-  - :black_circle: **TASK-010** — Engine: turn loop + action queue + swap-in + faint  `high` `large` _(packages/core)_  
+  - :large_orange_diamond: **TASK-010** — Engine: turn loop + action queue + swap-in + faint  `high` `large` _(packages/core)_  
     _depends on: TASK-009_
     > packages/core/src/engine.ts: pure functions resolveTurn(state,
     > actionA, actionB, rng) → newState. Order: switch actions
