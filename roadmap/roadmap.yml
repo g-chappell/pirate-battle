@@ -26,7 +26,7 @@ epics:
         tasks:
           - id: TASK-001
             title: "Init root package.json + npm workspaces + tsconfig.base.json"
-            status: in-progress
+            status: done
             priority: high
             complexity: small
             workspaces: ["root"]
@@ -38,15 +38,15 @@ epics:
               Add scripts: typecheck (tsc -b), test, lint, build, dev.
               Run npm install at root to generate package-lock.json.
             depends_on: []
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/4
+            completed: '2026-05-08T11:24:00Z'
             blocked_reason: null
             last_attempted: '2026-05-08T11:13:00Z'
             attempt_count: 1
 
           - id: TASK-002
             title: "Scaffold packages/{core,content,shared,db} with composite tsconfigs"
-            status: ready
+            status: done
             priority: high
             complexity: small
             workspaces: ["packages/core", "packages/content", "packages/shared", "packages/db"]
@@ -59,8 +59,8 @@ epics:
               respecting layering: core depends on nothing; content depends
               on core; shared depends on core; db is leaf.
             depends_on: ["TASK-001"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/4
+            completed: '2026-05-08T11:24:00Z'
             blocked_reason: null
             last_attempted: null
             attempt_count: 0

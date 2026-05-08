@@ -9,9 +9,9 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 0 (0%)
-- **Ready:** 46
-- **In progress:** 1
+- **Done:** 2 (4%)
+- **Ready:** 45
+- **In progress:** 0
 - **Blocked:** 0
 
 ---
@@ -28,14 +28,14 @@ implementation.
 
 - **STORY-01** — Monorepo scaffold + green CI
   > npm workspaces + TS project refs + skeleton apps + first green CI run that exercises real Node steps.
-  - :large_orange_diamond: **TASK-001** — Init root package.json + npm workspaces + tsconfig.base.json  `high` `small` _(root)_
+  - :white_check_mark: **TASK-001** — Init root package.json + npm workspaces + tsconfig.base.json  `high` `small` _(root)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/4)
     > Create root package.json (private, name "pirate-battle",
     > workspaces: ["apps/*", "packages/*"]), tsconfig.base.json
     > with strict mode + composite refs settings, and a root
     > tsconfig.json that references all workspaces.
     > Add scripts: typecheck (tsc -b), test, lint, build, dev.
     > Run npm install at root to generate package-lock.json.
-  - :black_circle: **TASK-002** — Scaffold packages/{core,content,shared,db} with composite tsconfigs  `high` `small` _(packages/core, packages/content, packages/shared, packages/db)_  
+  - :white_check_mark: **TASK-002** — Scaffold packages/{core,content,shared,db} with composite tsconfigs  `high` `small` _(packages/core, packages/content, packages/shared, packages/db)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/4)  
     _depends on: TASK-001_
     > For each of packages/core, packages/content, packages/shared,
     > packages/db: add package.json (name "@pirate-battle/<pkg>",
