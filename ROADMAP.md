@@ -9,8 +9,8 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 6 (13%)
-- **Ready:** 41
+- **Done:** 7 (15%)
+- **Ready:** 40
 - **In progress:** 0
 - **Blocked:** 0
 
@@ -102,7 +102,7 @@ implementation.
 
 - **STORY-03** — Battle engine v1 (deterministic, replay-able)
   > Pure-TS engine in packages/core: turn loop, action queue, swap-in, faint, 4-affinity type matrix, basic moves. Same seed → same outcome.
-  - :black_circle: **TASK-009** — Engine types + state shape (BattleState, Crew, Move, Action)  `high` `medium` _(packages/core)_  
+  - :white_check_mark: **TASK-009** — Engine types + state shape (BattleState, Crew, Move, Action)  `high` `medium` _(packages/core)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/11)  
     _depends on: TASK-002_
     > packages/core/src/types.ts: TS types for BattleState (turn,
     > activeA, activeB, benchA, benchB, log, rngSeed, rngState),
