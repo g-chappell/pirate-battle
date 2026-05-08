@@ -9,9 +9,9 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 7 (15%)
+- **Done:** 8 (17%)
 - **Ready:** 39
-- **In progress:** 1
+- **In progress:** 0
 - **Blocked:** 0
 
 ---
@@ -111,7 +111,7 @@ implementation.
     > kind: damage/status/buff, statusEffect?), Action union (move,
     > switch, forfeit). Affinity union: 'kraken'|'ironclad'|'phantom'|
     > 'bloodborne'. No I/O. Export from src/index.ts.
-  - :large_orange_diamond: **TASK-010** — Engine: turn loop + action queue + swap-in + faint  `high` `large` _(packages/core)_  
+  - :white_check_mark: **TASK-010** — Engine: turn loop + action queue + swap-in + faint  `high` `large` _(packages/core)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/12)  
     _depends on: TASK-009_
     > packages/core/src/engine.ts: pure functions resolveTurn(state,
     > actionA, actionB, rng) → newState. Order: switch actions
