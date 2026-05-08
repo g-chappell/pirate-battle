@@ -1,0 +1,62 @@
+# syntax=docker/dockerfile:1
+#
+# Multi-stage Dockerfile — language blocks below. Init skill uncomments the
+# block matching `project.json.language`.
+
+# ════════════════════════════════════════════════════════════════════════
+# {{LANGUAGE_BLOCK}}
+# ════════════════════════════════════════════════════════════════════════
+
+# ----- TypeScript / Node -----
+# FROM node:20-alpine AS builder
+# WORKDIR /app
+# COPY package*.json ./
+# RUN npm ci
+# COPY . .
+# RUN npm run build
+#
+# FROM node:20-alpine AS runtime
+# WORKDIR /app
+# ENV NODE_ENV=production
+# COPY package*.json ./
+# RUN npm ci --omit=dev
+# COPY --from=builder /app/dist ./dist
+# COPY --from=builder /app/public ./public
+# EXPOSE 3000
+# CMD ["node", "dist/server.js"]
+
+# ----- Python -----
+# FROM python:3.12-slim AS runtime
+# WORKDIR /app
+# COPY pyproject.toml ./
+# RUN pip install --no-cache-dir -e .
+# COPY . .
+# EXPOSE 8000
+# CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# ----- Go -----
+# FROM golang:1.22 AS builder
+# WORKDIR /app
+# COPY go.mod go.sum ./
+# RUN go mod download
+# COPY . .
+# RUN CGO_ENABLED=0 go build -o /app/bin/server ./cmd/server
+#
+# FROM gcr.io/distroless/base-debian12 AS runtime
+# WORKDIR /app
+# COPY --from=builder /app/bin/server /app/server
+# EXPOSE 8080
+# CMD ["/app/server"]
+
+# ----- Rust -----
+# FROM rust:1-slim AS builder
+# WORKDIR /app
+# COPY Cargo.toml Cargo.lock ./
+# RUN mkdir src && echo 'fn main(){}' > src/main.rs && cargo build --release && rm -rf src
+# COPY . .
+# RUN cargo build --release
+#
+# FROM debian:bookworm-slim AS runtime
+# COPY --from=builder /app/target/release/<binary> /usr/local/bin/app
+# EXPOSE 8080
+# CMD ["app"]

@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # {{SETUP_BLOCK}}
+      # Uncomment exactly one block below based on project.json.language.
+      # Init skill does this automatically; for manual setup, edit here.
+
+      # --- TypeScript / JavaScript ---
+      # - uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '20'
+      #     cache: 'npm'
+      # - run: npm ci
+
+      # --- Python ---
+      # - uses: actions/setup-python@v5
+      #   with:
+      #     python-version: '3.12'
+      #     cache: 'pip'
+      # - run: pip install -e ".[dev]"
+
+      # --- Go ---
+      # - uses: actions/setup-go@v5
+      #   with:
+      #     go-version: '1.22'
+      # - run: go mod download
+
+      # --- Rust ---
+      # - uses: actions-rust-lang/setup-rust-toolchain@v1
+      #   with:
+      #     toolchain: stable
+
+      # {{TYPECHECK_BLOCK}}
+      # --- TypeScript: use tsc -b (composite project validation), NOT --noEmit ---
+      # - name: Typecheck
+      #   run: npx tsc -b
+
+      # --- Python ---
+      # - name: Typecheck
+      #   run: mypy .
+
+      # --- Go ---
+      # - name: Typecheck
+      #   run: go vet ./...
+
+      # --- Rust ---
+      # - name: Typecheck
+      #   run: cargo check
+
+      # {{LINT_BLOCK}}
+      # Always run lint in CI — style drift is cheap to catch early.
+
+      # --- TypeScript ---
+      # - name: Lint
+      #   run: npx eslint .
+
+      # --- Python ---
+      # - name: Lint
+      #   run: ruff check .
+
+      # --- Go ---
+      # - name: Lint
+      #   run: go vet ./... # or golangci-lint if installed
+
+      # --- Rust ---
+      # - name: Lint
+      #   run: cargo clippy -- -D warnings
+
+      # {{TEST_BLOCK}}
+      # If the project has workspaces defined in .claude/project.json, consider
+      # a matrix; otherwise run test at the root.
+
+      # --- Single command ---
+      # - name: Test
+      #   run: npm test       # or pytest / go test ./... / cargo test
+
+      # --- Matrix (TypeScript monorepo example) ---
+      # strategy:
+      #   matrix:
+      #     workspace: [shared, server, client]
+      # - name: Test (${{ matrix.workspace }})
+      #   run: npm run test --workspace=${{ matrix.workspace }}
+
+      # {{BUILD_BLOCK}}
+
+      # --- TypeScript ---
+      # - name: Build
+      #   run: npm run build
+
+      # --- Python / Go / Rust: typically no separate build step for libs ---

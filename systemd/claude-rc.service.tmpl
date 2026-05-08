@@ -1,0 +1,32 @@
+[Unit]
+Description={{project_name}} — Claude Code Remote Control server (persistent)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/{{project_slug}}
+Environment=TERM=dumb
+# Persistent RC server. `--name {{project_slug}}-vps` is the session
+# label the mobile Claude app shows — slug-namespaced so multiple
+# autonomous-dev projects on one host show up as distinct entries.
+ExecStart=/root/.local/bin/claude remote-control --name "{{project_slug}}-vps" --spawn same-dir --verbose
+Restart=always
+RestartSec=15
+# Force periodic recycle to avoid relay-registration drift (mobile sees
+# the session but messages stop routing after ~11h). Systemd stops the
+# unit after this runtime, Restart=always brings it back fresh.
+RuntimeMaxSec=21600
+# Graceful stop so the RC can send a disconnect to the relay before dying,
+# preventing stale "offline" entries from accumulating in the mobile app.
+KillSignal=SIGINT
+TimeoutStopSec=10
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=false
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,50 @@
+{
+  "starterVersion": "0.1.0",
+  "project": {
+    "name": "Pirate-Battle",
+    "slug": "pirate-battle",
+    "created": "2026-05-08"
+  },
+  "language": "typescript",
+  "framework": "ts-monorepo",
+  "workspaces": [
+    "apps/web",
+    "apps/server",
+    "apps/discord",
+    "apps/mobile",
+    "packages/core",
+    "packages/content",
+    "packages/shared",
+    "packages/db"
+  ],
+  "commands": {
+    "typecheck": "tsc -b",
+    "test": "npm test --workspaces --if-present",
+    "lint": "eslint .",
+    "build": "npm run build --workspaces --if-present",
+    "dev": "npm run dev"
+  },
+  "branchPrefix": "auto/",
+  "successThreshold": 5,
+  "ghBin": "/usr/bin/gh",
+  "schedule": {
+    "cron": "0 */4 * * *",
+    "enabled": false
+  },
+  "host": {
+    "method": "systemd",
+    "serviceName": "claude-pirate-battle"
+  },
+  "deploy": {
+    "target": "",
+    "method": "docker",
+    "autoDeployOnMerge": false,
+    "healthCheckUrl": "http://localhost:3000/health",
+    "healthCheckTimeoutSec": 90,
+    "rollbackOnFail": true,
+    "strategy": "rolling"
+  },
+  "hooks": {
+    "timeoutSec": 60
+  }
+}

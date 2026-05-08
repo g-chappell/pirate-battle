@@ -1,0 +1,37 @@
+version: 1
+
+meta:
+  project: "{{project_name}}"
+  created: "{{iso_date}}"
+  branch_prefix: "auto/"
+  task_id_format: "TASK-{seq:03d}"
+
+epics: []
+# Populated by /pm-brainstorm + /roadmap-expand, or by /init-autonomous during setup.
+#
+# Example:
+#   - id: EPIC-01
+#     title: "First epic"
+#     description: |
+#       Short description of what this epic is about.
+#     stories:
+#       - id: STORY-01
+#         title: "A story under this epic"
+#         description: |
+#           Why this story exists.
+#         tasks:
+#           - id: TASK-001
+#             title: "A concrete task"
+#             status: ready           # ready | in-progress | done | blocked
+#             priority: high          # high | med | low
+#             complexity: small       # small | medium | large
+#             workspaces: []          # references .claude/project.json workspaces
+#             description: |
+#               Detailed enough that an agent can implement without
+#               re-interviewing the user.
+#             depends_on: []
+#             pr: null
+#             completed: null
+#             blocked_reason: null
+#             last_attempted: null
+#             attempt_count: 0

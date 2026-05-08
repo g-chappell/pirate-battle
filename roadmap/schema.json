@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Autonomous Dev Roadmap",
+  "type": "object",
+  "required": ["version", "meta", "epics"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "meta": {
+      "type": "object",
+      "required": ["project", "branch_prefix", "task_id_format"],
+      "properties": {
+        "project": { "type": "string", "minLength": 1 },
+        "created": { "type": ["string", "null"] },
+        "branch_prefix": { "type": "string", "minLength": 1 },
+        "task_id_format": { "type": "string", "minLength": 1 }
+      }
+    },
+    "epics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "stories"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^EPIC-[0-9A-Z-]+$" },
+          "title": { "type": "string", "minLength": 1 },
+          "description": { "type": ["string", "null"] },
+          "stories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "title", "tasks"],
+              "properties": {
+                "id": { "type": "string", "pattern": "^STORY-[0-9A-Z-]+$" },
+                "title": { "type": "string", "minLength": 1 },
+                "description": { "type": ["string", "null"] },
+                "tasks": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "title", "status", "priority", "complexity"],
+                    "properties": {
+                      "id": { "type": "string", "pattern": "^TASK-[0-9]+$" },
+                      "title": { "type": "string", "minLength": 1 },
+                      "status": { "enum": ["ready", "in-progress", "done", "blocked"] },
+                      "priority": { "enum": ["high", "med", "low"] },
+                      "complexity": { "enum": ["small", "medium", "large"] },
+                      "workspaces": { "type": "array", "items": { "type": "string" } },
+                      "description": { "type": ["string", "null"] },
+                      "depends_on": { "type": "array", "items": { "type": "string" } },
+                      "pr": { "type": ["string", "null"] },
+                      "completed": { "type": ["string", "null"] },
+                      "blocked_reason": { "type": ["string", "null"] },
+                      "last_attempted": { "type": ["string", "null"] },
+                      "attempt_count": { "type": "integer", "minimum": 0 }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

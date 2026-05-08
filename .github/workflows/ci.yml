@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # TypeScript monorepo (npm workspaces). Steps below are guarded so
+      # pre-scaffolding commits (init-autonomous Phase 3 → Phase 5) still go
+      # green; once a root package.json exists, the real pipeline runs.
+
+      - name: Detect package.json
+        id: pkg
+        run: |
+          if [ -f package.json ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No root package.json yet — skipping Node steps. Workspace scaffolding lands in /init-autonomous Phase 5."
+          fi
+
+      - name: Setup Node
+        if: steps.pkg.outputs.exists == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        if: steps.pkg.outputs.exists == 'true'
+        run: npm ci
+
+      - name: Typecheck
+        if: steps.pkg.outputs.exists == 'true'
+        run: npx tsc -b
+
+      - name: Lint
+        if: steps.pkg.outputs.exists == 'true'
+        run: npx eslint .
+
+      - name: Test
+        if: steps.pkg.outputs.exists == 'true'
+        run: npm test --workspaces --if-present
+
+      - name: Build
+        if: steps.pkg.outputs.exists == 'true'
+        run: npm run build --workspaces --if-present
