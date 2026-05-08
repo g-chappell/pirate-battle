@@ -67,7 +67,7 @@ epics:
 
           - id: TASK-003
             title: "Scaffold apps/server (Fastify) with /health endpoint"
-            status: ready
+            status: in-progress
             priority: high
             complexity: small
             workspaces: ["apps/server"]
@@ -81,8 +81,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-08T12:04:00Z'
+            attempt_count: 1
 
           - id: TASK-004
             title: "Scaffold apps/web (Vite + React) with placeholder route"
