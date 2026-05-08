@@ -220,7 +220,7 @@ epics:
 
           - id: TASK-010
             title: "Engine: turn loop + action queue + swap-in + faint"
-            status: ready
+            status: done
             priority: high
             complexity: large
             workspaces: ["packages/core"]
@@ -234,11 +234,11 @@ epics:
               (deterministic, no Math.random). Append BattleEvent objects to
               state.log. No mutation — return new state each call.
             depends_on: ["TASK-009"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/12
+            completed: '2026-05-08T18:24:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-08T18:02:00Z'
+            attempt_count: 1
 
           - id: TASK-011
             title: "Engine: damage formula, accuracy, status effects, type matrix"

@@ -10,6 +10,7 @@ export interface MoveDef {
   accuracy: number;
   kind: MoveKind;
   statusEffect?: string;
+  priority?: number;
 }
 
 export interface CrewSnapshot {
@@ -23,15 +24,34 @@ export interface CrewSnapshot {
   moves: MoveDef[];
 }
 
+export type Side = "A" | "B";
+
+export type BattleEvent =
+  | { kind: "switch"; side: Side; toIndex: number }
+  | {
+      kind: "move";
+      side: Side;
+      moveKey: string;
+      damage: number;
+      targetHpAfter: number;
+    }
+  | { kind: "faint"; side: Side }
+  | { kind: "swap_required"; side: Side }
+  | { kind: "forfeit"; side: Side }
+  | { kind: "victory"; side: Side };
+
 export interface BattleState {
   turn: number;
   activeA: CrewSnapshot;
   activeB: CrewSnapshot;
   benchA: CrewSnapshot[];
   benchB: CrewSnapshot[];
-  log: string[];
+  log: BattleEvent[];
   rngSeed: number;
   rngState: number;
+  pendingSwapA: boolean;
+  pendingSwapB: boolean;
+  winner: Side | null;
 }
 
 export type Action =
