@@ -28,7 +28,7 @@
   "successThreshold": 5,
   "ghBin": "/usr/bin/gh",
   "schedule": {
-    "cron": "0 */4 * * *",
+    "cron": "0 * * * *",
     "enabled": false
   },
   "host": {
