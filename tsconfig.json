@@ -4,6 +4,7 @@
     { "path": "./packages/core" },
     { "path": "./packages/content" },
     { "path": "./packages/shared" },
-    { "path": "./packages/db" }
+    { "path": "./packages/db" },
+    { "path": "./apps/server" }
   ]
 }

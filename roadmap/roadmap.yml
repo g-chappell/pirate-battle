@@ -67,7 +67,7 @@ epics:
 
           - id: TASK-003
             title: "Scaffold apps/server (Fastify) with /health endpoint"
-            status: ready
+            status: done
             priority: high
             complexity: small
             workspaces: ["apps/server"]
@@ -78,11 +78,11 @@ epics:
               { ok: true } on /health. dev script via tsx watch. start
               script via node dist/index.js. Build via tsc -b.
             depends_on: ["TASK-002"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/6
+            completed: '2026-05-08T12:09:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-08T12:04:00Z'
+            attempt_count: 1
 
           - id: TASK-004
             title: "Scaffold apps/web (Vite + React) with placeholder route"

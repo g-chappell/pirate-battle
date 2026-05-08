@@ -9,8 +9,8 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 2 (4%)
-- **Ready:** 45
+- **Done:** 3 (6%)
+- **Ready:** 44
 - **In progress:** 0
 - **Blocked:** 0
 
@@ -44,7 +44,7 @@ implementation.
     > Add cross-references in tsconfig.json `references` arrays
     > respecting layering: core depends on nothing; content depends
     > on core; shared depends on core; db is leaf.
-  - :black_circle: **TASK-003** — Scaffold apps/server (Fastify) with /health endpoint  `high` `small` _(apps/server)_  
+  - :white_check_mark: **TASK-003** — Scaffold apps/server (Fastify) with /health endpoint  `high` `small` _(apps/server)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/6)  
     _depends on: TASK-002_
     > apps/server with package.json (deps: fastify, dev: tsx, vitest,
     > @types/node), tsconfig.json (composite, references core +
