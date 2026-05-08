@@ -110,3 +110,16 @@ gaps.
 
 ---
 
+### Run [2026-05-08 18:24]
+- Task: TASK-010 — Engine: turn loop + action queue + swap-in + faint
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/12
+- Test counts: core=10, server=0, web=0
+- Files changed: packages/core/src/engine.ts (new), packages/core/src/engine.test.ts (new), packages/core/src/rng.ts (new), packages/core/src/types.ts, packages/core/src/index.ts, packages/core/package.json, packages/core/tsconfig.json
+- Regression alert: false
+- Review proposed: pending Step 15
+- Deploy: pending Step 12
+- Lessons learned: BattleEvent[] log replaces TASK-009's string[] placeholder; damage formula deliberately stubbed as basePower for TASK-011 to refine.
+
+---
+
