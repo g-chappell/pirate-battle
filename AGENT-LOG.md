@@ -92,7 +92,8 @@ gaps.
 - Files changed: packages/db/prisma/schema.prisma, packages/db/prisma/migrations/migration_lock.toml, packages/db/prisma/migrations/20260508150458_init/migration.sql, packages/db/src/index.ts
 - Regression alert: false
 - Review proposed: true
-- Lessons learned: prisma migrate dev requires a live DB; spun up a throwaway pg container on 127.0.0.1:55433 to generate the init migration deterministically without touching the deployed pg-1. Removed redundant @@index([battleId, idx]) since @@unique already provides the btree.
+- Deploy: success (image pirate-battle:latest, container pirate-battle-app-1 recreated, /health 200 on attempt 2)
+- Lessons learned: prisma migrate dev requires a live DB; spun up a throwaway pg container on 127.0.0.1:55433 to generate the init migration deterministically without touching the deployed pg-1. Removed redundant @@index([battleId, idx]) since @@unique already provides the btree. CI failed on first push because packages/db/generated/ is gitignored — added a `postinstall: prisma generate` to packages/db/package.json so npm ci regenerates the client on fresh checkouts.
 
 ---
 
