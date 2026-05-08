@@ -66,7 +66,7 @@ gaps.
 - Files changed: apps/web/package.json, apps/web/tsconfig.json, apps/web/tsconfig.app.json, apps/web/tsconfig.node.json, apps/web/vite.config.ts, apps/web/index.html, apps/web/src/main.tsx, apps/web/src/App.tsx, tsconfig.json, .gitignore, package-lock.json
 - Regression alert: false
 - Review proposed: false
-- Deploy: pending (about to invoke /deploy)
+- Deploy: success (image pirate-battle:latest, container pirate-battle-app-1, health http://localhost:3001/health → 200 {"ok":true})
 - Lessons learned: composite + noEmit don't compose; split tsconfig.json into solution + tsconfig.app.json (src) + tsconfig.node.json (vite.config) so app config can use bundler resolution + DOM types without pulling node types into React source.
 
 ---
