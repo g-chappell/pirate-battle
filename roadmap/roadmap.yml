@@ -86,7 +86,7 @@ epics:
 
           - id: TASK-004
             title: "Scaffold apps/web (Vite + React) with placeholder route"
-            status: ready
+            status: in-progress
             priority: high
             complexity: small
             workspaces: ["apps/web"]
@@ -101,8 +101,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-08T13:01:00Z'
+            attempt_count: 1
 
           - id: TASK-005
             title: "Scaffold apps/discord stub + apps/mobile placeholder"
