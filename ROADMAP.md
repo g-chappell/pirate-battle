@@ -9,8 +9,8 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 4 (9%)
-- **Ready:** 43
+- **Done:** 5 (11%)
+- **Ready:** 42
 - **In progress:** 0
 - **Blocked:** 0
 
@@ -76,7 +76,7 @@ implementation.
 
 - **STORY-02** — Postgres schema + Prisma migrations
   > packages/db with Prisma schema covering users, captains, crews, moves, items, battles, battle_events. Dev seed + migration workflow.
-  - :black_circle: **TASK-007** — Prisma schema: users, captains, crews, moves, items  `high` `medium` _(packages/db)_  
+  - :white_check_mark: **TASK-007** — Prisma schema: users, captains, crews, moves, items  `high` `medium` _(packages/db)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/8)  
     _depends on: TASK-002_
     > packages/db/prisma/schema.prisma with models:
     > - User (id, stakeAddr unique nullable, createdAt)

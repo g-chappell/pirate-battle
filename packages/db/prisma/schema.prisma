@@ -1,0 +1,74 @@
+// Pirate-Battle database schema (TASK-007: users, captains, crews, moves, items).
+// Battle + BattleEvent land in TASK-008 alongside the first migration.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  stakeAddr String?  @unique
+  createdAt DateTime @default(now())
+
+  captains Captain[]
+  items    Item[]
+}
+
+model Captain {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  factionId String
+  createdAt DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  crews Crew[]
+
+  @@index([userId])
+}
+
+model Crew {
+  id          String   @id @default(cuid())
+  captainId   String
+  templateKey String
+  level       Int      @default(1)
+  xp          Int      @default(0)
+  attrs       Json     @default("{}")
+  createdAt   DateTime @default(now())
+
+  captain Captain    @relation(fields: [captainId], references: [id], onDelete: Cascade)
+  moves   CrewMove[]
+
+  @@index([captainId])
+}
+
+model CrewMove {
+  id        String  @id @default(cuid())
+  crewId    String
+  moveKey   String
+  slot      Int
+  isLearned Boolean @default(true)
+
+  crew Crew @relation(fields: [crewId], references: [id], onDelete: Cascade)
+
+  @@unique([crewId, slot])
+  @@index([crewId])
+}
+
+model Item {
+  id          String @id @default(cuid())
+  ownerUserId String
+  templateKey String
+  qty         Int    @default(0)
+
+  owner User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerUserId, templateKey])
+  @@index([ownerUserId])
+}

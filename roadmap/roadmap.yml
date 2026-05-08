@@ -148,7 +148,7 @@ epics:
         tasks:
           - id: TASK-007
             title: "Prisma schema: users, captains, crews, moves, items"
-            status: ready
+            status: done
             priority: high
             complexity: medium
             workspaces: ["packages/db"]
@@ -164,11 +164,11 @@ epics:
               .gitignore. Add prisma/seed.ts placeholder. db
               connection from DATABASE_URL env.
             depends_on: ["TASK-002"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/8
+            completed: '2026-05-08T14:06:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-08T14:03:00Z'
+            attempt_count: 1
 
           - id: TASK-008
             title: "Prisma schema: battles + battle_events + initial migration"
