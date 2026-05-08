@@ -86,7 +86,7 @@ epics:
 
           - id: TASK-004
             title: "Scaffold apps/web (Vite + React) with placeholder route"
-            status: ready
+            status: done
             priority: high
             complexity: small
             workspaces: ["apps/web"]
@@ -98,11 +98,11 @@ epics:
               name + a "Connect wallet" placeholder. dev on port 5173.
               Build outputs to dist/.
             depends_on: ["TASK-002"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/7
+            completed: '2026-05-08T13:04:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-08T13:01:00Z'
+            attempt_count: 1
 
           - id: TASK-005
             title: "Scaffold apps/discord stub + apps/mobile placeholder"
