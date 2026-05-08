@@ -14,6 +14,9 @@ out/
 target/
 *.tsbuildinfo
 
+# Prisma — generated client; regenerated on `prisma generate`
+packages/db/generated/
+
 # Vite
 .vite/
 *.pyc
