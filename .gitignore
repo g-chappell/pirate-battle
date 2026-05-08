@@ -5,12 +5,17 @@
 
 # Build outputs
 dist/
+dist-types/
+dist-types-node/
 build/
 out/
 .next/
 .nuxt/
 target/
 *.tsbuildinfo
+
+# Vite
+.vite/
 *.pyc
 __pycache__/
 .pytest_cache/
