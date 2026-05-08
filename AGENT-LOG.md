@@ -26,3 +26,19 @@ gaps.
 ---
 
 ## Run History
+
+---
+
+### Run [2026-05-08 11:25]
+- Task: TASK-001 + TASK-002 — Init root package.json + npm workspaces + tsconfig.base.json (bundled with packages/* scaffold)
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/4
+- Test counts: core=0, content=0, shared=0, db=0
+- Files changed: 18 (root scaffold + 4 packages × {package.json, tsconfig.json, src/index.ts})
+- Regression alert: false (first cycle; no prior counts to compare)
+- Review proposed: false (success streak 1; threshold 5)
+- Deploy: pending Step 11
+- Lessons learned: TASK-001 cannot validate in isolation — `tsc -b` errors on empty references (TS18002) and `npm test --workspaces` errors when workspace globs match no packages. Bundled with TASK-002 (4 packages stubs) into one PR. STORY-01 will benefit from this fix to its task dep graph: future "scaffold" tasks should avoid the empty-reference / empty-glob trap.
+
+---
+
