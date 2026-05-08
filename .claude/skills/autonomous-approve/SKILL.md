@@ -1,136 +1,119 @@
 ---
 name: autonomous-approve
-description: Human approval gate for self-improvement proposals. Reads PENDING.md, opens it for editing, then applies accepted proposals to CLAUDE.md, archives PENDING.md to a dated file under approvals/, appends everything (approved + rejected) to approvals/history.md, and re-enables the scheduled task. Run after /autonomous-review drafts a PENDING.md.
+description: DEPRECATED — self-improvement approval is no longer gated. This skill now functions as a revert helper for rolling back a bad self-improvement refinement. Lists recent review PRs and walks you through `gh pr close` (pre-merge) or `gh pr revert` (post-merge) for the refinement you want out.
 user-invocable: true
 ---
 
-# /autonomous-approve
+# /autonomous-approve (DEPRECATED — revert helper only)
 
-Close the loop on a pending self-improvement review. The human reads each
-proposal, flips `approved: true/false`, saves, and runs this skill to apply.
+## What changed
 
-## Preconditions
+Previously this skill was the human approval gate for self-improvement
+proposals. It read `.claude/approvals/PENDING.md`, prompted you per-proposal,
+applied accepted ones to CLAUDE.md, and re-enabled the paused cron.
 
-- `.claude/approvals/PENDING.md` exists
-- The scheduled task is paused (`enabled: false`)
+**That flow is retired.** `/autonomous-review` now writes refinements
+directly to a branch + PR and enables auto-merge. The PR itself is the
+audit trail. The cron keeps firing. No filesystem gate.
 
-If PENDING.md doesn't exist: "No pending review — nothing to approve."
-If the task isn't paused: warn, but proceed (the human may have unpaused).
+This skill remains only as a convenience for reverting a bad refinement.
+
+## When to use
+
+- You saw a `🔄 review PR #N opened` push notification
+- You inspected PR #N and don't want some (or all) of its refinements
+- You want a guided revert instead of raw git / gh commands
 
 ## Steps
 
-### 1. Open PENDING.md
-
-Show the user the current state of PENDING.md and ask:
-
-```
-Open PENDING.md in your editor and flip `approved: true/false` on each
-proposal. Save the file, then say 'ready' here.
-
-(Or: 'auto' to accept all; 'reject-all' to reject all; 'abort' to cancel.)
-```
-
-Support three shortcuts beyond manual editing:
-- `auto` — treat every proposal as approved (rare — only if user trusts the batch blindly)
-- `reject-all` — treat every proposal as rejected
-- `abort` — leave PENDING.md in place, don't modify anything else, stop
-
-### 2. Parse the user's edits
-
-Re-read PENDING.md. Parse each `### PROP-*` block. Extract `approved:` per
-proposal. Validate that at least the top-level `approved:` or each
-proposal's `approved:` is set (we require per-proposal to be explicit).
-
-### 3. Apply approved proposals to CLAUDE.md
-
-For each proposal with `approved: true`:
-- Find the right section in CLAUDE.md (the `section:` field names it)
-- Append the content (not replace) to that section
-- Preserve section order; never touch Tier 1 (Universal rules — frozen)
-- Use 2-newline spacing between additions
-- Preview the full CLAUDE.md diff back to the user; ask final confirmation
-
-### 4. Append to approvals/history.md
-
-For **every** proposal (approved AND rejected), append to
-`.claude/approvals/history.md`:
-
-```markdown
-### PROP-2026-04-20-01
-- reviewed: 2026-04-20T14:00:00Z
-- status: approved
-- section: Testing patterns
-- content: |
-    <the exact proposed text>
-
-### PROP-2026-04-20-02
-- reviewed: 2026-04-20T14:15:00Z
-- status: rejected
-- section: Architecture notes
-- content: |
-    <the exact proposed text>
-```
-
-This is the de-dup source for future reviews. Both approved AND rejected
-items must land here so they never get re-proposed.
-
-### 5. Archive PENDING.md
-
-Move `PENDING.md` → `.claude/approvals/<ISO-timestamp>.md` (e.g.
-`2026-04-20T14-30.md`). This preserves the full review context (streak, basis
-runs, draft text) in git history.
-
-### 6. Re-enable the scheduled task
-
-```
-mcp__scheduled-tasks__update_scheduled_task({
-  taskId: "autonomous-run-<slug>",
-  enabled: true
-})
-```
-
-### 7. Commit + push
-
-All the changes (CLAUDE.md, history.md, archived PENDING.md) are in-repo
-artifacts. Commit on a dedicated branch and open a PR:
+### 1. Find the target refinement
 
 ```bash
-git checkout -b approvals/<date>-review
-git add CLAUDE.md .claude/approvals/
-git commit -m "review: apply N of M approved proposals ($(date +%Y-%m-%d))"
-git push -u origin HEAD
-gh pr create --title "Review $(date +%Y-%m-%d): apply approved proposals" \
-             --body "..."
-gh pr merge --auto --squash
+# Recent review PRs (open + merged)
+gh pr list --search "review: self-improvement" --state all --limit 10 \
+    --json number,state,mergedAt,title
 ```
 
-### 8. Confirm
+### 2. Decide the scope
 
+| Goal | Command |
+|---|---|
+| Block an entire review PR before merge | `gh pr close <num> --comment "<reason>"` |
+| Revert an entire merged review PR | `gh pr revert <num>` — opens a revert PR |
+| Keep most of a review PR but drop one refinement | see below |
+
+Because this repo uses squash-merges, a merged review PR collapses to one
+commit on main. `gh pr revert` is the right tool — it opens a clean
+revert PR you can merge like any other PR.
+
+### 3. Walk-through: revert a merged review
+
+```bash
+# 1. Confirm the PR number
+gh pr list --search "review:" --state merged --limit 5 \
+    --json number,title,mergedAt
+
+# 2. Open a revert PR
+gh pr revert <num>
+
+# 3. Check the revert PR, then:
+gh pr merge <revert-pr-num> --auto --squash --delete-branch
 ```
-Review complete.
- - N proposals approved and added to CLAUDE.md
- - M proposals rejected
- - All logged to approvals/history.md
- - PENDING.md archived to approvals/<timestamp>.md
- - Scheduled task re-enabled (next run in ~<time>)
- - PR opened: <url>
+
+Next autonomous-run cycle proceeds on top of the reverted state.
+
+### 4. Walk-through: close an open review before it auto-merges
+
+If the review PR is still open (CI running or waiting on something):
+
+```bash
+gh pr close <num> --comment "Closing — refinement X is incorrect because Y."
 ```
 
-## Edge cases
+Optionally record the rejection so `/autonomous-review` doesn't re-propose:
 
-- **User sets top-level `approved: false`**: treat all proposals as
-  rejected; archive anyway; re-enable cron.
-- **User doesn't set any approved field**: ask again; do not guess.
-- **User types `abort`**: leave PENDING.md; do NOT archive; do NOT re-enable
-  cron. Next `autonomous-run` will still see the pending review and skip.
-- **CLAUDE.md section doesn't exist**: create the section; warn the user.
-- **PENDING.md malformed YAML**: show the parse error and ask the user to fix.
-- **Cron re-enable via MCP fails**: print the error; ask user to run
-  `mcp__scheduled-tasks__update_scheduled_task({ enabled: true })` manually.
+```bash
+cat >> .claude/approvals/history.md <<EOF
+---
+rejected_at: $(date -Iseconds)
+pr: <num>
+reason: Y
+content: |
+  <one-line summary of the bad refinement>
+EOF
+git add .claude/approvals/history.md
+git commit -m "approvals: record rejection of PR #<num> (<one-line reason>)"
+git push origin main
+```
 
-## Not this skill's job
+### 5. Keep-most, drop-one refinement from a review PR
 
-- Drafting proposals → `/autonomous-review` did that
-- Running the next autonomous run → the cron will fire
-- Reverting a previously approved proposal → edit CLAUDE.md manually
-  (also consider adding a `never_propose` entry to `history.md`)
+If an open PR has N refinements but only 1 is bad:
+
+```bash
+# Check out the branch
+gh pr checkout <pr-num>
+
+# Identify the specific commit for the bad refinement
+git log --oneline main..HEAD
+
+# Revert just that commit on the branch
+git revert <bad-sha>
+git push
+```
+
+The PR updates automatically. Good refinements stay; the bad one is
+reverted before merge.
+
+## What this skill does NOT do
+
+- Touch `.claude/approvals/PENDING.md` — that file is retired; delete if
+  it exists from an old install
+- Pause or re-enable the cron — that's `systemctl {start,stop} claude-pirate-battle.timer`
+- Talk to the Claude.ai scheduled-tasks MCP — retired
+
+## Related
+
+- `/autonomous-review` — drafts + ships self-improvement PRs
+- `/autonomous-run` — the hourly cycle; invokes `/autonomous-review` on the 5th success
+- Stop the agent entirely: `systemctl stop claude-pirate-battle.timer`
