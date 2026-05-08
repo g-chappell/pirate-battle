@@ -1,0 +1,46 @@
+# `name:` makes compose use the project slug as the container-name prefix
+# (e.g. `pirate-battle-app-1`) rather than the parent directory name
+# (`docker-app-1`). Critical when multiple autonomous-dev projects share
+# one host — without this, every project's compose collides on the same
+# container names.
+name: pirate-battle
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: pirate-battle:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    env_file: ../.env
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3001/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # not exposed publicly — access via app only
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  db-data:
