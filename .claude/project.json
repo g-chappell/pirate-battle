@@ -33,13 +33,16 @@
   },
   "host": {
     "method": "systemd",
-    "serviceName": "claude-pirate-battle"
+    "serviceName": "claude-pirate-battle",
+    "vpsHostname": "srv1604573.hstgr.cloud",
+    "vpsPublicIp": "72.61.207.12"
   },
   "deploy": {
-    "target": "",
+    "target": "pirate-battle.blacksail.dev",
     "method": "docker",
-    "autoDeployOnMerge": false,
-    "healthCheckUrl": "http://localhost:3000/health",
+    "autoDeployOnMerge": true,
+    "appPort": 3001,
+    "healthCheckUrl": "http://localhost:3001/health",
     "healthCheckTimeoutSec": 90,
     "rollbackOnFail": true,
     "strategy": "rolling"

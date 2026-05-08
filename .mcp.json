@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-mcp.json",
+  "mcpServers": {
+    "autodev-mcp": {
+      "command": "node",
+      "args": ["/opt/autodev-mcp/dist/mcp/server.js"],
+      "env": {
+        "DB_PATH": "/opt/autodev-mcp/var/autodev.db"
+      }
+    }
+  }
+}
