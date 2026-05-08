@@ -84,3 +84,15 @@ gaps.
 
 ---
 
+### Run [2026-05-08 15:06]
+- Task: TASK-008 — Prisma schema: battles + battle_events + initial migration
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/9
+- Test counts: server=0, web=0
+- Files changed: packages/db/prisma/schema.prisma, packages/db/prisma/migrations/migration_lock.toml, packages/db/prisma/migrations/20260508150458_init/migration.sql, packages/db/src/index.ts
+- Regression alert: false
+- Review proposed: true
+- Lessons learned: prisma migrate dev requires a live DB; spun up a throwaway pg container on 127.0.0.1:55433 to generate the init migration deterministically without touching the deployed pg-1. Removed redundant @@index([battleId, idx]) since @@unique already provides the btree.
+
+---
+
