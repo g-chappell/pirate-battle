@@ -37,7 +37,7 @@ gaps.
 - Files changed: 18 (root scaffold + 4 packages × {package.json, tsconfig.json, src/index.ts})
 - Regression alert: false (first cycle; no prior counts to compare)
 - Review proposed: false (success streak 1; threshold 5)
-- Deploy: pending Step 11
+- Deploy: deferred — Dockerfile COPYs apps/server/package.json + apps/web/package.json (lines 12-13), neither directory exists until TASK-003 / TASK-004. `bash scripts/deploy.sh` exits 1 cleanly at build step; no containers started, nothing to roll back. Task NOT marked blocked — implementation is correct, deploy infra is just ahead of source. Re-attempts when TASK-003 (apps/server scaffold) lands.
 - Lessons learned: TASK-001 cannot validate in isolation — `tsc -b` errors on empty references (TS18002) and `npm test --workspaces` errors when workspace globs match no packages. Bundled with TASK-002 (4 packages stubs) into one PR. STORY-01 will benefit from this fix to its task dep graph: future "scaffold" tasks should avoid the empty-reference / empty-glob trap.
 
 ---
