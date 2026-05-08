@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 5 (11%)
-- **Ready:** 42
-- **In progress:** 0
+- **Ready:** 41
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -88,7 +88,7 @@ implementation.
     > Generator output to packages/db/generated/client. Add to
     > .gitignore. Add prisma/seed.ts placeholder. db
     > connection from DATABASE_URL env.
-  - :black_circle: **TASK-008** — Prisma schema: battles + battle_events + initial migration  `high` `medium` _(packages/db)_  
+  - :large_orange_diamond: **TASK-008** — Prisma schema: battles + battle_events + initial migration  `high` `medium` _(packages/db)_  
     _depends on: TASK-007_
     > Add to schema.prisma:
     > - Battle (id, mode (PvE/PvP/AI), participantA/B userIds,
