@@ -79,6 +79,7 @@ gaps.
 - Files changed: .gitignore, package-lock.json, packages/db/package.json, packages/db/prisma/schema.prisma, packages/db/prisma/seed.ts
 - Regression alert: false
 - Review proposed: false
+- Deploy: success (image pirate-battle:latest rebuilt, /health 200 on attempt 2)
 - Lessons learned: Prisma 6 emits a deprecation warn for `package.json#prisma` (migrate to prisma.config.ts in Prisma 7). Schema validates + generates without DATABASE_URL; migration deferred to TASK-008.
 
 ---
