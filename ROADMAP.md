@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 0 (0%)
-- **Ready:** 47
-- **In progress:** 0
+- **Ready:** 46
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -28,7 +28,7 @@ implementation.
 
 - **STORY-01** — Monorepo scaffold + green CI
   > npm workspaces + TS project refs + skeleton apps + first green CI run that exercises real Node steps.
-  - :black_circle: **TASK-001** — Init root package.json + npm workspaces + tsconfig.base.json  `high` `small` _(root)_
+  - :large_orange_diamond: **TASK-001** — Init root package.json + npm workspaces + tsconfig.base.json  `high` `small` _(root)_
     > Create root package.json (private, name "pirate-battle",
     > workspaces: ["apps/*", "packages/*"]), tsconfig.base.json
     > with strict mode + composite refs settings, and a root
