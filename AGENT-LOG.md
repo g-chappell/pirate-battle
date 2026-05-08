@@ -105,7 +105,7 @@ gaps.
 - Files changed: packages/core/src/types.ts (new), packages/core/src/index.ts (re-exports)
 - Regression alert: false
 - Review proposed: pending Step 15
-- Deploy: awaiting Step 12
+- Deploy: success (health 200, rolling, container recreated)
 - Lessons learned: started cycle on stale review branch with dirty AGENT-LOG referencing retired PENDING.md gate; cleaned up by discarding the stale entry and switching to main before Step 3
 
 ---
