@@ -9,9 +9,9 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 3 (6%)
+- **Done:** 4 (9%)
 - **Ready:** 43
-- **In progress:** 1
+- **In progress:** 0
 - **Blocked:** 0
 
 ---
@@ -51,7 +51,7 @@ implementation.
     > shared + db), src/index.ts with a Fastify instance returning
     > { ok: true } on /health. dev script via tsx watch. start
     > script via node dist/index.js. Build via tsc -b.
-  - :large_orange_diamond: **TASK-004** — Scaffold apps/web (Vite + React) with placeholder route  `high` `small` _(apps/web)_  
+  - :white_check_mark: **TASK-004** — Scaffold apps/web (Vite + React) with placeholder route  `high` `small` _(apps/web)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/7)  
     _depends on: TASK-002_
     > apps/web with package.json (deps: react, react-dom; devDeps:
     > vite, @vitejs/plugin-react, @types/react, vitest), vite.config.ts,
