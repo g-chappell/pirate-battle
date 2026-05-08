@@ -1,5 +1,4 @@
-// Pirate-Battle database schema (TASK-007: users, captains, crews, moves, items).
-// Battle + BattleEvent land in TASK-008 alongside the first migration.
+// Pirate-Battle database schema.
 
 generator client {
   provider = "prisma-client-js"
@@ -11,13 +10,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum BattleMode {
+  PVE
+  PVP
+  AI
+}
+
 model User {
   id        String   @id @default(cuid())
   stakeAddr String?  @unique
   createdAt DateTime @default(now())
 
-  captains Captain[]
-  items    Item[]
+  captains       Captain[]
+  items          Item[]
+  battlesAsA     Battle[]  @relation("BattleParticipantA")
+  battlesAsB     Battle[]  @relation("BattleParticipantB")
 }
 
 model Captain {
@@ -71,4 +78,34 @@ model Item {
 
   @@unique([ownerUserId, templateKey])
   @@index([ownerUserId])
+}
+
+model Battle {
+  id             String     @id @default(cuid())
+  mode           BattleMode
+  participantAId String
+  participantBId String?
+  resultJson     Json?
+  seed           Bytes
+  startedAt      DateTime   @default(now())
+  endedAt        DateTime?
+
+  participantA User          @relation("BattleParticipantA", fields: [participantAId], references: [id], onDelete: Cascade)
+  participantB User?         @relation("BattleParticipantB", fields: [participantBId], references: [id], onDelete: SetNull)
+  events       BattleEvent[]
+
+  @@index([participantAId])
+  @@index([participantBId])
+}
+
+model BattleEvent {
+  id          String @id @default(cuid())
+  battleId    String
+  idx         Int
+  kindStr     String
+  payloadJson Json
+
+  battle Battle @relation(fields: [battleId], references: [id], onDelete: Cascade)
+
+  @@unique([battleId, idx])
 }
