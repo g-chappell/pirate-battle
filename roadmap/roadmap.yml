@@ -566,7 +566,7 @@ epics:
         tasks:
           - id: TASK-025
             title: "Server: Blockfrost client + allow-list config + NFT fetch"
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces: ["apps/server", "packages/db"]
@@ -579,8 +579,8 @@ epics:
               NftSnapshot table (Prisma migration) keyed (userId,
               fetchedAt) with 5-min freshness window before refetch.
             depends_on: ["TASK-008", "TASK-023"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/28
+            completed: '2026-05-09T23:13:00Z'
             blocked_reason: null
             last_attempted: '2026-05-09T23:05:00Z'
             attempt_count: 1

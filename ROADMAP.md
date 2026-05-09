@@ -9,9 +9,9 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 20 (43%)
+- **Done:** 21 (45%)
 - **Ready:** 26
-- **In progress:** 1
+- **In progress:** 0
 - **Blocked:** 0
 
 ---
@@ -265,7 +265,7 @@ Free starter remains usable; NFT crews add to the available roster.
     > network mismatch, signature failed.
 
 - **STORY-09** — NFT discovery service (Blockfrost) with allow-list + caching
-  - :large_orange_diamond: **TASK-025** — Server: Blockfrost client + allow-list config + NFT fetch  `high` `medium` _(apps/server, packages/db)_  
+  - :white_check_mark: **TASK-025** — Server: Blockfrost client + allow-list config + NFT fetch  `high` `medium` _(apps/server, packages/db)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/28)  
     _depends on: TASK-008, TASK-023_
     > apps/server/src/cardano/blockfrost.ts: typed wrapper around
     > @blockfrost/blockfrost-js using BLOCKFROST_PROJECT_ID +
