@@ -23,6 +23,18 @@ export interface CreateCaptainInput {
   crews: readonly CreateCaptainCrewInput[];
 }
 
+export interface CaptainTeamCrew {
+  templateKey: string;
+  moveKeys: string[];
+}
+
+export interface CaptainTeam {
+  id: string;
+  name: string;
+  factionId: string;
+  crews: CaptainTeamCrew[];
+}
+
 export interface UserStore {
   createAnonymous(): Promise<UserSummary>;
   findById(id: string): Promise<UserSummary | null>;
@@ -30,6 +42,10 @@ export interface UserStore {
     userId: string,
     input: CreateCaptainInput,
   ): Promise<CaptainSummary | null>;
+  getCaptainTeam(
+    userId: string,
+    captainId: string,
+  ): Promise<CaptainTeam | null>;
 }
 
 export class PrismaUserStore implements UserStore {
@@ -88,6 +104,31 @@ export class PrismaUserStore implements UserStore {
     });
     return captain;
   }
+
+  async getCaptainTeam(
+    userId: string,
+    captainId: string,
+  ): Promise<CaptainTeam | null> {
+    const captain = await this.prisma.captain.findUnique({
+      where: { id: captainId },
+      include: {
+        crews: {
+          orderBy: { createdAt: "asc" },
+          include: { moves: { orderBy: { slot: "asc" } } },
+        },
+      },
+    });
+    if (!captain || captain.userId !== userId) return null;
+    return {
+      id: captain.id,
+      name: captain.name,
+      factionId: captain.factionId,
+      crews: captain.crews.map((c) => ({
+        templateKey: c.templateKey,
+        moveKeys: c.moves.map((m) => m.moveKey),
+      })),
+    };
+  }
 }
 
 interface InMemoryCrew {
@@ -145,6 +186,23 @@ export class InMemoryUserStore implements UserStore {
       factionId: captain.factionId,
     });
     return { id: captain.id, name: captain.name, factionId: captain.factionId };
+  }
+
+  async getCaptainTeam(
+    userId: string,
+    captainId: string,
+  ): Promise<CaptainTeam | null> {
+    const captain = this.captains.get(captainId);
+    if (!captain || captain.userId !== userId) return null;
+    return {
+      id: captain.id,
+      name: captain.name,
+      factionId: captain.factionId,
+      crews: captain.crews.map((c) => ({
+        templateKey: c.templateKey,
+        moveKeys: [...c.moveKeys],
+      })),
+    };
   }
 
   getCaptain(id: string): InMemoryCaptain | undefined {

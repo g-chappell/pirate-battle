@@ -1,6 +1,7 @@
 import { CREWS } from "@pirate-battle/content";
 import { describe, expect, it } from "vitest";
 
+import { InMemoryBattleStore } from "../battleStore.js";
 import { buildServer } from "../index.js";
 import { InMemoryUserStore } from "../userStore.js";
 import { TEAM_SIZE } from "./captain.js";
@@ -8,9 +9,11 @@ import { SESSION_COOKIE_NAME } from "./session.js";
 
 function makeApp() {
   const userStore = new InMemoryUserStore();
+  const battleStore = new InMemoryBattleStore();
   const app = buildServer({
     sessionSecret: "test-secret-not-used-in-prod",
     userStore,
+    battleStore,
     logger: false,
   });
   return { app, userStore };

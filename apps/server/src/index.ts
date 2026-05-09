@@ -1,6 +1,12 @@
 import fastifyCookie from "@fastify/cookie";
 import Fastify, { type FastifyInstance } from "fastify";
 
+import {
+  InMemoryBattleStore,
+  PrismaBattleStore,
+  type BattleStore,
+} from "./battleStore.js";
+import { battleRoutes } from "./routes/battle.js";
 import { captainRoutes } from "./routes/captain.js";
 import { sessionRoutes } from "./routes/session.js";
 import {
@@ -12,6 +18,8 @@ import {
 export interface BuildServerOptions {
   sessionSecret: string;
   userStore: UserStore;
+  battleStore: BattleStore;
+  seedFactory?: () => number;
   logger?: boolean;
 }
 
@@ -24,12 +32,22 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
 
   app.register(sessionRoutes, { userStore: opts.userStore });
   app.register(captainRoutes, { userStore: opts.userStore });
+  app.register(battleRoutes, {
+    userStore: opts.userStore,
+    battleStore: opts.battleStore,
+    seedFactory: opts.seedFactory,
+  });
 
   return app;
 }
 
-export { InMemoryUserStore, PrismaUserStore };
-export type { UserStore };
+export {
+  InMemoryUserStore,
+  PrismaUserStore,
+  InMemoryBattleStore,
+  PrismaBattleStore,
+};
+export type { UserStore, BattleStore };
 
 const isMain = import.meta.url === `file://${process.argv[1]}`;
 if (isMain) {
@@ -43,9 +61,11 @@ if (isMain) {
   const host = process.env.HOST ?? "0.0.0.0";
 
   const { getPrisma } = await import("@pirate-battle/db");
-  const userStore = new PrismaUserStore(getPrisma());
+  const prismaClient = getPrisma();
+  const userStore = new PrismaUserStore(prismaClient);
+  const battleStore = new PrismaBattleStore(prismaClient);
 
-  const app = buildServer({ sessionSecret, userStore });
+  const app = buildServer({ sessionSecret, userStore, battleStore });
   app.listen({ port, host }).catch((err) => {
     app.log.error(err);
     process.exit(1);
