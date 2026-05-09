@@ -136,3 +136,16 @@ gaps.
 
 ---
 
+### Run [2026-05-09 12:25]
+- Task: TASK-012 — Engine determinism unit tests (Vitest)
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/15
+- Test counts: core=34, server=0, web=0
+- Files changed: packages/core/src/determinism.test.ts (new), packages/core/vitest.config.ts (new)
+- Regression alert: false
+- Review proposed: pending Step 15
+- Deploy: pending Step 12
+- Lessons learned: existing engine.test.ts already had a 2-run determinism check; the new file scales it to 100 runs across the four canonical scenarios so any rng-tuning change is caught early. Workspace-level vitest.config.ts makes the include glob explicit so future `**/*.spec.ts` additions don't silently drift.
+
+---
+
