@@ -111,6 +111,7 @@ pirate-battle/
 - **Blockfrost** is mocked at module boundary in CI. Never hit the real API in tests; rate limits and flakes will bite.
 - **Discord bot** tests mock the discord.js client at module boundary; never connect to real Discord in CI.
 - **Web client integration** uses Playwright over the Vite dev build. Phaser scene logic is tested at the `packages/core` level (pure TS); only assertions about *rendering* belong in Playwright.
+- **Pure-TS view-derivation modules.** Web React components and Phaser scenes paired with non-trivial logic (selection state, log formatting, option-list derivation, per-side filtering) split that logic into a companion `*.ts` module with a `*.test.ts` Vitest suite. The `.tsx` / scene file is a thin renderer over those derivations. This keeps Vitest covering behaviour without spinning up jsdom or a Phaser game instance, and matches the established split: `teamBuilder.ts` ↔ `TeamBuilder.tsx`, `phaser/affinity.ts` ↔ `phaser/affinity.test.ts`, `battleView.ts` ↔ `BattleView.tsx`.
 
 ## Architecture notes
 
