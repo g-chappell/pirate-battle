@@ -1,3 +1,5 @@
+import type { Action, BattleState } from "@pirate-battle/core";
+
 export interface CaptainSummary {
   id: string;
   name: string;
@@ -14,6 +16,10 @@ export interface CreateCaptainPayload {
   name: string;
   factionId: string;
   crewTemplateKeys: string[];
+}
+
+export interface BattleActionResponse {
+  state: BattleState;
 }
 
 export class ApiError extends Error {
@@ -75,4 +81,18 @@ export async function createCaptain(
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload),
   });
+}
+
+export async function submitBattleAction(
+  battleId: string,
+  action: Action,
+): Promise<BattleActionResponse> {
+  return request<BattleActionResponse>(
+    `/api/battle/${encodeURIComponent(battleId)}/action`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(action),
+    },
+  );
 }
