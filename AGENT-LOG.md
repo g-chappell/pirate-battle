@@ -214,3 +214,14 @@ gaps.
 
 ---
 
+### Run [2026-05-09 18:09]
+- Task: TASK-018 — Web: BattleScene HP bars + move menu + swap UI
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/22
+- Test counts: core=34, content=17, web=27, server=12
+- Files changed: apps/web/src/api.ts, apps/web/src/battleView.ts, apps/web/src/battleView.test.ts, apps/web/src/BattleView.tsx
+- Regression alert: false
+- Lessons learned: HP bars already shipped with TASK-017 (Phaser rectangles drawn from CrewSnapshot.hp/maxHp); the remaining ask was the React DOM chrome — kept move-menu/swap/turn-log as React DOM panels and isolated their derivations into a pure battleView.ts module so they're trivially Vitest-tested without DOM.
+
+---
+
