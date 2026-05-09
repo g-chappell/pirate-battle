@@ -313,7 +313,7 @@ epics:
 
           - id: TASK-014
             title: "Author 8 starter crews (2 per faction) with stats + 4 moves each"
-            status: ready
+            status: in-progress
             priority: high
             complexity: medium
             workspaces: ["packages/content"]
@@ -328,8 +328,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-09T14:01:00Z'
+            attempt_count: 1
 
   # ──────────────────────────────────────────────────────────────────────
   - id: EPIC-02

@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 11 (23%)
-- **Ready:** 36
-- **In progress:** 0
+- **Ready:** 35
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -155,7 +155,7 @@ implementation.
     > bloodborne (e.g. Cutlass Combo, Boarding Charge, Berserk, Last
     > Stand). Mix damage / status / buff per affinity. Cite OTK
     > lore where applicable; mark [DRAFT] for unconfirmed flavour.
-  - :black_circle: **TASK-014** — Author 8 starter crews (2 per faction) with stats + 4 moves each  `high` `medium` _(packages/content)_  
+  - :large_orange_diamond: **TASK-014** — Author 8 starter crews (2 per faction) with stats + 4 moves each  `high` `medium` _(packages/content)_  
     _depends on: TASK-013_
     > packages/content/src/crews.ts: 8 starter crew templates,
     > keyed by templateKey, with affinity, base attrs (hp, atk,
