@@ -291,7 +291,7 @@ epics:
         tasks:
           - id: TASK-013
             title: "Author 16 base moves (4 per affinity) in packages/content"
-            status: ready
+            status: done
             priority: high
             complexity: medium
             workspaces: ["packages/content"]
@@ -305,11 +305,11 @@ epics:
               Stand). Mix damage / status / buff per affinity. Cite OTK
               lore where applicable; mark [DRAFT] for unconfirmed flavour.
             depends_on: ["TASK-009"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/16
+            completed: '2026-05-09T13:09:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-09T13:06:00Z'
+            attempt_count: 1
 
           - id: TASK-014
             title: "Author 8 starter crews (2 per faction) with stats + 4 moves each"
