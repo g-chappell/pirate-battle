@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   bech32Encode,
+  bytesToHex,
   clearStoredWalletKey,
   connectWallet,
   decodeCborBytestring,
@@ -47,6 +48,7 @@ function fakeWallet(
       overrides.enable ??
       (async () => ({
         getRewardAddresses: async () => ["581de1" + "00".repeat(28)],
+        signData: async () => ({ signature: "00", key: "00" }),
       })),
     isEnabled: overrides.isEnabled ?? (async () => false),
   };
@@ -114,6 +116,18 @@ describe("rewardCborHexToBech32", () => {
 describe("rewardAddressBytesToBech32", () => {
   it("rejects empty payloads", () => {
     expect(() => rewardAddressBytesToBech32(new Uint8Array(0))).toThrow();
+  });
+});
+
+describe("bytesToHex", () => {
+  it("encodes bytes as lowercase hex with padding", () => {
+    expect(bytesToHex(new Uint8Array([0, 1, 15, 16, 254, 255]))).toBe(
+      "00010f10feff",
+    );
+  });
+
+  it("returns empty string for empty input", () => {
+    expect(bytesToHex(new Uint8Array(0))).toBe("");
   });
 });
 
@@ -226,6 +240,7 @@ describe("connectWallet", () => {
               "581de1" + "ab".repeat(28),
               "581de1" + "cd".repeat(28),
             ],
+            signData: async () => ({ signature: "00", key: "00" }),
           };
         },
       }),
@@ -234,6 +249,26 @@ describe("connectWallet", () => {
     expect(enableCalls).toBe(1);
     expect(result.walletKey).toBe("lace");
     expect(result.rewardAddrBech32.startsWith("stake1")).toBe(true);
+    expect(result.rewardAddrHex).toBe("e1" + "ab".repeat(28));
+  });
+
+  it("exposes a signData closure bound to the reward addr hex", async () => {
+    const calls: Array<[string, string]> = [];
+    const ns = {
+      lace: fakeWallet({
+        enable: async () => ({
+          getRewardAddresses: async () => ["581de1" + "ff".repeat(28)],
+          signData: async (addr, payload) => {
+            calls.push([addr, payload]);
+            return { signature: "abcd", key: "ef01" };
+          },
+        }),
+      }),
+    };
+    const result = await connectWallet(ns, "lace");
+    const sig = await result.signData("4869");
+    expect(sig).toEqual({ signature: "abcd", key: "ef01" });
+    expect(calls).toEqual([["e1" + "ff".repeat(28), "4869"]]);
   });
 
   it("rejects unknown wallet keys", async () => {
@@ -248,7 +283,10 @@ describe("connectWallet", () => {
   it("rejects when the wallet returns no reward addresses", async () => {
     const ns = {
       lace: fakeWallet({
-        enable: async () => ({ getRewardAddresses: async () => [] }),
+        enable: async () => ({
+          getRewardAddresses: async () => [],
+          signData: async () => ({ signature: "00", key: "00" }),
+        }),
       }),
     };
     await expect(connectWallet(ns, "lace")).rejects.toThrow(/reward addresses/);

@@ -1,5 +1,11 @@
+export interface Cip30DataSignature {
+  signature: string;
+  key: string;
+}
+
 export interface Cip30WalletApi {
   getRewardAddresses(): Promise<string[]>;
+  signData(addr: string, payload: string): Promise<Cip30DataSignature>;
 }
 
 export interface Cip30Wallet {
@@ -74,6 +80,12 @@ export function truncateBech32(
 ): string {
   if (addr.length <= leading + trailing + 1) return addr;
   return `${addr.slice(0, leading)}…${addr.slice(-trailing)}`;
+}
+
+export function bytesToHex(bytes: Uint8Array): string {
+  let out = "";
+  for (const b of bytes) out += b.toString(16).padStart(2, "0");
+  return out;
 }
 
 function hexToBytes(hex: string): Uint8Array {
@@ -221,6 +233,8 @@ export function clearStoredWalletKey(
 export interface ConnectResult {
   walletKey: string;
   rewardAddrBech32: string;
+  rewardAddrHex: string;
+  signData: (payloadHex: string) => Promise<Cip30DataSignature>;
 }
 
 export async function connectWallet(
@@ -237,8 +251,15 @@ export async function connectWallet(
   if (rewardAddrs.length === 0) {
     throw new Error("wallet returned no reward addresses");
   }
-  const rewardAddrBech32 = rewardCborHexToBech32(rewardAddrs[0]!);
-  return { walletKey, rewardAddrBech32 };
+  const cborHex = rewardAddrs[0]!;
+  const rewardAddrBech32 = rewardCborHexToBech32(cborHex);
+  const rewardAddrHex = bytesToHex(decodeCborBytestring(cborHex));
+  return {
+    walletKey,
+    rewardAddrBech32,
+    rewardAddrHex,
+    signData: (payloadHex) => api.signData(rewardAddrHex, payloadHex),
+  };
 }
 
 export async function tryReconnectStored(

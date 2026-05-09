@@ -52,7 +52,8 @@ export const authRoutes: FastifyPluginCallback<AuthPluginOptions> = (
     }
 
     const payloadText = Buffer.from(verifyResult.payload).toString("utf8");
-    const consumed = await nonceStore.consume(payloadText);
+    const nonceKey = extractNonceKey(payloadText);
+    const consumed = await nonceStore.consume(nonceKey);
     if (!consumed.ok) {
       return reply.code(401).send({ error: `nonce_${consumed.reason}` });
     }
@@ -109,6 +110,14 @@ function parseWalletBody(raw: unknown): ParsedWalletBody | { error: string } {
     signature: body.signature,
     key: body.key,
   };
+}
+
+// Web clients sign a structured human-readable message containing the nonce
+// (`Nonce: <32 hex>`). Older callers may sign the bare nonce string — fall back
+// to the whole payload to keep that contract working.
+function extractNonceKey(payloadText: string): string {
+  const match = payloadText.match(/Nonce:\s*([0-9a-f]{32})/i);
+  return match ? match[1]!.toLowerCase() : payloadText;
 }
 
 async function resolveAuthTarget(

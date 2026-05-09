@@ -227,6 +227,31 @@ describe("POST /api/auth/wallet — nonce semantics", () => {
     await app.close();
   });
 
+  it("extracts the nonce from a human-readable login message", async () => {
+    const nonceStore = new InMemoryNonceStore({
+      ttlMs: 60_000,
+      randomFn: () => "deadbeef".repeat(4),
+    });
+    await nonceStore.issue();
+
+    const message = `Pirate-Battle sign-in.\n\nNonce: ${"deadbeef".repeat(4)}`;
+    const verifier = makeAcceptingVerifier(message);
+    const { app } = makeApp({ verifier, nonceStore });
+    await app.ready();
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/auth/wallet",
+      payload: {
+        stakeAddr: "stake_test1abc",
+        payloadHex: "00",
+        signature: "00",
+        key: "00",
+      },
+    });
+    expect(res.statusCode).toBe(200);
+    await app.close();
+  });
+
   it("consumes the nonce on success so a replay fails", async () => {
     const nonceStore = new InMemoryNonceStore({
       ttlMs: 60_000,

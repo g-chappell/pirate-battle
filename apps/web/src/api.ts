@@ -73,6 +73,32 @@ export async function createAnonymousSession(): Promise<UserSummary> {
   return request<UserSummary>("/api/session/anonymous", { method: "POST" });
 }
 
+export interface WalletAuthBody {
+  stakeAddr: string;
+  payloadHex: string;
+  signature: string;
+  key: string;
+}
+
+export async function requestNonce(): Promise<{
+  nonce: string;
+  expiresAt: number;
+}> {
+  return request<{ nonce: string; expiresAt: number }>("/api/auth/nonce", {
+    method: "POST",
+  });
+}
+
+export async function submitWalletAuth(
+  body: WalletAuthBody,
+): Promise<UserSummary> {
+  return request<UserSummary>("/api/auth/wallet", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
 export async function createCaptain(
   payload: CreateCaptainPayload,
 ): Promise<CaptainSummary> {
