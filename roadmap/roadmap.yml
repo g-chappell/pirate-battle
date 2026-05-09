@@ -365,7 +365,7 @@ epics:
 
           - id: TASK-016
             title: "Web: starter session bootstrap + team builder UI"
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces: ["apps/web"]
@@ -377,8 +377,8 @@ epics:
               6 Crew rows). UI in plain React for now — Phaser comes in
               STORY-06. Use TanStack Query or a small fetch wrapper.
             depends_on: ["TASK-015", "TASK-014", "TASK-004"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/20
+            completed: '2026-05-09T16:14:00Z'
             blocked_reason: null
             last_attempted: '2026-05-09T16:05:00Z'
             attempt_count: 1
