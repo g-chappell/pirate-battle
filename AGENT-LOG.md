@@ -149,3 +149,16 @@ gaps.
 
 ---
 
+### Run [2026-05-09 13:09]
+- Task: TASK-013 — Author 16 base moves (4 per affinity) in packages/content
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/16
+- Test counts: core=34, content=8, server=0, web=0
+- Files changed: packages/content/src/moves.ts (new), packages/content/src/moves.test.ts (new), packages/content/src/index.ts, packages/content/package.json, packages/content/vitest.config.ts (new), package-lock.json
+- Regression alert: false
+- Review proposed: pending Step 15
+- Deploy: pending Step 12
+- Lessons learned: First content workspace tests — added vitest devDep + workspace vitest.config.ts mirroring packages/core's setup so npm test --workspaces picks them up. All flavour names left as [DRAFT] since lore/OTK.md does not yet exist in this repo.
+
+---
+
