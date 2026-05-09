@@ -407,7 +407,7 @@ epics:
 
           - id: TASK-018
             title: "Web: BattleScene HP bars + move menu + swap UI"
-            status: ready
+            status: done
             priority: high
             complexity: medium
             workspaces: ["apps/web"]
@@ -418,11 +418,11 @@ epics:
               button revealing bench. Wire submit → POST /api/battle/<id>/action.
               Display turn log in a side panel (also React DOM).
             depends_on: ["TASK-017"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/22
+            completed: '2026-05-09T18:09:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-09T18:03:00Z'
+            attempt_count: 1
 
           - id: TASK-019
             title: "Web: turn animation placeholders (sprite shake + flash)"
