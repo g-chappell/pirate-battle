@@ -123,3 +123,16 @@ gaps.
 
 ---
 
+### Run [2026-05-09 11:20]
+- Task: TASK-011 — Engine: damage formula, accuracy, status effects, type matrix
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/14
+- Test counts: core=30, server=0, web=0
+- Files changed: packages/core/src/constants.ts, packages/core/src/resolveMove.ts, packages/core/src/resolveMove.test.ts, packages/core/src/engine.ts, packages/core/src/engine.test.ts, packages/core/src/index.ts, packages/core/src/types.ts
+- Regression alert: false
+- Review proposed: pending Step 15
+- Deploy: pending Step 12
+- Lessons learned: extending CrewSnapshot with `level` rippled into existing tests' crew helper but no other workspace yet imports CrewSnapshot, so the change was self-contained. Used `constantRng`/`scriptedRng` test helpers instead of relying on seeded RNG byte-equality, which keeps assertions readable and decouples them from any future rng tuning.
+
+---
+
