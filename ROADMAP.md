@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 18 (38%)
-- **Ready:** 29
-- **In progress:** 0
+- **Ready:** 28
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -244,7 +244,7 @@ Free starter remains usable; NFT crews add to the available roster.
     > "Connected as <truncated bech32 addr>" indicator. Persist
     > chosen wallet in localStorage so re-enable on reload skips
     > the prompt when wallet.isEnabled() is true.
-  - :black_circle: **TASK-023** — Server: signed-message auth (POST /api/auth/wallet)  `high` `large` _(apps/server)_  
+  - :large_orange_diamond: **TASK-023** — Server: signed-message auth (POST /api/auth/wallet)  `high` `large` _(apps/server)_  
     _depends on: TASK-022, TASK-015_
     > apps/server: POST /api/auth/nonce returns a fresh nonce +
     > 5-min expiry, stored server-side. POST /api/auth/wallet
