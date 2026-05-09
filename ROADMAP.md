@@ -9,8 +9,8 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 18 (38%)
-- **Ready:** 29
+- **Done:** 19 (40%)
+- **Ready:** 28
 - **In progress:** 0
 - **Blocked:** 0
 
@@ -244,7 +244,7 @@ Free starter remains usable; NFT crews add to the available roster.
     > "Connected as <truncated bech32 addr>" indicator. Persist
     > chosen wallet in localStorage so re-enable on reload skips
     > the prompt when wallet.isEnabled() is true.
-  - :black_circle: **TASK-023** — Server: signed-message auth (POST /api/auth/wallet)  `high` `large` _(apps/server)_  
+  - :white_check_mark: **TASK-023** — Server: signed-message auth (POST /api/auth/wallet)  `high` `large` _(apps/server)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/26)  
     _depends on: TASK-022, TASK-015_
     > apps/server: POST /api/auth/nonce returns a fresh nonce +
     > 5-min expiry, stored server-side. POST /api/auth/wallet

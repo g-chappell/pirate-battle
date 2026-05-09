@@ -6,6 +6,8 @@ import {
   PrismaBattleStore,
   type BattleStore,
 } from "./battleStore.js";
+import { InMemoryNonceStore, type NonceStore } from "./nonceStore.js";
+import { authRoutes } from "./routes/auth.js";
 import { battleRoutes } from "./routes/battle.js";
 import { captainRoutes } from "./routes/captain.js";
 import { sessionRoutes } from "./routes/session.js";
@@ -14,11 +16,17 @@ import {
   PrismaUserStore,
   type UserStore,
 } from "./userStore.js";
+import {
+  CardanoWalletAuthVerifier,
+  type WalletAuthVerifier,
+} from "./walletAuth.js";
 
 export interface BuildServerOptions {
   sessionSecret: string;
   userStore: UserStore;
   battleStore: BattleStore;
+  nonceStore?: NonceStore;
+  walletAuthVerifier?: WalletAuthVerifier;
   seedFactory?: () => number;
   logger?: boolean;
 }
@@ -37,6 +45,11 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
     battleStore: opts.battleStore,
     seedFactory: opts.seedFactory,
   });
+  app.register(authRoutes, {
+    userStore: opts.userStore,
+    nonceStore: opts.nonceStore ?? new InMemoryNonceStore(),
+    verifier: opts.walletAuthVerifier ?? new CardanoWalletAuthVerifier(),
+  });
 
   return app;
 }
@@ -46,8 +59,10 @@ export {
   PrismaUserStore,
   InMemoryBattleStore,
   PrismaBattleStore,
+  InMemoryNonceStore,
+  CardanoWalletAuthVerifier,
 };
-export type { UserStore, BattleStore };
+export type { UserStore, BattleStore, NonceStore, WalletAuthVerifier };
 
 const isMain = import.meta.url === `file://${process.argv[1]}`;
 if (isMain) {

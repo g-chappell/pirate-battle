@@ -520,7 +520,7 @@ epics:
 
           - id: TASK-023
             title: "Server: signed-message auth (POST /api/auth/wallet)"
-            status: ready
+            status: done
             priority: high
             complexity: large
             workspaces: ["apps/server"]
@@ -536,11 +536,11 @@ epics:
               etc.) to the new userId, set session cookie. Reject 401 with
               clear reason on mismatch.
             depends_on: ["TASK-022", "TASK-015"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/26
+            completed: '2026-05-09T21:18:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-09T21:04:00Z'
+            attempt_count: 1
 
           - id: TASK-024
             title: "Web: sign-in flow integration (request nonce → signData → POST)"

@@ -38,6 +38,16 @@ export interface CaptainTeam {
 export interface UserStore {
   createAnonymous(): Promise<UserSummary>;
   findById(id: string): Promise<UserSummary | null>;
+  findByStakeAddr(stakeAddr: string): Promise<UserSummary | null>;
+  createWithStakeAddr(stakeAddr: string): Promise<UserSummary>;
+  attachStakeAddrToUser(
+    userId: string,
+    stakeAddr: string,
+  ): Promise<UserSummary | null>;
+  mergeAnonymousIntoWallet(
+    anonUserId: string,
+    walletUserId: string,
+  ): Promise<UserSummary | null>;
   createCaptain(
     userId: string,
     input: CreateCaptainInput,
@@ -74,6 +84,95 @@ export class PrismaUserStore implements UserStore {
       stakeAddr: user.stakeAddr,
       captains: user.captains,
     };
+  }
+
+  async findByStakeAddr(stakeAddr: string): Promise<UserSummary | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { stakeAddr },
+      include: {
+        captains: {
+          select: { id: true, name: true, factionId: true },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+    });
+    if (!user) return null;
+    return {
+      id: user.id,
+      stakeAddr: user.stakeAddr,
+      captains: user.captains,
+    };
+  }
+
+  async createWithStakeAddr(stakeAddr: string): Promise<UserSummary> {
+    const user = await this.prisma.user.create({ data: { stakeAddr } });
+    return { id: user.id, stakeAddr: user.stakeAddr, captains: [] };
+  }
+
+  async attachStakeAddrToUser(
+    userId: string,
+    stakeAddr: string,
+  ): Promise<UserSummary | null> {
+    try {
+      const updated = await this.prisma.user.update({
+        where: { id: userId },
+        data: { stakeAddr },
+        include: {
+          captains: {
+            select: { id: true, name: true, factionId: true },
+            orderBy: { createdAt: "asc" },
+          },
+        },
+      });
+      return {
+        id: updated.id,
+        stakeAddr: updated.stakeAddr,
+        captains: updated.captains,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async mergeAnonymousIntoWallet(
+    anonUserId: string,
+    walletUserId: string,
+  ): Promise<UserSummary | null> {
+    if (anonUserId === walletUserId) return this.findById(walletUserId);
+    return this.prisma.$transaction(async (tx) => {
+      const anon = await tx.user.findUnique({ where: { id: anonUserId } });
+      if (!anon) return null;
+      if (anon.stakeAddr !== null) return null;
+
+      const wallet = await tx.user.findUnique({ where: { id: walletUserId } });
+      if (!wallet) return null;
+
+      await tx.captain.updateMany({
+        where: { userId: anonUserId },
+        data: { userId: walletUserId },
+      });
+      await tx.battle.updateMany({
+        where: { participantAId: anonUserId },
+        data: { participantAId: walletUserId },
+      });
+      await tx.user.delete({ where: { id: anonUserId } });
+
+      const merged = await tx.user.findUnique({
+        where: { id: walletUserId },
+        include: {
+          captains: {
+            select: { id: true, name: true, factionId: true },
+            orderBy: { createdAt: "asc" },
+          },
+        },
+      });
+      if (!merged) return null;
+      return {
+        id: merged.id,
+        stakeAddr: merged.stakeAddr,
+        captains: merged.captains,
+      };
+    });
   }
 
   async createCaptain(
@@ -158,6 +257,59 @@ export class InMemoryUserStore implements UserStore {
 
   async findById(id: string): Promise<UserSummary | null> {
     return this.users.get(id) ?? null;
+  }
+
+  async findByStakeAddr(stakeAddr: string): Promise<UserSummary | null> {
+    for (const user of this.users.values()) {
+      if (user.stakeAddr === stakeAddr) return user;
+    }
+    return null;
+  }
+
+  async createWithStakeAddr(stakeAddr: string): Promise<UserSummary> {
+    const id = `mem_user_${this.nextUserId++}`;
+    const user: UserSummary = { id, stakeAddr, captains: [] };
+    this.users.set(id, user);
+    return user;
+  }
+
+  async attachStakeAddrToUser(
+    userId: string,
+    stakeAddr: string,
+  ): Promise<UserSummary | null> {
+    const user = this.users.get(userId);
+    if (!user) return null;
+    for (const other of this.users.values()) {
+      if (other.id !== userId && other.stakeAddr === stakeAddr) return null;
+    }
+    user.stakeAddr = stakeAddr;
+    return user;
+  }
+
+  async mergeAnonymousIntoWallet(
+    anonUserId: string,
+    walletUserId: string,
+  ): Promise<UserSummary | null> {
+    if (anonUserId === walletUserId)
+      return this.users.get(walletUserId) ?? null;
+    const anon = this.users.get(anonUserId);
+    if (!anon) return null;
+    if (anon.stakeAddr !== null) return null;
+    const wallet = this.users.get(walletUserId);
+    if (!wallet) return null;
+
+    for (const captain of this.captains.values()) {
+      if (captain.userId === anonUserId) {
+        captain.userId = walletUserId;
+        wallet.captains.push({
+          id: captain.id,
+          name: captain.name,
+          factionId: captain.factionId,
+        });
+      }
+    }
+    this.users.delete(anonUserId);
+    return wallet;
   }
 
   async createCaptain(
