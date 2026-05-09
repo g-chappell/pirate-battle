@@ -346,7 +346,7 @@ epics:
         tasks:
           - id: TASK-015
             title: "Server: anonymous session create + cookie + GET /me"
-            status: ready
+            status: in-progress
             priority: high
             complexity: medium
             workspaces: ["apps/server", "packages/db"]
@@ -360,8 +360,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-09T15:03:00Z'
+            attempt_count: 1
 
           - id: TASK-016
             title: "Web: starter session bootstrap + team builder UI"

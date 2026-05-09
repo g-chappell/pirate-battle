@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 12 (26%)
-- **Ready:** 35
-- **In progress:** 0
+- **Ready:** 34
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -172,7 +172,7 @@ one PvE opponent, sees turn-by-turn animated battle. Validates engine
 + UX shape before tackling identity (EPIC-03).
 
 - **STORY-05** — Anonymous starter session + team builder UI
-  - :black_circle: **TASK-015** — Server: anonymous session create + cookie + GET /me  `high` `medium` _(apps/server, packages/db)_  
+  - :large_orange_diamond: **TASK-015** — Server: anonymous session create + cookie + GET /me  `high` `medium` _(apps/server, packages/db)_  
     _depends on: TASK-008, TASK-003_
     > apps/server: POST /api/session/anonymous creates a User row
     > with stakeAddr=null, sets a signed session cookie (use
