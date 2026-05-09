@@ -235,7 +235,7 @@ gaps.
 - Files changed: packages/core/src/{aiPickAction.ts,aiPickAction.test.ts,index.ts}, apps/server/src/{aiTeam.ts,aiTeam.test.ts,crewSnapshot.ts,crewSnapshot.test.ts,battleStore.ts,battleStore.test.ts,index.ts,userStore.ts}, apps/server/src/routes/{battle.ts,battle.test.ts,captain.test.ts,session.test.ts}
 - Regression alert: false
 - Review proposed: pending Step 15
-- Deploy: pending Step 14
+- Deploy: success
 - Lessons learned: Prisma-generated client expects `Uint8Array<ArrayBuffer>` for Bytes columns, not `Buffer`/`Uint8Array<ArrayBufferLike>`. Construct via `new ArrayBuffer(n)` + `DataView` to satisfy the type.
 
 ---
