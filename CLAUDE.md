@@ -82,7 +82,7 @@ pirate-battle/
 - **PR titles:** short, semantic, scope-prefixed (`feat: …`, `fix: …`, `chore: …`). Body cites the task ID (`Refs TASK-XXX`).
 - **Cross-workspace imports:** always via package name (`@pirate-battle/core`), never relative. Anchored by `tsconfig.base.json` paths + npm workspaces resolution.
 - **Single source of truth for game rules:** `packages/core` owns the engine. Web/mobile render it; server runs it; Discord renders it via embeds. No client re-implements rules.
-- **Lore canon:** any narrative content (crew bios, move flavour text, opponent dialogue) cites `lore/OTK.md` section numbers and respects `[ESTABLISHED]` / `[DRAFT]` / `[OPEN]` tiers. Never resolve `[OPEN]` items without explicit human author sign-off.
+- **Lore canon:** any narrative content (crew bios, move flavour text, opponent dialogue) cites `lore/OTK.md` section numbers and respects `[ESTABLISHED]` / `[DRAFT]` / `[OPEN]` tiers. Never resolve `[OPEN]` items without explicit human author sign-off. **Until `lore/OTK.md` exists in the repo,** mark all flavour as `[DRAFT]` and proceed — do not block content tasks on the canon file's absence; the citations get backfilled when the canon lands.
 - **Sibling consistency with Colonize:** if a tech-stack change is proposed (ORM swap, framework upgrade, lockfile manager change), check whether the same change applies to Colonize — divergence has cost. See `~/.claude/memory/project_otk_shared_stack.md`.
 
 ## Scaffolding hygiene
@@ -102,7 +102,9 @@ pirate-battle/
 ## Testing patterns
 
 - **Vitest** in monorepo workspace mode (one root config with `projects: [...]`, or per-workspace `vitest.config.ts`).
+- **Adding tests to a previously-untested workspace** requires three things in the same PR: (1) `vitest` in `devDependencies`, (2) `"test": "vitest run --passWithNoTests"` in `scripts`, (3) a workspace-local `vitest.config.ts` with explicit `include: ["src/**/*.test.ts"]`. Without the explicit include, Vitest's default glob picks up any future `*.spec.ts` files and the suite drifts silently.
 - **Engine determinism tests** live in `packages/core`. Same seed → same battle log, byte-for-byte. These are the highest-leverage tests in the codebase; never weaken them.
+- **Non-determinism engine tests** (accuracy, crit, stun-skip, status apply) construct a `constantRng(value)` or `scriptedRng([...])` helper that implements the `Rng` shape directly — they do NOT seed the canonical `createRng()` and assert on byte-equal logs. This decouples assertions from any future RNG tuning. Reserve seeded `createRng()` for the determinism suite where byte-equality IS the contract.
 - **Fastify route tests** use `fastify.inject()` — no real socket, ~10ms per call. Don't spin up `fastify.listen()` in unit tests.
 - **Prisma tests** use a per-worker test database keyed on `VITEST_WORKER_ID`. Don't mock Prisma in integration tests — mocked Prisma tests pass while real queries fail.
 - **Blockfrost** is mocked at module boundary in CI. Never hit the real API in tests; rate limits and flakes will bite.
@@ -153,7 +155,7 @@ This project uses an autonomous development agent. Key facts:
 - Tasks live in `roadmap/roadmap.yml`. Render with `node roadmap/render.mjs`.
 - Branches follow `auto/<TASK-ID>-<slug>`.
 - Roadmap status changes travel through the PR (branch-as-payload) — never committed directly to main.
-- Every 5 consecutive successful tasks, the agent proposes CLAUDE.md refinements. Review via `/autonomous-approve`.
+- Every 5 consecutive successful tasks, the agent invokes `/autonomous-review`, which drafts repo-wide refinements on a dedicated `auto/review-*` branch and opens an auto-merging PR — there is no human approval gate; a bad refinement is reverted post-merge with `git revert <sha>` or pre-merge with `gh pr close <num>`. (`/autonomous-approve` is now deprecated and exists only as a revert helper.)
 - CI required checks: `ci` (typecheck + lint + test + build). Optional: `e2e`.
 - Auto-merge enabled on main; branch protection requires `ci`.
 - Auto-deploy on merge: `pirate-battle.blacksail.dev` (port 3001) with health-check rollback.
