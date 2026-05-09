@@ -19,6 +19,7 @@ export interface CrewSnapshot {
   atk: number;
   def: number;
   spd: number;
+  level: number;
   affinity: Affinity;
   statuses: string[];
   moves: MoveDef[];
@@ -32,6 +33,18 @@ export type BattleEvent =
       kind: "move";
       side: Side;
       moveKey: string;
+      damage: number;
+      targetHpAfter: number;
+      crit: boolean;
+      effective: number;
+    }
+  | { kind: "miss"; side: Side; moveKey: string }
+  | { kind: "stun_skip"; side: Side; moveKey: string }
+  | { kind: "status_apply"; side: Side; status: string }
+  | {
+      kind: "status_tick";
+      side: Side;
+      status: string;
       damage: number;
       targetHpAfter: number;
     }
