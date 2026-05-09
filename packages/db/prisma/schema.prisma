@@ -25,6 +25,18 @@ model User {
   items          Item[]
   battlesAsA     Battle[]  @relation("BattleParticipantA")
   battlesAsB     Battle[]  @relation("BattleParticipantB")
+  nftSnapshots   NftSnapshot[]
+}
+
+model NftSnapshot {
+  id        String   @id @default(cuid())
+  userId    String
+  fetchedAt DateTime @default(now())
+  nftsJson  Json
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, fetchedAt])
 }
 
 model Captain {
