@@ -500,7 +500,7 @@ epics:
         tasks:
           - id: TASK-022
             title: "Web: CIP-30 wallet chooser + connect flow"
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces: ["apps/web"]
@@ -512,8 +512,8 @@ epics:
               chosen wallet in localStorage so re-enable on reload skips
               the prompt when wallet.isEnabled() is true.
             depends_on: ["TASK-016"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/25
+            completed: '2026-05-09T20:11:00Z'
             blocked_reason: null
             last_attempted: '2026-05-09T20:01:00Z'
             attempt_count: 1
