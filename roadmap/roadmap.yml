@@ -313,7 +313,7 @@ epics:
 
           - id: TASK-014
             title: "Author 8 starter crews (2 per faction) with stats + 4 moves each"
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces: ["packages/content"]
@@ -325,8 +325,8 @@ epics:
               faction. Rare/legendary tiers come later — these are common
               starters anyone can play with.
             depends_on: ["TASK-013"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/18
+            completed: '2026-05-09T14:07:00Z'
             blocked_reason: null
             last_attempted: '2026-05-09T14:01:00Z'
             attempt_count: 1
