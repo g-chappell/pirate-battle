@@ -266,7 +266,7 @@ epics:
 
           - id: TASK-012
             title: "Engine determinism unit tests (Vitest)"
-            status: ready
+            status: in-progress
             priority: high
             complexity: medium
             workspaces: ["packages/core"]
@@ -282,8 +282,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-09T12:20:00Z'
+            attempt_count: 1
 
       - id: STORY-04
         title: "Free starter crew + content package"
