@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 15 (32%)
-- **Ready:** 32
-- **In progress:** 0
+- **Ready:** 31
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -196,7 +196,7 @@ one PvE opponent, sees turn-by-turn animated battle. Validates engine
     > loads placeholder sprites (4 affinity-coloured rectangles
     > for now). BattleScene takes a BattleState prop and displays
     > the active crew + HP bars. Don't build the move menu yet.
-  - :black_circle: **TASK-018** — Web: BattleScene HP bars + move menu + swap UI  `high` `medium` _(apps/web)_  
+  - :large_orange_diamond: **TASK-018** — Web: BattleScene HP bars + move menu + swap UI  `high` `medium` _(apps/web)_  
     _depends on: TASK-017_
     > Extend BattleScene: visible HP bars (Phaser Graphics rects),
     > move menu (DOM overlay React component, NOT in canvas — per
