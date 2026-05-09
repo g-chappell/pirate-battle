@@ -9,8 +9,8 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 13 (28%)
-- **Ready:** 34
+- **Done:** 14 (30%)
+- **Ready:** 33
 - **In progress:** 0
 - **Blocked:** 0
 
@@ -179,7 +179,7 @@ one PvE opponent, sees turn-by-turn animated battle. Validates engine
     > @fastify/cookie + a SESSION_SECRET-keyed signature). GET /me
     > returns the current user (id, stakeAddr, captains[]). 401 if
     > no cookie. Server-side session store can be JWT-style for now.
-  - :black_circle: **TASK-016** — Web: starter session bootstrap + team builder UI  `high` `medium` _(apps/web)_  
+  - :white_check_mark: **TASK-016** — Web: starter session bootstrap + team builder UI  `high` `medium` _(apps/web)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/20)  
     _depends on: TASK-015, TASK-014, TASK-004_
     > apps/web: on app load, if no session cookie, POST
     > /api/session/anonymous. Display the free starter crew

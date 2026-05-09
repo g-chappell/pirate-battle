@@ -1,6 +1,7 @@
 import fastifyCookie from "@fastify/cookie";
 import Fastify, { type FastifyInstance } from "fastify";
 
+import { captainRoutes } from "./routes/captain.js";
 import { sessionRoutes } from "./routes/session.js";
 import {
   InMemoryUserStore,
@@ -22,6 +23,7 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
   app.get("/health", async () => ({ ok: true }));
 
   app.register(sessionRoutes, { userStore: opts.userStore });
+  app.register(captainRoutes, { userStore: opts.userStore });
 
   return app;
 }

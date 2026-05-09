@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
+    "@pirate-battle/content": "*",
     "@pirate-battle/core": "*",
     "@pirate-battle/db": "*",
     "@pirate-battle/shared": "*",
