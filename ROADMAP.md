@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 14 (30%)
-- **Ready:** 33
-- **In progress:** 0
+- **Ready:** 32
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -189,7 +189,7 @@ one PvE opponent, sees turn-by-turn animated battle. Validates engine
     > STORY-06. Use TanStack Query or a small fetch wrapper.
 
 - **STORY-06** — Phaser battle scene
-  - :black_circle: **TASK-017** — Web: install Phaser 3 + scaffold BootScene/BattleScene  `high` `medium` _(apps/web)_  
+  - :large_orange_diamond: **TASK-017** — Web: install Phaser 3 + scaffold BootScene/BattleScene  `high` `medium` _(apps/web)_  
     _depends on: TASK-016_
     > Install phaser in apps/web. Add a Phaser game instance bound
     > to a <canvas> rendered inside a React component. BootScene
