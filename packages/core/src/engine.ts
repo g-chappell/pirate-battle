@@ -1,3 +1,13 @@
+import {
+  BURN_FRACTION,
+  POISON_FRACTION,
+  STATUS_BURN,
+  STATUS_POISON,
+  STATUS_STUN,
+  STUN_SKIP_CHANCE,
+} from "./constants.js";
+import { computeDamage, rollAccuracy } from "./resolveMove.js";
+import { createRng, type Rng } from "./rng.js";
 import type {
   Action,
   BattleEvent,
@@ -6,7 +16,6 @@ import type {
   MoveDef,
   Side,
 } from "./types.js";
-import { createRng, type Rng } from "./rng.js";
 
 interface SideSlot {
   side: Side;
@@ -48,9 +57,9 @@ function applySwitch(
   return { active: incoming, bench: newBench };
 }
 
-function computeDamage(_attacker: CrewSnapshot, move: MoveDef): number {
-  if (move.kind !== "damage") return 0;
-  return move.basePower;
+function addStatus(crew: CrewSnapshot, status: string): CrewSnapshot {
+  if (crew.statuses.includes(status)) return crew;
+  return { ...crew, statuses: [...crew.statuses, status] };
 }
 
 function moveOrder(
@@ -165,8 +174,55 @@ export function resolveTurn(
 
     if (isFainted(attackerSlot.active)) continue;
 
-    const damage = computeDamage(attackerSlot.active, mover.move);
-    const newHp = Math.max(0, defenderSlot.active.hp - damage);
+    if (attackerSlot.active.statuses.includes(STATUS_STUN)) {
+      if (rng.next() < STUN_SKIP_CHANCE) {
+        events.push({
+          kind: "stun_skip",
+          side: mover.side,
+          moveKey: mover.move.key,
+        });
+        continue;
+      }
+    }
+
+    if (mover.move.kind === "status") {
+      if (!rollAccuracy(mover.move.accuracy, rng)) {
+        events.push({
+          kind: "miss",
+          side: mover.side,
+          moveKey: mover.move.key,
+        });
+        continue;
+      }
+      const status = mover.move.statusEffect;
+      if (status) {
+        const updated = addStatus(defenderSlot.active, status);
+        slots = {
+          ...slots,
+          [defenderSide]: { ...defenderSlot, active: updated },
+        };
+        events.push({ kind: "status_apply", side: defenderSide, status });
+      }
+      continue;
+    }
+
+    if (mover.move.kind === "buff") continue;
+
+    const result = computeDamage(
+      attackerSlot.active,
+      defenderSlot.active,
+      mover.move,
+      rng,
+    );
+    if (!result.hit) {
+      events.push({
+        kind: "miss",
+        side: mover.side,
+        moveKey: mover.move.key,
+      });
+      continue;
+    }
+    const newHp = Math.max(0, defenderSlot.active.hp - result.damage);
     const newDefenderActive: CrewSnapshot = {
       ...defenderSlot.active,
       hp: newHp,
@@ -179,11 +235,41 @@ export function resolveTurn(
       kind: "move",
       side: mover.side,
       moveKey: mover.move.key,
-      damage,
+      damage: result.damage,
       targetHpAfter: newHp,
+      crit: result.crit,
+      effective: result.effective,
     });
     if (newHp === 0) {
       events.push({ kind: "faint", side: defenderSide });
+    }
+  }
+
+  for (const side of ["A", "B"] as const) {
+    const slot = slots[side];
+    if (isFainted(slot.active)) continue;
+    for (const status of slot.active.statuses) {
+      let fraction = 0;
+      if (status === STATUS_POISON) fraction = POISON_FRACTION;
+      else if (status === STATUS_BURN) fraction = BURN_FRACTION;
+      else continue;
+      const damage = Math.max(1, Math.floor(slot.active.maxHp * fraction));
+      const newHp = Math.max(0, slot.active.hp - damage);
+      slots = {
+        ...slots,
+        [side]: { ...slot, active: { ...slot.active, hp: newHp } },
+      };
+      events.push({
+        kind: "status_tick",
+        side,
+        status,
+        damage,
+        targetHpAfter: newHp,
+      });
+      if (newHp === 0) {
+        events.push({ kind: "faint", side });
+        break;
+      }
     }
   }
 
