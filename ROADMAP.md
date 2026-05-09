@@ -9,9 +9,9 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 8 (17%)
+- **Done:** 9 (19%)
 - **Ready:** 38
-- **In progress:** 1
+- **In progress:** 0
 - **Blocked:** 0
 
 ---
@@ -121,7 +121,7 @@ implementation.
     > non-fainted crew. Seeded RNG via simple xoshiro128 or mulberry32
     > (deterministic, no Math.random). Append BattleEvent objects to
     > state.log. No mutation — return new state each call.
-  - :large_orange_diamond: **TASK-011** — Engine: damage formula, accuracy, status effects, type matrix  `high` `large` _(packages/core)_  
+  - :white_check_mark: **TASK-011** — Engine: damage formula, accuracy, status effects, type matrix  `high` `large` _(packages/core)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/14)  
     _depends on: TASK-010_
     > In packages/core/src/engine.ts (or split into
     > src/resolveMove.ts): implement damage = floor(((2*lvl/5+2) *

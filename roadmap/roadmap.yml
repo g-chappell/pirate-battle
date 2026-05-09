@@ -242,7 +242,7 @@ epics:
 
           - id: TASK-011
             title: "Engine: damage formula, accuracy, status effects, type matrix"
-            status: in-progress
+            status: done
             priority: high
             complexity: large
             workspaces: ["packages/core"]
@@ -258,8 +258,8 @@ epics:
               and bloodborne; ironclad strong vs phantom; phantom strong vs
               kraken; bloodborne strong vs phantom.
             depends_on: ["TASK-010"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/14
+            completed: '2026-05-09T11:20:00Z'
             blocked_reason: null
             last_attempted: '2026-05-09T11:11:00Z'
             attempt_count: 1
