@@ -388,7 +388,7 @@ epics:
         tasks:
           - id: TASK-017
             title: "Web: install Phaser 3 + scaffold BootScene/BattleScene"
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces: ["apps/web"]
@@ -399,8 +399,8 @@ epics:
               for now). BattleScene takes a BattleState prop and displays
               the active crew + HP bars. Don't build the move menu yet.
             depends_on: ["TASK-016"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/21
+            completed: '2026-05-09T17:11:00Z'
             blocked_reason: null
             last_attempted: '2026-05-09T17:04:00Z'
             attempt_count: 1
