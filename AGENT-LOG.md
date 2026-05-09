@@ -201,3 +201,16 @@ gaps.
 
 ---
 
+### Run [2026-05-09 17:12]
+- Task: TASK-017 — Web: install Phaser 3 + scaffold BootScene/BattleScene
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/21
+- Test counts: core=34, content=17, server=12, web=17
+- Files changed: apps/web/package.json, apps/web/src/phaser/{affinity.ts, affinity.test.ts, BootScene.ts, BattleScene.ts, BattleCanvas.tsx, index.ts}, package-lock.json
+- Regression alert: false
+- Review proposed: TBD (Step 15 — pending deploy outcome)
+- Deploy: pending
+- Lessons learned: Phaser scenes can't take init data when auto-started from the scene[] array, so shared scene state (here: BattleState) goes through the game registry, set in Phaser.Game's preBoot callback. Component is exported but not yet mounted in App.tsx — task brief said "Don't build the move menu yet", so this PR is pure scaffolding; future battle-flow tasks will wire BattleCanvas into the live UI.
+
+---
+
