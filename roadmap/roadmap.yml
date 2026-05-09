@@ -266,7 +266,7 @@ epics:
 
           - id: TASK-012
             title: "Engine determinism unit tests (Vitest)"
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces: ["packages/core"]
@@ -279,8 +279,8 @@ epics:
               break them and you've broken replays. Configure Vitest at
               workspace level.
             depends_on: ["TASK-011"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/15
+            completed: '2026-05-09T12:25:00Z'
             blocked_reason: null
             last_attempted: '2026-05-09T12:20:00Z'
             attempt_count: 1
