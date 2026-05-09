@@ -1,6 +1,8 @@
 import type { ReactElement } from "react";
 import { useEffect, useState } from "react";
 
+import { requestNonce, submitWalletAuth, type UserSummary } from "./api";
+import { type SignInError, runWalletSignIn } from "./walletAuth";
 import {
   type CardanoNamespace,
   type ConnectResult,
@@ -14,18 +16,24 @@ import {
   tryReconnectStored,
 } from "./walletChooser";
 
+type SignInState =
+  | { kind: "idle" }
+  | { kind: "signing" }
+  | { kind: "error"; error: SignInError };
+
 type ChooserState =
   | { kind: "detecting" }
   | { kind: "no-wallets" }
   | { kind: "idle"; wallets: WalletInfo[] }
   | { kind: "connecting"; wallets: WalletInfo[]; key: string }
-  | { kind: "connected"; result: ConnectResult }
+  | { kind: "connected"; result: ConnectResult; signIn: SignInState }
   | { kind: "error"; wallets: WalletInfo[]; message: string };
 
 interface WalletChooserProps {
   namespace?: CardanoNamespace | null;
   storage?: WalletStorage | null;
   onConnected?: (result: ConnectResult) => void;
+  onSignedIn?: (user: UserSummary) => void;
 }
 
 function getDefaultNamespace(): CardanoNamespace | null {
@@ -48,6 +56,7 @@ export function WalletChooser({
   namespace,
   storage,
   onConnected,
+  onSignedIn,
 }: WalletChooserProps): ReactElement {
   const [state, setState] = useState<ChooserState>({ kind: "detecting" });
 
@@ -67,7 +76,11 @@ export function WalletChooser({
       try {
         const restored = await tryReconnectStored(ns, store);
         if (cancelled || !restored) return;
-        setState({ kind: "connected", result: restored });
+        setState({
+          kind: "connected",
+          result: restored,
+          signIn: { kind: "idle" },
+        });
         onConnected?.(restored);
       } catch {
         /* silent: stored wallet failed to reconnect; user can pick again */
@@ -87,13 +100,34 @@ export function WalletChooser({
     try {
       const result = await connectWallet(ns, walletKey);
       saveStoredWalletKey(store, walletKey);
-      setState({ kind: "connected", result });
+      setState({ kind: "connected", result, signIn: { kind: "idle" } });
       onConnected?.(result);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "wallet connection failed";
       setState({ kind: "error", wallets, message });
     }
+  }
+
+  async function handleSignIn(): Promise<void> {
+    if (state.kind !== "connected") return;
+    const { result } = state;
+    setState({ kind: "connected", result, signIn: { kind: "signing" } });
+    const outcome = await runWalletSignIn(result.rewardAddrBech32, {
+      requestNonce,
+      signData: result.signData,
+      submitWalletAuth,
+    });
+    if (outcome.ok) {
+      setState({ kind: "connected", result, signIn: { kind: "idle" } });
+      onSignedIn?.(outcome.user);
+      return;
+    }
+    setState({
+      kind: "connected",
+      result,
+      signIn: { kind: "error", error: outcome.error },
+    });
   }
 
   function handleDisconnect(): void {
@@ -103,6 +137,29 @@ export function WalletChooser({
     const wallets = detectWallets(ns);
     setState(
       wallets.length === 0 ? { kind: "no-wallets" } : { kind: "idle", wallets },
+    );
+  }
+
+  function renderSignInBlock(signIn: SignInState): ReactElement {
+    const signing = signIn.kind === "signing";
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => {
+            void handleSignIn();
+          }}
+          disabled={signing}
+          style={{ marginLeft: "0.75rem", padding: "0.2rem 0.6rem" }}
+        >
+          {signing ? "Signing in…" : "Sign in"}
+        </button>
+        {signIn.kind === "error" ? (
+          <p role="alert" style={{ color: "#b00", margin: "0.4rem 0 0" }}>
+            {signIn.error.message}
+          </p>
+        ) : null}
+      </>
     );
   }
 
@@ -133,6 +190,7 @@ export function WalletChooser({
           <code title={state.result.rewardAddrBech32}>
             {truncateBech32(state.result.rewardAddrBech32)}
           </code>
+          {renderSignInBlock(state.signIn)}
           <button
             type="button"
             onClick={handleDisconnect}

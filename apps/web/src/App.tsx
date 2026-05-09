@@ -53,12 +53,16 @@ export function App(): ReactElement {
     });
   }
 
+  function handleSignedIn(user: UserSummary): void {
+    setSession({ kind: "ready", user });
+  }
+
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", padding: "2rem" }}>
       <header style={{ marginBottom: "1.5rem" }}>
         <h1>Pirate-Battle</h1>
         <p>Order of the Kraken — pirate-crew battles on Cardano.</p>
-        <WalletChooser />
+        <WalletChooser onSignedIn={handleSignedIn} />
       </header>
 
       {session.kind === "loading" ? <p>Boarding the ship…</p> : null}
