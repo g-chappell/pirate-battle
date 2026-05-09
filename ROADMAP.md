@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 10 (21%)
-- **Ready:** 37
-- **In progress:** 0
+- **Ready:** 36
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -145,7 +145,7 @@ implementation.
 
 - **STORY-04** — Free starter crew + content package
   > 8 hand-authored crews (2 per OTK faction) + 16 base moves (4 per affinity), plus item templates. All in packages/content with strict types.
-  - :black_circle: **TASK-013** — Author 16 base moves (4 per affinity) in packages/content  `high` `medium` _(packages/content)_  
+  - :large_orange_diamond: **TASK-013** — Author 16 base moves (4 per affinity) in packages/content  `high` `medium` _(packages/content)_  
     _depends on: TASK-009_
     > packages/content/src/moves.ts exporting an array typed
     > against MoveDef from packages/core. 4 moves per affinity:
