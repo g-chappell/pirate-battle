@@ -104,6 +104,7 @@ pirate-battle/
 - **Vitest** in monorepo workspace mode (one root config with `projects: [...]`, or per-workspace `vitest.config.ts`).
 - **Adding tests to a previously-untested workspace** requires three things in the same PR: (1) `vitest` in `devDependencies`, (2) `"test": "vitest run --passWithNoTests"` in `scripts`, (3) a workspace-local `vitest.config.ts` with explicit `include: ["src/**/*.test.ts"]`. Without the explicit include, Vitest's default glob picks up any future `*.spec.ts` files and the suite drifts silently.
 - **Engine determinism tests** live in `packages/core`. Same seed → same battle log, byte-for-byte. These are the highest-leverage tests in the codebase; never weaken them.
+- **Non-determinism engine tests** (accuracy, crit, stun-skip, status apply) construct a `constantRng(value)` or `scriptedRng([...])` helper that implements the `Rng` shape directly — they do NOT seed the canonical `createRng()` and assert on byte-equal logs. This decouples assertions from any future RNG tuning. Reserve seeded `createRng()` for the determinism suite where byte-equality IS the contract.
 - **Fastify route tests** use `fastify.inject()` — no real socket, ~10ms per call. Don't spin up `fastify.listen()` in unit tests.
 - **Prisma tests** use a per-worker test database keyed on `VITEST_WORKER_ID`. Don't mock Prisma in integration tests — mocked Prisma tests pass while real queries fail.
 - **Blockfrost** is mocked at module boundary in CI. Never hit the real API in tests; rate limits and flakes will bite.
