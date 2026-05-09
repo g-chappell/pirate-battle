@@ -157,7 +157,7 @@ gaps.
 - Files changed: packages/content/src/moves.ts (new), packages/content/src/moves.test.ts (new), packages/content/src/index.ts, packages/content/package.json, packages/content/vitest.config.ts (new), package-lock.json
 - Regression alert: false
 - Review proposed: pending Step 15
-- Deploy: pending Step 12
+- Deploy: success (image pirate-battle:latest rebuilt, /health 200 on attempt 2, container pirate-battle-app-1 recreated, rolling strategy)
 - Lessons learned: First content workspace tests — added vitest devDep + workspace vitest.config.ts mirroring packages/core's setup so npm test --workspaces picks them up. All flavour names left as [DRAFT] since lore/OTK.md does not yet exist in this repo.
 
 ---
