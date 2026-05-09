@@ -84,6 +84,7 @@ pirate-battle/
 - **Single source of truth for game rules:** `packages/core` owns the engine. Web/mobile render it; server runs it; Discord renders it via embeds. No client re-implements rules.
 - **Lore canon:** any narrative content (crew bios, move flavour text, opponent dialogue) cites `lore/OTK.md` section numbers and respects `[ESTABLISHED]` / `[DRAFT]` / `[OPEN]` tiers. Never resolve `[OPEN]` items without explicit human author sign-off. **Until `lore/OTK.md` exists in the repo,** mark all flavour as `[DRAFT]` and proceed — do not block content tasks on the canon file's absence; the citations get backfilled when the canon lands.
 - **Sibling consistency with Colonize:** if a tech-stack change is proposed (ORM swap, framework upgrade, lockfile manager change), check whether the same change applies to Colonize — divergence has cost. See `~/.claude/memory/project_otk_shared_stack.md`.
+- **Roadmap `workspaces:` is a hint, the description is canonical.** When a task description requires changes outside the listed workspaces (e.g. an `apps/web` task that also needs a server endpoint to be functional), implement the spillover in the same PR rather than ship a half-wired client. The validator does not gate on `workspaces:` — only the task description binds the work. Confirmed on TASK-016 (apps/web scope, server `/api/captain` required).
 
 ## Scaffolding hygiene
 
