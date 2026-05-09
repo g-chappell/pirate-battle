@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 19 (40%)
-- **Ready:** 28
-- **In progress:** 0
+- **Ready:** 27
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -256,7 +256,7 @@ Free starter remains usable; NFT crews add to the available roster.
     > stakeAddr, migrate any anonymous session's data (captains
     > etc.) to the new userId, set session cookie. Reject 401 with
     > clear reason on mismatch.
-  - :black_circle: **TASK-024** — Web: sign-in flow integration (request nonce → signData → POST)  `high` `medium` _(apps/web)_  
+  - :large_orange_diamond: **TASK-024** — Web: sign-in flow integration (request nonce → signData → POST)  `high` `medium` _(apps/web)_  
     _depends on: TASK-023_
     > Web client calls /api/auth/nonce, builds a human-readable
     > login message including the nonce, calls api.signData(stakeAddr,
