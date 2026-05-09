@@ -143,7 +143,7 @@ gaps.
 - Test counts: core=34, server=0, web=0
 - Files changed: packages/core/src/determinism.test.ts (new), packages/core/vitest.config.ts (new)
 - Regression alert: false
-- Review proposed: pending Step 15
+- Review proposed: false (REVIEW-LOG entry from 2026-05-08 15:08 still sits within last successThreshold=5 AGENT-LOG entries; only 4 cycles since last review)
 - Deploy: success (image pirate-battle:latest rebuilt, /health 200 on attempt 2, container pirate-battle-app-1 recreated, rolling strategy)
 - Lessons learned: existing engine.test.ts already had a 2-run determinism check; the new file scales it to 100 runs across the four canonical scenarios so any rng-tuning change is caught early. Workspace-level vitest.config.ts makes the include glob explicit so future `**/*.spec.ts` additions don't silently drift.
 
