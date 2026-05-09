@@ -1,4 +1,8 @@
-import type { FastifyInstance, FastifyPluginCallback } from "fastify";
+import type {
+  FastifyInstance,
+  FastifyPluginCallback,
+  FastifyRequest,
+} from "fastify";
 
 import type { UserStore, UserSummary } from "../userStore.js";
 
@@ -14,6 +18,14 @@ const COOKIE_OPTIONS = {
   sameSite: "lax" as const,
   path: "/",
 };
+
+export function getUserIdFromCookie(req: FastifyRequest): string | null {
+  const raw = req.cookies[SESSION_COOKIE_NAME];
+  if (!raw) return null;
+  const unsigned = req.unsignCookie(raw);
+  if (!unsigned.valid || unsigned.value === null) return null;
+  return unsigned.value;
+}
 
 export const sessionRoutes: FastifyPluginCallback<SessionPluginOptions> = (
   fastify: FastifyInstance,

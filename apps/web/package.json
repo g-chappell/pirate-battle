@@ -10,6 +10,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@pirate-battle/content": "*",
     "@pirate-battle/core": "*",
     "@pirate-battle/shared": "*",
     "react": "^18.3.1",
