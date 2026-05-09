@@ -287,7 +287,7 @@ gaps.
 - Files changed: apps/server/package.json, apps/server/src/cardano/{blockfrost.ts (+test), nftSnapshotStore.ts (+test)}, packages/db/prisma/schema.prisma, packages/db/prisma/migrations/20260509221900_nft_snapshot/migration.sql, package-lock.json
 - Regression alert: false
 - Review proposed: pending (computed in Step 15)
-- Deploy: pending (computed in Step 14)
+- Deploy: success (image pirate-battle:latest, http://localhost:3001/health → 200, healthcheck attempt 2, rolling strategy)
 - Lessons learned: Blockfrost asset units concatenate policyId (28-byte hex = 56 chars) + asset_name hex; "lovelace" appears as a length-8 unit and is naturally rejected by the length-then-prefix allow-list filter. Service is split into a `BlockfrostClient` interface (HTTP boundary, mockable) + a `BlockfrostNftService` (cache + filter orchestration) + a `NftSnapshotStore` (in-memory for tests, Prisma for prod) so the entire fetch+cache+freshness path is testable without hitting the network or a database — matches the existing wallet-auth verifier / nonce-store split.
 
 ---
