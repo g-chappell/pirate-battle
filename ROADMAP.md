@@ -9,8 +9,8 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 9 (19%)
-- **Ready:** 38
+- **Done:** 10 (21%)
+- **Ready:** 37
 - **In progress:** 0
 - **Blocked:** 0
 
@@ -133,7 +133,7 @@ implementation.
     > Type matrix (attacker → defender): kraken strong vs ironclad
     > and bloodborne; ironclad strong vs phantom; phantom strong vs
     > kraken; bloodborne strong vs phantom.
-  - :black_circle: **TASK-012** — Engine determinism unit tests (Vitest)  `high` `medium` _(packages/core)_  
+  - :white_check_mark: **TASK-012** — Engine determinism unit tests (Vitest)  `high` `medium` _(packages/core)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/15)  
     _depends on: TASK-011_
     > packages/core/src/engine.test.ts: given fixed initial state +
     > fixed action sequence + fixed seed, the resulting log is
