@@ -273,7 +273,7 @@ gaps.
 - Test counts: core=42, content=17, web=80, server=63
 - Files changed: apps/server/src/routes/{auth.ts, auth.test.ts}, apps/web/src/{App.tsx, WalletChooser.tsx, api.ts, walletAuth.ts (new), walletAuth.test.ts (new), walletChooser.ts, walletChooser.test.ts}
 - Regression alert: false
-- Review proposed: <pending Step 15>
+- Review proposed: false (4 successes since last review at 2026-05-09 18:17; threshold 5)
 - Deploy: success (image pirate-battle:latest, http://localhost:3001/health → 200, healthcheck attempt 2, rolling strategy)
 - Lessons learned: TASK-023 server contract used the entire signed payload as the nonceStore key — adding a `Nonce: <32-hex>` regex extractor with whole-payload fallback lets the web client sign a human-readable message ("Pirate-Battle sign-in. … Nonce: <hex>") without breaking the existing test fixtures that sign bare nonce strings ("nonce-x", "n", etc). CIP-30 signData expects the address as raw bytes hex, so connectWallet now exposes both rewardAddrHex (CBOR-stripped) and a closure that pre-binds it.
 
