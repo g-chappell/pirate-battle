@@ -195,7 +195,7 @@ gaps.
 - Test counts: core=34, content=17, server=12, web=5
 - Files changed: apps/server/{package.json,tsconfig.json,src/index.ts,src/userStore.ts,src/routes/session.ts,src/routes/captain.ts,src/routes/captain.test.ts}, apps/web/{package.json,tsconfig.app.json,vite.config.ts,vitest.config.ts,src/App.tsx,src/api.ts,src/teamBuilder.ts,src/teamBuilder.test.ts,src/TeamBuilder.tsx}, package-lock.json
 - Regression alert: false
-- Review proposed: pending
+- Review proposed: false (PR #17 still in trailing-success window; only 3 cycles since last review, below successThreshold=5)
 - Deploy: success
 - Lessons learned: Task description authoritative over roadmap workspaces field — TASK-016 was scoped "apps/web" but description required POST /api/captain, which mandated server changes too. Implemented both rather than ship a non-functional UI.
 
