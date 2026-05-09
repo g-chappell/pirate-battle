@@ -84,6 +84,7 @@ pirate-battle/
 - **Single source of truth for game rules:** `packages/core` owns the engine. Web/mobile render it; server runs it; Discord renders it via embeds. No client re-implements rules.
 - **Lore canon:** any narrative content (crew bios, move flavour text, opponent dialogue) cites `lore/OTK.md` section numbers and respects `[ESTABLISHED]` / `[DRAFT]` / `[OPEN]` tiers. Never resolve `[OPEN]` items without explicit human author sign-off. **Until `lore/OTK.md` exists in the repo,** mark all flavour as `[DRAFT]` and proceed — do not block content tasks on the canon file's absence; the citations get backfilled when the canon lands.
 - **Sibling consistency with Colonize:** if a tech-stack change is proposed (ORM swap, framework upgrade, lockfile manager change), check whether the same change applies to Colonize — divergence has cost. See `~/.claude/memory/project_otk_shared_stack.md`.
+- **Roadmap `workspaces:` is a hint, the description is canonical.** When a task description requires changes outside the listed workspaces (e.g. an `apps/web` task that also needs a server endpoint to be functional), implement the spillover in the same PR rather than ship a half-wired client. The validator does not gate on `workspaces:` — only the task description binds the work. Confirmed on TASK-016 (apps/web scope, server `/api/captain` required).
 
 ## Scaffolding hygiene
 
@@ -110,12 +111,14 @@ pirate-battle/
 - **Blockfrost** is mocked at module boundary in CI. Never hit the real API in tests; rate limits and flakes will bite.
 - **Discord bot** tests mock the discord.js client at module boundary; never connect to real Discord in CI.
 - **Web client integration** uses Playwright over the Vite dev build. Phaser scene logic is tested at the `packages/core` level (pure TS); only assertions about *rendering* belong in Playwright.
+- **Pure-TS view-derivation modules.** Web React components and Phaser scenes paired with non-trivial logic (selection state, log formatting, option-list derivation, per-side filtering) split that logic into a companion `*.ts` module with a `*.test.ts` Vitest suite. The `.tsx` / scene file is a thin renderer over those derivations. This keeps Vitest covering behaviour without spinning up jsdom or a Phaser game instance, and matches the established split: `teamBuilder.ts` ↔ `TeamBuilder.tsx`, `phaser/affinity.ts` ↔ `phaser/affinity.test.ts`, `battleView.ts` ↔ `BattleView.tsx`.
 
 ## Architecture notes
 
 - **Server-authoritative.** All game-state mutations resolve on `apps/server`. Web, mobile, and Discord clients render and dispatch user intents — they never decide outcomes. Discord-as-first-class-client forces this; we lean into it everywhere.
 - **`packages/core` is I/O-free.** Pure TS rules. No DB, no Phaser, no fetch, no fs. The server wraps `core` with a Fastify route + Prisma persistence; the web client imports `core` only for type-aware UI helpers (e.g. "what moves can this crew select"); the Discord bot imports `core` for embed-rendering of state shapes.
 - **React + Phaser split (web).** React owns the DOM chrome (menus, modals, lobby UI). Phaser owns the battle canvas. They communicate via an event bus (or shared Zustand store). Don't render HUD inside Phaser; don't render the canvas inside React.
+- **Phaser scene state via `game.registry` + preBoot.** Scenes auto-started via the `Phaser.Game` `scene[]` array do NOT receive `init()` data — pass shared inputs (e.g. `BattleState`) by writing them to `game.registry` inside the `Phaser.Game` `callbacks.preBoot`, and read them in `Scene.create()` via `this.registry.get(KEY)`. Don't reach for scene-manager APIs (`scene.start(key, data)`) just to thread one prop in; the registry is the project's chosen channel.
 - **Three battle render modes:** web (Phaser sprites), mobile (Phaser sprites via Capacitor), Discord (embeds with HP bars + move announcements). Each consumes the same `BattleState` shape from `packages/core`; renderers are swappable.
 - **Cardano isolation.** The `BLOCKFROST_PROJECT_ID` and signature-verification crypto live ONLY in `apps/server`. The web client never sees the API key. Server-side signed-message verification uses `cardano-message-signing-nodejs` + `cardano-serialization-lib-nodejs` (WASM — keep loaded in memory; cold-start adds 100-500ms).
 - **Identity model.** Cardano stake address is the user identity. Discord links one-time via `/link` command + DM'd token. Anonymous starter sessions migrate to a wallet-backed user on first connect.
