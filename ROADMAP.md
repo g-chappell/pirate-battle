@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 8 (17%)
-- **Ready:** 39
-- **In progress:** 0
+- **Ready:** 38
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -121,7 +121,7 @@ implementation.
     > non-fainted crew. Seeded RNG via simple xoshiro128 or mulberry32
     > (deterministic, no Math.random). Append BattleEvent objects to
     > state.log. No mutation — return new state each call.
-  - :black_circle: **TASK-011** — Engine: damage formula, accuracy, status effects, type matrix  `high` `large` _(packages/core)_  
+  - :large_orange_diamond: **TASK-011** — Engine: damage formula, accuracy, status effects, type matrix  `high` `large` _(packages/core)_  
     _depends on: TASK-010_
     > In packages/core/src/engine.ts (or split into
     > src/resolveMove.ts): implement damage = floor(((2*lvl/5+2) *

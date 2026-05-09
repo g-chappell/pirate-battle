@@ -242,7 +242,7 @@ epics:
 
           - id: TASK-011
             title: "Engine: damage formula, accuracy, status effects, type matrix"
-            status: ready
+            status: in-progress
             priority: high
             complexity: large
             workspaces: ["packages/core"]
@@ -261,8 +261,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-09T11:11:00Z'
+            attempt_count: 1
 
           - id: TASK-012
             title: "Engine determinism unit tests (Vitest)"
