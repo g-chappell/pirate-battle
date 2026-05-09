@@ -155,7 +155,7 @@ This project uses an autonomous development agent. Key facts:
 - Tasks live in `roadmap/roadmap.yml`. Render with `node roadmap/render.mjs`.
 - Branches follow `auto/<TASK-ID>-<slug>`.
 - Roadmap status changes travel through the PR (branch-as-payload) — never committed directly to main.
-- Every 5 consecutive successful tasks, the agent proposes CLAUDE.md refinements. Review via `/autonomous-approve`.
+- Every 5 consecutive successful tasks, the agent invokes `/autonomous-review`, which drafts repo-wide refinements on a dedicated `auto/review-*` branch and opens an auto-merging PR — there is no human approval gate; a bad refinement is reverted post-merge with `git revert <sha>` or pre-merge with `gh pr close <num>`. (`/autonomous-approve` is now deprecated and exists only as a revert helper.)
 - CI required checks: `ci` (typecheck + lint + test + build). Optional: `e2e`.
 - Auto-merge enabled on main; branch protection requires `ci`.
 - Auto-deploy on merge: `pirate-battle.blacksail.dev` (port 3001) with health-check rollback.
