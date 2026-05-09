@@ -37,3 +37,20 @@ gap-free.
 - De-duplicated via: CLAUDE.md + approvals/history.md
 - Status: pending-approval
 - Approved at: n/a
+
+---
+
+## Review [2026-05-09 13:18] — after TASK-009 through TASK-013
+- Success streak: 5
+- Patterns identified: 4
+- Proposals drafted: 4
+- Proposals de-duplicated: 0 (4 survived)
+- Refinements committed: 4
+- PR: https://github.com/g-chappell/pirate-battle/pull/17
+- Outcome: opened
+- Files touched: CLAUDE.md
+- Refinements:
+  - codify per-workspace vitest setup recipe (Tier 3)
+  - separate engine determinism vs non-determinism test idioms (Tier 3)
+  - lore-canon [DRAFT] fallback when lore/OTK.md is absent (Tier 2)
+  - correct stale /autonomous-approve reference (Autonomous workflow)
