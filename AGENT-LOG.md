@@ -183,7 +183,7 @@ gaps.
 - Files changed: 7 (apps/server/{package.json, src/index.ts, src/userStore.ts, src/routes/session.ts, src/routes/session.test.ts, vitest.config.ts}, package-lock.json)
 - Regression alert: false
 - Review proposed: pending (filled in Step 15)
-- Deploy: pending (filled in Step 14)
+- Deploy: success (pirate-battle.blacksail.dev:3001 — health OK on attempt 2)
 - Lessons learned: First test file in apps/server — vitest.config.ts with explicit src/**/*.test.ts include added per CLAUDE.md scaffolding rule. fastify.inject() round-trip on signed cookies needed `headers: { cookie: <raw Set-Cookie value> }`; passing `cookies: { name: value }` to inject double-URL-encodes the @fastify/cookie signature payload and breaks unsignCookie. UserStore DI lets route tests stay Prisma-free, sidestepping the per-worker test-DB infrastructure that doesn't exist yet.
 
 ---
