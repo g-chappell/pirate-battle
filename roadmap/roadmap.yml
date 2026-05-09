@@ -544,7 +544,7 @@ epics:
 
           - id: TASK-024
             title: "Web: sign-in flow integration (request nonce → signData → POST)"
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces: ["apps/web"]
@@ -555,8 +555,8 @@ epics:
               roster page. Display friendly errors for: user-cancelled,
               network mismatch, signature failed.
             depends_on: ["TASK-023"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/27
+            completed: '2026-05-09T22:18:00Z'
             blocked_reason: null
             last_attempted: '2026-05-09T22:04:00Z'
             attempt_count: 1

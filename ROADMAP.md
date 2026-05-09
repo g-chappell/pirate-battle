@@ -9,9 +9,9 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 19 (40%)
+- **Done:** 20 (43%)
 - **Ready:** 27
-- **In progress:** 1
+- **In progress:** 0
 - **Blocked:** 0
 
 ---
@@ -256,7 +256,7 @@ Free starter remains usable; NFT crews add to the available roster.
     > stakeAddr, migrate any anonymous session's data (captains
     > etc.) to the new userId, set session cookie. Reject 401 with
     > clear reason on mismatch.
-  - :large_orange_diamond: **TASK-024** — Web: sign-in flow integration (request nonce → signData → POST)  `high` `medium` _(apps/web)_  
+  - :white_check_mark: **TASK-024** — Web: sign-in flow integration (request nonce → signData → POST)  `high` `medium` _(apps/web)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/27)  
     _depends on: TASK-023_
     > Web client calls /api/auth/nonce, builds a human-readable
     > login message including the nonce, calls api.signData(stakeAddr,
