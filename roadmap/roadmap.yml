@@ -346,7 +346,7 @@ epics:
         tasks:
           - id: TASK-015
             title: "Server: anonymous session create + cookie + GET /me"
-            status: ready
+            status: done
             priority: high
             complexity: medium
             workspaces: ["apps/server", "packages/db"]
@@ -357,11 +357,11 @@ epics:
               returns the current user (id, stakeAddr, captains[]). 401 if
               no cookie. Server-side session store can be JWT-style for now.
             depends_on: ["TASK-008", "TASK-003"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/19
+            completed: '2026-05-09T15:11:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-09T15:03:00Z'
+            attempt_count: 1
 
           - id: TASK-016
             title: "Web: starter session bootstrap + team builder UI"
