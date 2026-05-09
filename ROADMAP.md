@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 17 (36%)
-- **Ready:** 30
-- **In progress:** 0
+- **Ready:** 29
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -236,7 +236,7 @@ Cardano collections via Blockfrost, deterministic trait → stat mapping.
 Free starter remains usable; NFT crews add to the available roster.
 
 - **STORY-08** — CIP-30 wallet connect + signed-message auth
-  - :black_circle: **TASK-022** — Web: CIP-30 wallet chooser + connect flow  `high` `medium` _(apps/web)_  
+  - :large_orange_diamond: **TASK-022** — Web: CIP-30 wallet chooser + connect flow  `high` `medium` _(apps/web)_  
     _depends on: TASK-016_
     > apps/web: detect window.cardano keys, present a wallet
     > chooser (Nami, Eternl, Lace, Typhon at minimum), call
