@@ -240,3 +240,16 @@ gaps.
 
 ---
 
+### Run [2026-05-09 20:11]
+- Task: TASK-022 — Web: CIP-30 wallet chooser + connect flow
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/25
+- Test counts: core=42, content=17, server=37, web=57
+- Files changed: apps/web/src/{App.tsx, WalletChooser.tsx, walletChooser.ts, walletChooser.test.ts}
+- Regression alert: false
+- Review proposed: pending (Step 15)
+- Deploy: pending
+- Lessons learned: Inlined a BIP-173 bech32 encoder (~50 lines) + minimal CBOR-bytestring parser instead of pulling in the `bech32` runtime dep — keeps the web bundle lean and avoids a network-install dependency mid-cycle. Validated against the BIP-173 empty-data reference vector (`a12uel5l`) plus structural mainnet/testnet HRP checks. CIP-30 reward addresses are CBOR-encoded hex (29 bytes wrapped as `581d…`); header byte's low nibble routes mainnet→`stake`, testnet→`stake_test` HRP.
+
+---
+
