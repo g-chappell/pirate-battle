@@ -37,3 +37,18 @@ gap-free.
 - De-duplicated via: CLAUDE.md + approvals/history.md
 - Status: pending-approval
 - Approved at: n/a
+
+---
+
+## Review [2026-05-09 18:17] — after TASK-014 through TASK-018
+- Success streak: 5
+- Patterns identified: 3
+  - Roadmap `workspaces:` field is hint-only; task description body is canonical (TASK-016 spilled apps/web → apps/server)
+  - Pure-TS view-derivation modules pattern across React + Phaser components (TASK-016, TASK-017, TASK-018 — `*.ts` + `*.test.ts` companion to JSX/scene)
+  - Phaser scene state via `game.registry` set in `Phaser.Game` preBoot (TASK-017 — auto-started scenes can't take init data)
+- Proposals drafted: 3
+- Proposals de-duplicated: 0 (3 survived; references = current CLAUDE.md + approvals/history.md + last review PRs #10/#17 bodies)
+- Refinements committed: 3
+- PR: https://github.com/g-chappell/pirate-battle/pull/23
+- Outcome: opened
+- Files touched: CLAUDE.md (Tier 2 Project conventions, Tier 3 Architecture notes, Tier 3 Testing patterns)
