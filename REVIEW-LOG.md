@@ -52,3 +52,16 @@ gap-free.
 - PR: https://github.com/g-chappell/pirate-battle/pull/23
 - Outcome: opened
 - Files touched: CLAUDE.md (Tier 2 Project conventions, Tier 3 Architecture notes, Tier 3 Testing patterns)
+
+---
+
+## Review [2026-05-09 23:16] — after TASK-020 through TASK-025
+- Success streak: 5
+- Patterns identified: 1
+  - External-boundary `Interface` + `InMemory*` + production-impl pattern recurring across stores and adapters (TASK-023 abstracted `WalletAuthVerifier` so route tests inject a stub avoiding WASM cold-start; TASK-025 explicitly cited matching the wallet-auth/nonce-store split when introducing `BlockfrostClient` + `NftSnapshotStore`).
+- Proposals drafted: 1
+- Proposals de-duplicated: 0 (1 survived; references = current CLAUDE.md + last review PRs #17/#23 bodies)
+- Refinements committed: 1
+- PR: <pending>
+- Outcome: opened
+- Files touched: CLAUDE.md (Tier 3 Architecture notes)
