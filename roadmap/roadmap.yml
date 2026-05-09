@@ -448,7 +448,7 @@ epics:
         tasks:
           - id: TASK-020
             title: "Server: AI opponent + battle create/resolve endpoints"
-            status: ready
+            status: in-progress
             priority: high
             complexity: large
             workspaces: ["apps/server", "packages/core"]
@@ -464,8 +464,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-09T19:07:00Z'
+            attempt_count: 1
 
           - id: TASK-021
             title: "Web: win/loss screens + battle history list"
