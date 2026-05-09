@@ -448,7 +448,7 @@ epics:
         tasks:
           - id: TASK-020
             title: "Server: AI opponent + battle create/resolve endpoints"
-            status: in-progress
+            status: done
             priority: high
             complexity: large
             workspaces: ["apps/server", "packages/core"]
@@ -461,8 +461,8 @@ epics:
               call resolveTurn from packages/core, persist BattleEvents,
               return new state. GET /api/battle/:id — current state.
             depends_on: ["TASK-012", "TASK-016"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/24
+            completed: '2026-05-09T19:18:00Z'
             blocked_reason: null
             last_attempted: '2026-05-09T19:07:00Z'
             attempt_count: 1

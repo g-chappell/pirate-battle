@@ -9,9 +9,9 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 16 (34%)
+- **Done:** 17 (36%)
 - **Ready:** 30
-- **In progress:** 1
+- **In progress:** 0
 - **Blocked:** 0
 
 ---
@@ -212,7 +212,7 @@ one PvE opponent, sees turn-by-turn animated battle. Validates engine
     > are wired.
 
 - **STORY-07** — First PvE opponent + win/loss screens
-  - :large_orange_diamond: **TASK-020** — Server: AI opponent + battle create/resolve endpoints  `high` `large` _(apps/server, packages/core)_  
+  - :white_check_mark: **TASK-020** — Server: AI opponent + battle create/resolve endpoints  `high` `large` _(apps/server, packages/core)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/24)  
     _depends on: TASK-012, TASK-016_
     > apps/server: POST /api/battle/start — given userId, create a
     > Battle row, generate an AI opponent (fixed lore-flavoured team
