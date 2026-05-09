@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 20 (43%)
-- **Ready:** 27
-- **In progress:** 0
+- **Ready:** 26
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -265,7 +265,7 @@ Free starter remains usable; NFT crews add to the available roster.
     > network mismatch, signature failed.
 
 - **STORY-09** — NFT discovery service (Blockfrost) with allow-list + caching
-  - :black_circle: **TASK-025** — Server: Blockfrost client + allow-list config + NFT fetch  `high` `medium` _(apps/server, packages/db)_  
+  - :large_orange_diamond: **TASK-025** — Server: Blockfrost client + allow-list config + NFT fetch  `high` `medium` _(apps/server, packages/db)_  
     _depends on: TASK-008, TASK-023_
     > apps/server/src/cardano/blockfrost.ts: typed wrapper around
     > @blockfrost/blockfrost-js using BLOCKFROST_PROJECT_ID +
