@@ -208,7 +208,7 @@ gaps.
 - Test counts: core=34, content=17, server=12, web=17
 - Files changed: apps/web/package.json, apps/web/src/phaser/{affinity.ts, affinity.test.ts, BootScene.ts, BattleScene.ts, BattleCanvas.tsx, index.ts}, package-lock.json
 - Regression alert: false
-- Review proposed: TBD (Step 15 — pending deploy outcome)
+- Review proposed: false (PR #17 still in trailing-success window; only 4 cycles since last review, below successThreshold=5)
 - Deploy: success (image pirate-battle:latest rebuilt, /health 200 on attempt 2, container pirate-battle-app-1 recreated, rolling strategy)
 - Lessons learned: Phaser scenes can't take init data when auto-started from the scene[] array, so shared scene state (here: BattleState) goes through the game registry, set in Phaser.Game's preBoot callback. Component is exported but not yet mounted in App.tsx — task brief said "Don't build the move menu yet", so this PR is pure scaffolding; future battle-flow tasks will wire BattleCanvas into the live UI.
 
