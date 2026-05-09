@@ -169,7 +169,7 @@ gaps.
 - Test counts: core=34, content=17, server=0, web=0
 - Files changed: packages/content/src/crews.ts (new), packages/content/src/crews.test.ts (new), packages/content/src/index.ts
 - Regression alert: false
-- Review proposed: pending Step 15
+- Review proposed: false (PR #17 just merged 2026-05-09 13:17 covering TASK-009→TASK-013; only 1 cycle since last review, far below successThreshold=5)
 - Deploy: success (image pirate-battle:latest rebuilt, /health 200 on attempt 2, container pirate-battle-app-1 recreated, rolling strategy)
 - Lessons learned: defined CrewTemplate type inline in packages/content rather than promoting to packages/core, since the engine does not yet consume crew templates — keeps scope narrow and avoids a cross-workspace edit. Per-affinity stat-spread test (max-min vs balanced/specialist split) catches accidental "two specialists" content drift cheaply.
 
