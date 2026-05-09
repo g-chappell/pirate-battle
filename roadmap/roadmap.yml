@@ -365,7 +365,7 @@ epics:
 
           - id: TASK-016
             title: "Web: starter session bootstrap + team builder UI"
-            status: ready
+            status: in-progress
             priority: high
             complexity: medium
             workspaces: ["apps/web"]
@@ -380,8 +380,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-09T16:05:00Z'
+            attempt_count: 1
 
       - id: STORY-06
         title: "Phaser battle scene"
