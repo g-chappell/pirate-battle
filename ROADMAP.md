@@ -9,9 +9,9 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 12 (26%)
+- **Done:** 13 (28%)
 - **Ready:** 34
-- **In progress:** 1
+- **In progress:** 0
 - **Blocked:** 0
 
 ---
@@ -172,7 +172,7 @@ one PvE opponent, sees turn-by-turn animated battle. Validates engine
 + UX shape before tackling identity (EPIC-03).
 
 - **STORY-05** — Anonymous starter session + team builder UI
-  - :large_orange_diamond: **TASK-015** — Server: anonymous session create + cookie + GET /me  `high` `medium` _(apps/server, packages/db)_  
+  - :white_check_mark: **TASK-015** — Server: anonymous session create + cookie + GET /me  `high` `medium` _(apps/server, packages/db)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/19)  
     _depends on: TASK-008, TASK-003_
     > apps/server: POST /api/session/anonymous creates a User row
     > with stakeAddr=null, sets a signed session cookie (use
