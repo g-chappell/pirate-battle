@@ -253,3 +253,16 @@ gaps.
 
 ---
 
+### Run [2026-05-09 21:18]
+- Task: TASK-023 — Server: signed-message auth (POST /api/auth/wallet)
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/26
+- Test counts: core=42, content=17, web=57, server=62
+- Files changed: apps/server/package.json, apps/server/src/index.ts, apps/server/src/userStore.ts, apps/server/src/nonceStore.ts (+test), apps/server/src/walletAuth.ts (+test), apps/server/src/routes/auth.ts (+test), package-lock.json
+- Regression alert: false
+- Review proposed: <pending step 15>
+- Deploy: <pending step 14>
+- Lessons learned: @emurgo/cardano-{message-signing,serialization-lib}-nodejs round-trip is straightforward — gen Ed25519 keypair → COSESign1Builder.make_data_to_sign() → prv.sign() → COSESign1.build(sig). Test fixture mints addr+sig+key inside the test, no fixture files needed; same path verifies cleanly. Verifier abstracted behind WalletAuthVerifier interface so route tests inject a stub (avoids loading WASM 7× per route assertion) while a separate suite exercises the real Cardano impl.
+
+---
+
