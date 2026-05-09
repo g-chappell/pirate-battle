@@ -8,6 +8,7 @@ import {
   getMe,
 } from "./api";
 import { TeamBuilder } from "./TeamBuilder";
+import { WalletChooser } from "./WalletChooser";
 
 type SessionState =
   | { kind: "loading" }
@@ -57,6 +58,7 @@ export function App(): ReactElement {
       <header style={{ marginBottom: "1.5rem" }}>
         <h1>Pirate-Battle</h1>
         <p>Order of the Kraken — pirate-crew battles on Cardano.</p>
+        <WalletChooser />
       </header>
 
       {session.kind === "loading" ? <p>Boarding the ship…</p> : null}
