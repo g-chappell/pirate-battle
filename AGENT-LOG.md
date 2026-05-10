@@ -491,6 +491,7 @@ gaps.
 - Test counts: core=61, content=17, web=93, server=148, shared=9
 - Files changed: eslint.config.js, .prettierrc.json, .prettierignore, package.json, package-lock.json, plus 74 source files reformatted by `prettier --write` and import-order auto-fix
 - Regression alert: false
+- Deploy: success
 - Lessons learned: existing scaffold used double quotes (238:1 ratio), so set `singleQuote: false` to minimize churn. ESLint `@typescript-eslint/consistent-type-imports` flagged two pre-existing `import("...")` type annotations — fixed in the same PR since the lint task can't ship green otherwise.
 
 ---
