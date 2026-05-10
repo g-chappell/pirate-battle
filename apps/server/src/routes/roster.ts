@@ -1,13 +1,16 @@
 import { CREWS, type CrewTemplate } from "@pirate-battle/content";
+import type { CrewSnapshot } from "@pirate-battle/core";
 import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 
 import type { BlockfrostNftService } from "../cardano/blockfrost.js";
+import type { RosterDerivationService } from "../rosterDerivation.js";
 import type { UserStore } from "../userStore.js";
 import { getUserIdFromCookie } from "./session.js";
 
 export interface RosterPluginOptions {
   userStore: UserStore;
   nftService?: BlockfrostNftService;
+  derivationService?: RosterDerivationService;
 }
 
 export interface StarterCrewView {
@@ -24,6 +27,8 @@ export interface NftCrewView {
   assetName: string;
   unit: string;
   quantity: string;
+  collectionName: string | null;
+  derived: CrewSnapshot | null;
 }
 
 export interface RosterResponse {
@@ -68,12 +73,18 @@ export const rosterRoutes: FastifyPluginCallback<RosterPluginOptions> = (
         userId: user.id,
         stakeAddr: user.stakeAddr,
       });
-      nft = result.nfts.map((n) => ({
-        policyId: n.policyId,
-        assetName: n.assetName,
-        unit: n.unit,
-        quantity: n.quantity,
-      }));
+      if (opts.derivationService) {
+        nft = opts.derivationService.derive(result.nfts);
+      } else {
+        nft = result.nfts.map((n) => ({
+          policyId: n.policyId,
+          assetName: n.assetName,
+          unit: n.unit,
+          quantity: n.quantity,
+          collectionName: null,
+          derived: null,
+        }));
+      }
     }
 
     const response: RosterResponse = { starter, nft };

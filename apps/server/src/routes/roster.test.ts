@@ -1,4 +1,6 @@
 import { CREWS } from "@pirate-battle/content";
+import type { CrewSnapshot } from "@pirate-battle/core";
+import type { CollectionRules } from "@pirate-battle/shared";
 import { describe, expect, it } from "vitest";
 
 import { InMemoryBattleStore } from "../battleStore.js";
@@ -7,8 +9,10 @@ import {
   type BlockfrostClient,
   type RawAccountAsset,
 } from "../cardano/blockfrost.js";
+import type { CollectionRecord } from "../cardano/collectionStore.js";
 import { InMemoryNftSnapshotStore } from "../cardano/nftSnapshotStore.js";
 import { buildServer } from "../index.js";
+import { RosterDerivationService } from "../rosterDerivation.js";
 import { InMemoryUserStore } from "../userStore.js";
 import { SESSION_COOKIE_NAME } from "./session.js";
 
@@ -26,6 +30,7 @@ interface MakeAppOptions {
   withNftService?: boolean;
   assets?: RawAccountAsset[];
   allowlist?: string[];
+  collections?: CollectionRecord[];
 }
 
 function makeApp(opts: MakeAppOptions = {}) {
@@ -38,11 +43,15 @@ function makeApp(opts: MakeAppOptions = {}) {
         allowlist: opts.allowlist ?? [POLICY_A],
       })
     : undefined;
+  const derivationService = opts.collections
+    ? new RosterDerivationService(opts.collections)
+    : undefined;
   const app = buildServer({
     sessionSecret: "test-secret-not-used-in-prod",
     userStore,
     battleStore,
     nftService,
+    derivationService,
     logger: false,
   });
   return { app, userStore };
@@ -135,8 +144,105 @@ describe("GET /api/roster", () => {
         assetName: "deadbeef",
         unit: `${POLICY_A}deadbeef`,
         quantity: "1",
+        collectionName: null,
+        derived: null,
       },
     ]);
+
+    await app.close();
+  });
+
+  it("derives crew stats for nfts whose policy matches a registered collection", async () => {
+    const stake = "stake1u9deriving";
+    const rules: CollectionRules = {
+      baseStats: { hp: 80, atk: 60, def: 60, spd: 50 },
+      baseLevel: 5,
+      baseAffinity: "kraken",
+      baseMoves: [
+        {
+          key: "tide_surge",
+          name: "Tide Surge",
+          affinity: "kraken",
+          basePower: 65,
+          accuracy: 100,
+          kind: "damage",
+        },
+      ],
+      traits: {},
+    };
+    const collections: CollectionRecord[] = [
+      { policyId: POLICY_A, name: "Order of the Kraken Crew", rules },
+    ];
+    const assets: RawAccountAsset[] = [
+      { unit: `${POLICY_A}deadbeef`, quantity: "1" },
+    ];
+    const { app, userStore } = makeApp({
+      withNftService: true,
+      assets,
+      allowlist: [POLICY_A],
+      collections,
+    });
+    await app.ready();
+    const { cookieHeader, userId } = await anonymousCookie(app);
+    await userStore.attachStakeAddrToUser(userId, stake);
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/roster",
+      headers: { cookie: cookieHeader },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.nft).toHaveLength(1);
+    expect(body.nft[0].collectionName).toBe("Order of the Kraken Crew");
+    const derived = body.nft[0].derived as CrewSnapshot;
+    expect(derived).not.toBeNull();
+    expect(derived.hp).toBe(80);
+    expect(derived.maxHp).toBe(80);
+    expect(derived.atk).toBe(60);
+    expect(derived.def).toBe(60);
+    expect(derived.spd).toBe(50);
+    expect(derived.level).toBe(5);
+    expect(derived.affinity).toBe("kraken");
+    expect(derived.moves).toEqual(rules.baseMoves);
+
+    await app.close();
+  });
+
+  it("returns derived=null for nfts whose policy is not registered", async () => {
+    const stake = "stake1u9unregistered";
+    const rules: CollectionRules = {
+      baseStats: { hp: 80, atk: 60, def: 60, spd: 50 },
+      baseLevel: 5,
+      baseAffinity: "kraken",
+      baseMoves: [],
+      traits: {},
+    };
+    const collections: CollectionRecord[] = [
+      { policyId: POLICY_B, name: "Other Collection", rules },
+    ];
+    const assets: RawAccountAsset[] = [
+      { unit: `${POLICY_A}beef`, quantity: "1" },
+    ];
+    const { app, userStore } = makeApp({
+      withNftService: true,
+      assets,
+      allowlist: [POLICY_A],
+      collections,
+    });
+    await app.ready();
+    const { cookieHeader, userId } = await anonymousCookie(app);
+    await userStore.attachStakeAddrToUser(userId, stake);
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/roster",
+      headers: { cookie: cookieHeader },
+    });
+    const body = res.json();
+    expect(body.nft).toHaveLength(1);
+    expect(body.nft[0].collectionName).toBeNull();
+    expect(body.nft[0].derived).toBeNull();
 
     await app.close();
   });

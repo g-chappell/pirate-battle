@@ -7,6 +7,11 @@ import {
   getNetworkFromEnv,
   loadAllowlistFromEnv,
 } from "./cardano/blockfrost.js";
+import {
+  InMemoryCollectionStore,
+  PrismaCollectionStore,
+  type CollectionStore,
+} from "./cardano/collectionStore.js";
 import { PrismaNftSnapshotStore } from "./cardano/nftSnapshotStore.js";
 import {
   InMemoryBattleStore,
@@ -14,6 +19,7 @@ import {
   type BattleStore,
 } from "./battleStore.js";
 import { InMemoryNonceStore, type NonceStore } from "./nonceStore.js";
+import { RosterDerivationService } from "./rosterDerivation.js";
 import { authRoutes } from "./routes/auth.js";
 import { battleRoutes } from "./routes/battle.js";
 import { captainRoutes } from "./routes/captain.js";
@@ -36,6 +42,7 @@ export interface BuildServerOptions {
   nonceStore?: NonceStore;
   walletAuthVerifier?: WalletAuthVerifier;
   nftService?: BlockfrostNftService;
+  derivationService?: RosterDerivationService;
   seedFactory?: () => number;
   logger?: boolean;
 }
@@ -52,6 +59,7 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
   app.register(rosterRoutes, {
     userStore: opts.userStore,
     nftService: opts.nftService,
+    derivationService: opts.derivationService,
   });
   app.register(battleRoutes, {
     userStore: opts.userStore,
@@ -73,9 +81,18 @@ export {
   InMemoryBattleStore,
   PrismaBattleStore,
   InMemoryNonceStore,
+  InMemoryCollectionStore,
+  PrismaCollectionStore,
   CardanoWalletAuthVerifier,
+  RosterDerivationService,
 };
-export type { UserStore, BattleStore, NonceStore, WalletAuthVerifier };
+export type {
+  UserStore,
+  BattleStore,
+  NonceStore,
+  WalletAuthVerifier,
+  CollectionStore,
+};
 
 const isMain = import.meta.url === `file://${process.argv[1]}`;
 if (isMain) {
@@ -107,11 +124,16 @@ if (isMain) {
         })
       : undefined;
 
+  const collectionStore = new PrismaCollectionStore(prismaClient);
+  const collections = await collectionStore.listAll();
+  const derivationService = new RosterDerivationService(collections);
+
   const app = buildServer({
     sessionSecret,
     userStore,
     battleStore,
     nftService,
+    derivationService,
   });
   app.listen({ port, host }).catch((err) => {
     app.log.error(err);
