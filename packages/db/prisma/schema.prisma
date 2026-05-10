@@ -106,6 +106,7 @@ model Battle {
   mode           BattleMode
   participantAId String
   participantBId String?
+  captainId      String?
   resultJson     Json?
   seed           Bytes
   startedAt      DateTime   @default(now())

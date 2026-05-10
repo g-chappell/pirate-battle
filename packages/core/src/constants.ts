@@ -22,6 +22,14 @@ export const STATUS_POISON = "poison";
 export const STATUS_BURN = "burn";
 export const STATUS_STUN = "stun";
 
+export const XP_LEVEL_CURVE_FACTOR = 50;
+export const LEVEL_CAP = 100;
+export const BASE_XP_PER_BATTLE = 100;
+export const WINNER_XP_MULTIPLIER = 1.5;
+export const LOSER_XP_MULTIPLIER = 1.0;
+export const STAT_GROWTH_PER_LEVEL = 0.05;
+export const STAT_GROWTH_CAP_RATIO = 1.5;
+
 export const TYPE_CHART: Record<Affinity, Record<Affinity, number>> = {
   kraken: {
     kraken: AFFINITY_NEUTRAL,

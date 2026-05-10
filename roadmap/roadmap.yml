@@ -662,7 +662,7 @@ epics:
         tasks:
           - id: TASK-029
             title: "Server: XP grant on battle end + level-up curve"
-            status: ready
+            status: done
             priority: high
             complexity: medium
             workspaces: ["apps/server", "packages/core"]
@@ -673,11 +673,11 @@ epics:
               gains base attrs * 1.05 ratio, capped per template. Engine's
               CrewSnapshot consumes Crew.level + attrs at battle start.
             depends_on: ["TASK-020", "TASK-007"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/33
+            completed: '2026-05-10T03:23:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-10T03:04:00Z'
+            attempt_count: 1
 
           - id: TASK-030
             title: "Web: crew detail screen + attribute training UI"

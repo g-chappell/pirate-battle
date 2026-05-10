@@ -1,9 +1,16 @@
 import { CREWS } from "@pirate-battle/content";
+import {
+  BASE_XP_PER_BATTLE,
+  DEFAULT_LEVEL,
+  LOSER_XP_MULTIPLIER,
+  WINNER_XP_MULTIPLIER,
+} from "@pirate-battle/core";
 import { describe, expect, it } from "vitest";
 
 import { InMemoryBattleStore } from "../battleStore.js";
 import { buildServer } from "../index.js";
-import { InMemoryUserStore } from "../userStore.js";
+import { InMemoryUserStore, type CaptainTeam } from "../userStore.js";
+import { computeXpAwards } from "./battle.js";
 import { TEAM_SIZE } from "./captain.js";
 import { SESSION_COOKIE_NAME } from "./session.js";
 
@@ -368,6 +375,43 @@ describe("POST /api/battle/:id/action", () => {
     await app.close();
   });
 
+  it("grants loser XP to every player crew on forfeit", async () => {
+    const { app, userStore } = makeApp();
+    await app.ready();
+    const { cookie, userId } = await authedSession(app);
+    const captainId = await createCaptain(app, cookie);
+
+    const start = await app.inject({
+      method: "POST",
+      url: "/api/battle/start",
+      headers: { cookie },
+      payload: { captainId },
+    });
+    expect(start.statusCode).toBe(201);
+
+    const before = await userStore.getCaptainTeam(userId, captainId);
+    expect(before).not.toBeNull();
+    for (const crew of before!.crews) {
+      expect(crew.xp).toBe(0);
+    }
+
+    const forfeit = await app.inject({
+      method: "POST",
+      url: `/api/battle/${start.json().id}/action`,
+      headers: { cookie },
+      payload: { action: { type: "forfeit" } },
+    });
+    expect(forfeit.statusCode).toBe(200);
+    expect(forfeit.json().state.winner).toBe("B");
+
+    const after = await userStore.getCaptainTeam(userId, captainId);
+    const expectedXp = Math.floor(BASE_XP_PER_BATTLE * LOSER_XP_MULTIPLIER);
+    for (const crew of after!.crews) {
+      expect(crew.xp).toBe(expectedXp);
+    }
+    await app.close();
+  });
+
   it("is deterministic across runs with the same seed", async () => {
     async function run() {
       const { app } = makeApp(424242);
@@ -389,5 +433,63 @@ describe("POST /api/battle/:id/action", () => {
     const b = await run();
     expect(b.state.log).toEqual(a.state.log);
     expect(b.state.activeB.hp).toBe(a.state.activeB.hp);
+  });
+});
+
+describe("computeXpAwards", () => {
+  function teamWith(ids: Array<string | null>): CaptainTeam {
+    return {
+      id: "cap_x",
+      name: "x",
+      factionId: "kraken",
+      crews: ids.map((id) => ({
+        id,
+        templateKey: "tide_brawler",
+        moveKeys: ["tide_surge"],
+        level: DEFAULT_LEVEL,
+        xp: 0,
+        attrs: null,
+      })),
+    };
+  }
+
+  it("awards winner-multiplier XP to every crew with an id", () => {
+    const team = teamWith(["c1", "c2", "c3"]);
+    const awards = computeXpAwards({ team, playerWon: true });
+    const expected = Math.floor(BASE_XP_PER_BATTLE * WINNER_XP_MULTIPLIER);
+    expect(awards).toEqual([
+      { crewId: "c1", xpGain: expected },
+      { crewId: "c2", xpGain: expected },
+      { crewId: "c3", xpGain: expected },
+    ]);
+  });
+
+  it("awards loser-multiplier XP on loss", () => {
+    const team = teamWith(["c1"]);
+    const awards = computeXpAwards({ team, playerWon: false });
+    expect(awards[0]!.xpGain).toBe(
+      Math.floor(BASE_XP_PER_BATTLE * LOSER_XP_MULTIPLIER),
+    );
+  });
+
+  it("skips crews without a persisted id", () => {
+    const team = teamWith(["c1", null, "c3"]);
+    const awards = computeXpAwards({ team, playerWon: true });
+    expect(awards.map((a) => a.crewId)).toEqual(["c1", "c3"]);
+  });
+
+  it("scales by opponent level when provided", () => {
+    const team = teamWith(["c1"]);
+    const lowOpp = computeXpAwards({
+      team,
+      playerWon: true,
+      opponentLevel: DEFAULT_LEVEL / 2,
+    });
+    const highOpp = computeXpAwards({
+      team,
+      playerWon: true,
+      opponentLevel: DEFAULT_LEVEL * 2,
+    });
+    expect(highOpp[0]!.xpGain).toBe(lowOpp[0]!.xpGain * 4);
   });
 });

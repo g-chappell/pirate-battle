@@ -44,12 +44,15 @@ describe("InMemoryBattleStore", () => {
     const store = new InMemoryBattleStore();
     const created = await store.create({
       ownerUserId: "u1",
+      captainId: "cap_1",
       state: emptyState(),
     });
     expect(created.ownerUserId).toBe("u1");
+    expect(created.captainId).toBe("cap_1");
 
     const fetched = await store.get(created.id);
     expect(fetched?.id).toBe(created.id);
+    expect(fetched?.captainId).toBe("cap_1");
     expect(fetched?.state.turn).toBe(0);
   });
 
@@ -63,6 +66,7 @@ describe("InMemoryBattleStore", () => {
     const store = new InMemoryBattleStore();
     const created = await store.create({
       ownerUserId: "u1",
+      captainId: null,
       state: emptyState(),
     });
 
