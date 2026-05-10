@@ -1063,7 +1063,7 @@ epics:
         tasks:
           - id: TASK-044
             title: 'Server: PvP challenge create/accept + match queue'
-            status: ready
+            status: in-progress
             priority: high
             complexity: large
             workspaces:
@@ -1082,8 +1082,8 @@ epics:
             pr: https://github.com/g-chappell/pirate-battle/pull/35
             completed: '2026-05-10T05:21:00Z'
             blocked_reason: null
-            last_attempted: '2026-05-10T05:04:00Z'
-            attempt_count: 1
+            last_attempted: '2026-05-10T14:02:00Z'
+            attempt_count: 2
           - id: TASK-045
             title: 'Web: PvP UI (generate challenge link, accept, in-progress list)'
             status: ready
