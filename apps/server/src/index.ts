@@ -2,6 +2,13 @@ import fastifyCookie from "@fastify/cookie";
 import Fastify, { type FastifyInstance } from "fastify";
 
 import {
+  BlockfrostHttpClient,
+  BlockfrostNftService,
+  getNetworkFromEnv,
+  loadAllowlistFromEnv,
+} from "./cardano/blockfrost.js";
+import { PrismaNftSnapshotStore } from "./cardano/nftSnapshotStore.js";
+import {
   InMemoryBattleStore,
   PrismaBattleStore,
   type BattleStore,
@@ -10,6 +17,7 @@ import { InMemoryNonceStore, type NonceStore } from "./nonceStore.js";
 import { authRoutes } from "./routes/auth.js";
 import { battleRoutes } from "./routes/battle.js";
 import { captainRoutes } from "./routes/captain.js";
+import { rosterRoutes } from "./routes/roster.js";
 import { sessionRoutes } from "./routes/session.js";
 import {
   InMemoryUserStore,
@@ -27,6 +35,7 @@ export interface BuildServerOptions {
   battleStore: BattleStore;
   nonceStore?: NonceStore;
   walletAuthVerifier?: WalletAuthVerifier;
+  nftService?: BlockfrostNftService;
   seedFactory?: () => number;
   logger?: boolean;
 }
@@ -40,6 +49,10 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
 
   app.register(sessionRoutes, { userStore: opts.userStore });
   app.register(captainRoutes, { userStore: opts.userStore });
+  app.register(rosterRoutes, {
+    userStore: opts.userStore,
+    nftService: opts.nftService,
+  });
   app.register(battleRoutes, {
     userStore: opts.userStore,
     battleStore: opts.battleStore,
@@ -80,7 +93,26 @@ if (isMain) {
   const userStore = new PrismaUserStore(prismaClient);
   const battleStore = new PrismaBattleStore(prismaClient);
 
-  const app = buildServer({ sessionSecret, userStore, battleStore });
+  const blockfrostProjectId = process.env.BLOCKFROST_PROJECT_ID;
+  const allowlist = loadAllowlistFromEnv(process.env);
+  const nftService =
+    blockfrostProjectId && allowlist.length > 0
+      ? new BlockfrostNftService({
+          client: new BlockfrostHttpClient({
+            projectId: blockfrostProjectId,
+            network: getNetworkFromEnv(process.env),
+          }),
+          store: new PrismaNftSnapshotStore(prismaClient),
+          allowlist,
+        })
+      : undefined;
+
+  const app = buildServer({
+    sessionSecret,
+    userStore,
+    battleStore,
+    nftService,
+  });
   app.listen({ port, host }).catch((err) => {
     app.log.error(err);
     process.exit(1);
