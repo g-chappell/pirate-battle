@@ -305,3 +305,15 @@ gaps.
 
 ---
 
+### Run [2026-05-10 01:14]
+- Task: TASK-027 — Trait→stat derivation: deterministic mapper + collection registry
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/31
+- Test counts: core=42, content=17, web=80, server=92, shared=9
+- Files changed: packages/db/prisma/schema.prisma, packages/db/prisma/migrations/20260510010000_collection/migration.sql, packages/shared/src/nftMapping.ts, packages/shared/src/nftMapping.test.ts, packages/shared/src/index.ts, packages/shared/package.json, packages/shared/vitest.config.ts, apps/server/src/cardano/collectionStore.ts, apps/server/src/rosterDerivation.ts, apps/server/src/routes/roster.ts, apps/server/src/routes/roster.test.ts, apps/server/src/index.ts
+- Regression alert: false
+- Deploy: pending
+- Lessons learned: packages/shared previously had no tests — added vitest dep + test script + workspace-local vitest.config.ts in the same PR per CLAUDE.md "Adding tests to a previously-untested workspace" guidance.
+
+---
+
