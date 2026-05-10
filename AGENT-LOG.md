@@ -581,7 +581,7 @@ gaps.
 - Test counts: discord=30, server=204, web=131, content=19, core=66, shared=9
 - Files changed: packages/content/src/{items,items.test}.ts (new) + index.ts; packages/core/src/{training,training.test}.ts (new) + index.ts; apps/server/src/userStore.{ts,test.ts}; apps/server/src/routes/{crew,crew.test}.ts (new) + index.ts; apps/web/src/{crewDetail,crewDetail.test}.ts (new); apps/web/src/CaptainCrewsView.tsx (new); apps/web/src/{api,App}.tsx
 - Regression alert: false
-- Review proposed: pending (Step 15) — open auto/review-* PR #29 still blocks
+- Review proposed: false (open auto/review-* PR #29 still blocks new review)
 - Deploy: success
 - Lessons learned: TASK-030 description listed only apps/web in workspaces but required server endpoints + a content item template + a core cap helper to be coherent — per CLAUDE.md "description is canonical, workspaces is a hint". Granting starter chips was deliberately deferred to TASK-031 (item drops on battle win); chip qty is 0 by default and the UI surfaces this honestly rather than hard-coding a seed value. TASK-042 (Capacitor scaffold) skipped again — environmentally infeasible on Linux host (same precedent as TASK-028 cycle); future runs will keep selecting TASK-042 first until it's marked human-only or split.
 
