@@ -164,6 +164,18 @@ export const pvpRoutes: FastifyPluginCallback<PvpPluginOptions> = (
     },
   );
 
+  fastify.get("/api/pvp/battles", async (req, reply) => {
+    const userId = getUserIdFromCookie(req);
+    if (!userId) return reply.code(401).send({ error: "no_session" });
+
+    const summaries = await battleStore.listInProgressPvpForUser(userId);
+    const battles = summaries.map((s) => {
+      const side = getSide(s, userId) ?? "A";
+      return pendingResponse(s, side);
+    });
+    return reply.send({ battles });
+  });
+
   fastify.get<{ Params: { id: string } }>("/api/pvp/battle/:id", async (req, reply) => {
     const userId = getUserIdFromCookie(req);
     if (!userId) return reply.code(401).send({ error: "no_session" });
