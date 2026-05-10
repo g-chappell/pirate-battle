@@ -816,7 +816,7 @@ epics:
 
           - id: TASK-036
             title: "Server: /api/discord/link-token + /api/discord/link-claim"
-            status: done
+            status: blocked
             priority: high
             complexity: medium
             workspaces: ["apps/server"]
@@ -829,7 +829,7 @@ epics:
             depends_on: ["TASK-023"]
             pr: https://github.com/g-chappell/pirate-battle/pull/34
             completed: '2026-05-10T04:15:00Z'
-            blocked_reason: null
+            blocked_reason: "deploy failed health check — same prod-DB block as TASK-027/TASK-005/TASK-029 (boot-time `collectionStore.listAll()` against an unmigrated prod DB). Code itself merged cleanly (PR #34) and is correct in tests; rolled back to previous image. Unblocks once `prisma migrate deploy` runs against the prod DB."
             last_attempted: '2026-05-10T04:04:00Z'
             attempt_count: 1
 

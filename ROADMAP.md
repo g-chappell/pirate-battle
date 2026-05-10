@@ -9,10 +9,10 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 23 (49%)
+- **Done:** 22 (47%)
 - **Ready:** 21
 - **In progress:** 0
-- **Blocked:** 3
+- **Blocked:** 4
 
 ---
 
@@ -375,7 +375,8 @@ Async-friendly so battles can span hours.
     > DISCORD_DEV_GUILD_ID is set (instant dev iteration), else
     > applicationCommands (global). Run as a one-off deploy step,
     > not on bot startup.
-  - :white_check_mark: **TASK-036** — Server: /api/discord/link-token + /api/discord/link-claim  `high` `medium` _(apps/server)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/34)  
+  - :no_entry: **TASK-036** — Server: /api/discord/link-token + /api/discord/link-claim  `high` `medium` _(apps/server)_  
+    _blocked: deploy failed health check — same prod-DB block as TASK-027/TASK-005/TASK-029 (boot-time `collectionStore.listAll()` against an unmigrated prod DB). Code itself merged cleanly (PR #34) and is correct in tests; rolled back to previous image. Unblocks once `prisma migrate deploy` runs against the prod DB._  
     _depends on: TASK-023_
     > apps/server: POST /api/discord/link-token (auth required by
     > wallet session) returns a one-time token (15-min expiry).
