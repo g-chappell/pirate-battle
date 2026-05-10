@@ -27,6 +27,8 @@ model User {
   battlesAsA     Battle[]  @relation("BattleParticipantA")
   battlesAsB     Battle[]  @relation("BattleParticipantB")
   nftSnapshots   NftSnapshot[]
+  pvpChallenges  PvpChallenge[]
+  pvpQueueEntry  PvpQueueEntry?
 }
 
 model NftSnapshot {
@@ -103,15 +105,19 @@ model Item {
 }
 
 model Battle {
-  id             String     @id @default(cuid())
-  mode           BattleMode
-  participantAId String
-  participantBId String?
-  captainId      String?
-  resultJson     Json?
-  seed           Bytes
-  startedAt      DateTime   @default(now())
-  endedAt        DateTime?
+  id              String     @id @default(cuid())
+  mode            BattleMode
+  participantAId  String
+  participantBId  String?
+  captainId       String?
+  captainBId      String?
+  resultJson      Json?
+  pendingActionA  Json?
+  pendingActionB  Json?
+  pendingSubmitAt DateTime?
+  seed            Bytes
+  startedAt       DateTime   @default(now())
+  endedAt         DateTime?
 
   participantA User          @relation("BattleParticipantA", fields: [participantAId], references: [id], onDelete: Cascade)
   participantB User?         @relation("BattleParticipantB", fields: [participantBId], references: [id], onDelete: SetNull)
@@ -131,4 +137,32 @@ model BattleEvent {
   battle Battle @relation(fields: [battleId], references: [id], onDelete: Cascade)
 
   @@unique([battleId, idx])
+}
+
+model PvpChallenge {
+  id                String    @id @default(cuid())
+  token             String    @unique
+  challengerUserId  String
+  challengerCaptainId String
+  expiresAt         DateTime
+  acceptedBattleId  String?
+  acceptedAt        DateTime?
+  createdAt         DateTime  @default(now())
+
+  challenger User @relation(fields: [challengerUserId], references: [id], onDelete: Cascade)
+
+  @@index([challengerUserId])
+  @@index([expiresAt])
+}
+
+model PvpQueueEntry {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  captainId        String
+  matchedBattleId  String?
+  joinedAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([joinedAt])
 }
