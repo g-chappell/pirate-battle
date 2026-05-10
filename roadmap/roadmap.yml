@@ -131,7 +131,7 @@ epics:
             attempt_count: 2
           - id: TASK-006
             title: ESLint + Prettier root config (flat config)
-            status: ready
+            status: in-progress
             priority: med
             complexity: small
             workspaces:
@@ -147,8 +147,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-10T16:04:00Z'
+            attempt_count: 1
       - id: STORY-02
         title: Postgres schema + Prisma migrations
         description: >-
