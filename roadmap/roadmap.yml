@@ -110,7 +110,7 @@ epics:
             attempt_count: 1
           - id: TASK-005
             title: Scaffold apps/discord stub + apps/mobile placeholder
-            status: in-progress
+            status: done
             priority: med
             complexity: small
             workspaces:
@@ -124,8 +124,8 @@ epics:
               EPIC-06; do NOT install Capacitor yet.
             depends_on:
               - TASK-002
-            pr: https://github.com/g-chappell/pirate-battle/pull/32
-            completed: '2026-05-10T02:10:00Z'
+            pr: https://github.com/g-chappell/pirate-battle/pull/42
+            completed: '2026-05-10T15:05:00Z'
             blocked_reason: null
             last_attempted: '2026-05-10T15:03:00Z'
             attempt_count: 2
