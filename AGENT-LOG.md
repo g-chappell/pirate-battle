@@ -401,3 +401,11 @@ gaps.
 
 ---
 
+### Run [2026-05-10 09:01]
+- Task: (none)
+- Outcome: skipped
+- Reason: no_ready_tasks — all 19 ready tasks depend (transitively) on the 5 blocked tasks (TASK-005 / TASK-019 / TASK-027 / TASK-029 / TASK-036 / TASK-044), all blocked on the same root cause: prod DB has no tables (migrations never applied). Unblocks once `prisma migrate deploy` runs against prod DB (manual one-time fix or wire into deploy.sh).
+- Deploy: n/a
+
+---
+
