@@ -52,6 +52,10 @@ export interface CrewProgress {
   levelsGained: number;
 }
 
+export type SetDiscordUserIdResult =
+  | { ok: true }
+  | { ok: false; reason: "not_found" | "conflict" };
+
 export interface UserStore {
   createAnonymous(): Promise<UserSummary>;
   findById(id: string): Promise<UserSummary | null>;
@@ -74,6 +78,10 @@ export interface UserStore {
     captainId: string,
   ): Promise<CaptainTeam | null>;
   applyXpRewards(awards: readonly XpAward[]): Promise<CrewProgress[]>;
+  setDiscordUserId(
+    userId: string,
+    discordUserId: string,
+  ): Promise<SetDiscordUserIdResult>;
 }
 
 function parseAttrs(raw: unknown): CrewAttrs | null {
@@ -287,6 +295,22 @@ export class PrismaUserStore implements UserStore {
       return out;
     });
   }
+
+  async setDiscordUserId(
+    userId: string,
+    discordUserId: string,
+  ): Promise<SetDiscordUserIdResult> {
+    return this.prisma.$transaction(async (tx) => {
+      const target = await tx.user.findUnique({ where: { id: userId } });
+      if (!target) return { ok: false, reason: "not_found" };
+      const taken = await tx.user.findUnique({ where: { discordUserId } });
+      if (taken && taken.id !== userId) {
+        return { ok: false, reason: "conflict" };
+      }
+      await tx.user.update({ where: { id: userId }, data: { discordUserId } });
+      return { ok: true };
+    });
+  }
 }
 
 interface InMemoryCrew {
@@ -306,6 +330,7 @@ interface InMemoryCaptain extends CaptainSummary {
 export class InMemoryUserStore implements UserStore {
   private readonly users = new Map<string, UserSummary>();
   private readonly captains = new Map<string, InMemoryCaptain>();
+  private readonly discordUserIds = new Map<string, string>();
   private nextUserId = 1;
   private nextCaptainId = 1;
   private nextCrewId = 1;
@@ -445,6 +470,31 @@ export class InMemoryUserStore implements UserStore {
       });
     }
     return out;
+  }
+
+  async setDiscordUserId(
+    userId: string,
+    discordUserId: string,
+  ): Promise<SetDiscordUserIdResult> {
+    if (!this.users.has(userId)) return { ok: false, reason: "not_found" };
+    const existingOwner = this.discordUserIds.get(discordUserId);
+    if (existingOwner && existingOwner !== userId) {
+      return { ok: false, reason: "conflict" };
+    }
+    for (const [discord, owner] of this.discordUserIds.entries()) {
+      if (owner === userId && discord !== discordUserId) {
+        this.discordUserIds.delete(discord);
+      }
+    }
+    this.discordUserIds.set(discordUserId, userId);
+    return { ok: true };
+  }
+
+  getDiscordUserId(userId: string): string | undefined {
+    for (const [discord, owner] of this.discordUserIds.entries()) {
+      if (owner === userId) return discord;
+    }
+    return undefined;
   }
 
   private findCaptainByCrewId(crewId: string): InMemoryCaptain | undefined {
