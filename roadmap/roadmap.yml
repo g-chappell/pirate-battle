@@ -996,7 +996,7 @@ epics:
         tasks:
           - id: TASK-044
             title: "Server: PvP challenge create/accept + match queue"
-            status: done
+            status: blocked
             priority: high
             complexity: large
             workspaces: ["apps/server"]
@@ -1012,7 +1012,7 @@ epics:
             depends_on: ["TASK-020"]
             pr: https://github.com/g-chappell/pirate-battle/pull/35
             completed: '2026-05-10T05:21:00Z'
-            blocked_reason: null
+            blocked_reason: "deploy failed health check — same prod-DB-migration gap as TASK-027/029/036; new PvP migration (and any boot path that touches Battle/Pvp tables) can't initialise on the live DB. Code merged to main and tests green; needs `prisma migrate deploy` against prod (or wired into deploy.sh) before this can ship."
             last_attempted: '2026-05-10T05:04:00Z'
             attempt_count: 1
 

@@ -363,8 +363,8 @@ gaps.
 - Test counts: core=61, content=17, shared=9, web=80, server=148 (+24)
 - Files changed: apps/server/src/{battleAction,battleStore,index,pvpChallengeStore,pvpChallengeStore.test,pvpQueueStore,pvpQueueStore.test}.ts; apps/server/src/routes/{battle,pvp,pvp.test}.ts; packages/db/{prisma/schema.prisma,prisma/migrations/20260510050000_pvp_challenge_and_queue/migration.sql,src/index.ts}
 - Regression alert: false
-- Deploy: pending
-- Lessons learned: Prisma's nullable JSON columns require Prisma.JsonNull (not raw null) in update payloads — needed exporting Prisma as a value (not just a type) from packages/db. Both PvP queue peers must be reachable through one polling endpoint, so PvpQueueEntry carries matchedBattleId rather than relying on transient state.
+- Deploy: rolled_back (health check 90s timeout, previous image restored ok); task marked blocked
+- Lessons learned: Prisma's nullable JSON columns require Prisma.JsonNull (not raw null) in update payloads — needed exporting Prisma as a value (not just a type) from packages/db. Both PvP queue peers must be reachable through one polling endpoint, so PvpQueueEntry carries matchedBattleId rather than relying on transient state. Same prod-DB-migration gap as TASK-027/029/036 keeps bouncing deploys — every cycle that introduces a new migration (or boots a code path that touches the unmigrated tables) will roll back until prod runs `prisma migrate deploy`. Worth surfacing as a roadmap task rather than continuing the rollback streak.
 
 ---
 

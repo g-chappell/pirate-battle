@@ -9,10 +9,10 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 23 (49%)
+- **Done:** 22 (47%)
 - **Ready:** 20
 - **In progress:** 0
-- **Blocked:** 4
+- **Blocked:** 5
 
 ---
 
@@ -453,7 +453,8 @@ engine; no new authority anywhere.
     > mobile) via custom scheme; document fallback in docs/MOBILE.md.
 
 - **STORY-18** — Async PvP: challenge-by-link + match queue + persistence
-  - :white_check_mark: **TASK-044** — Server: PvP challenge create/accept + match queue  `high` `large` _(apps/server)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/35)  
+  - :no_entry: **TASK-044** — Server: PvP challenge create/accept + match queue  `high` `large` _(apps/server)_  
+    _blocked: deploy failed health check — same prod-DB-migration gap as TASK-027/029/036; new PvP migration (and any boot path that touches Battle/Pvp tables) can't initialise on the live DB. Code merged to main and tests green; needs `prisma migrate deploy` against prod (or wired into deploy.sh) before this can ship._  
     _depends on: TASK-020_
     > POST /api/pvp/challenge creates a Challenge row (tokenized
     > link, 24h expiry). Anyone with the link who is signed in
