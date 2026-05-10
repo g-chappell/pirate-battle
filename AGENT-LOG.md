@@ -337,9 +337,9 @@ gaps.
 - Test counts: core=61, content=17, shared=9, web=80, server=105
 - Files changed: packages/core/src/{constants.ts, leveling.ts (new), leveling.test.ts (new), index.ts}, packages/db/prisma/{schema.prisma, migrations/20260510030000_battle_captain/migration.sql (new)}, apps/server/src/{crewSnapshot.ts, crewSnapshot.test.ts, userStore.ts, userStore.test.ts (new), battleStore.ts, battleStore.test.ts, routes/battle.ts, routes/battle.test.ts}
 - Regression alert: false
-- Review proposed: TBD (Step 15)
-- Deploy: TBD (Step 12)
-- Lessons learned: Engine's CrewSnapshot now reflects Crew.level + attrs end-to-end via a new packages/core/leveling module (effectiveStats: linear +5%/level capped at 1.5× base, kept inside the engine so renderers stay derivative). Battle row gained captainId so the action route can resolve the player's persisted Crew rows when winner flips and award per-crew XP via userStore.applyXpRewards (winner ×1.5, loser ×1.0, scaled by opponent level / DEFAULT_LEVEL). Note: cycle ran knowing the prior TASK-027 prod-DB block is still unresolved — this PR adds yet another unapplied migration; deploy is expected to roll back again until prod runs `prisma migrate deploy`.
+- Review proposed: false (4 success cycles since last review at 2026-05-09 23:13 — TASK-026, TASK-027, TASK-005, TASK-029 — below successThreshold=5)
+- Deploy: rolled_back (health check timeout 90s → rollback to previous image succeeded; rolled-back app verified healthy on /health). Same root cause as TASK-027/TASK-005: prod DB pirate_battle has no tables — Prisma migrations were never applied — so the boot-time `await collectionStore.listAll()` throws before /health responds. TASK-029 marked blocked per Step 14 convention even though this task didn't introduce the bad startup path.
+- Lessons learned: Engine's CrewSnapshot now reflects Crew.level + attrs end-to-end via a new packages/core/leveling module (effectiveStats: linear +5%/level capped at 1.5× base, kept inside the engine so renderers stay derivative). Battle row gained captainId so the action route can resolve the player's persisted Crew rows when winner flips and award per-crew XP via userStore.applyXpRewards (winner ×1.5, loser ×1.0, scaled by opponent level / DEFAULT_LEVEL). Operator action still required: `prisma migrate deploy` against the prod DB before any deploy can succeed — every subsequent cycle will continue rolling back and burning a task to `blocked` until that infra fix lands.
 
 ---
 

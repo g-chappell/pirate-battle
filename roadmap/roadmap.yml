@@ -662,7 +662,7 @@ epics:
         tasks:
           - id: TASK-029
             title: "Server: XP grant on battle end + level-up curve"
-            status: done
+            status: blocked
             priority: high
             complexity: medium
             workspaces: ["apps/server", "packages/core"]
@@ -675,7 +675,7 @@ epics:
             depends_on: ["TASK-020", "TASK-007"]
             pr: https://github.com/g-chappell/pirate-battle/pull/33
             completed: '2026-05-10T03:23:00Z'
-            blocked_reason: null
+            blocked_reason: "deploy failed health check — same prod-DB block as TASK-027/TASK-005 (boot-time `collectionStore.listAll()` against an unmigrated prod DB). Code itself merged cleanly (PR #33) and is correct in tests; rolled back to previous image. Unblocks once `prisma migrate deploy` runs against the prod DB."
             last_attempted: '2026-05-10T03:04:00Z'
             attempt_count: 1
 
