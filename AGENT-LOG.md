@@ -479,8 +479,8 @@ gaps.
 - Files changed: roadmap/roadmap.yml, ROADMAP.md
 - Regression alert: false
 - Review proposed: pending Step 15
-- Deploy: pending
-- Lessons learned: TASK-005 was the last cascade-root task left from the prisma-migrate rollback group (TASK-005/019/027/029/036/044). Rolling it forward unblocks the cascade window.
+- Deploy: success (image rebuilt, prisma migrate deploy reported "No pending migrations to apply", rolling deploy of apps/app, /health 200 on attempt 2)
+- Lessons learned: TASK-005 was the last cascade-root task left from the prisma-migrate rollback group (TASK-005/019/027/029/036/044). Rolling it forward unblocks the cascade window. Stale local branch from squash-merged PR #32 needed `git branch -D` cleanup before scripts/new-branch.sh could re-use the slug — same hiccup as TASK-036/044.
 
 ---
 
