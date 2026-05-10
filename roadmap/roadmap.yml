@@ -587,7 +587,7 @@ epics:
 
           - id: TASK-026
             title: "Server: GET /api/roster (free starter + NFT crews)"
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces: ["apps/server"]
@@ -598,8 +598,8 @@ epics:
               trait→stat pipeline (TASK-027). Web team builder consumes
               this to populate the chooser.
             depends_on: ["TASK-025"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/30
+            completed: '2026-05-10T00:08:00Z'
             blocked_reason: null
             last_attempted: '2026-05-10T00:01:00Z'
             attempt_count: 1
