@@ -106,7 +106,7 @@ epics:
 
           - id: TASK-005
             title: "Scaffold apps/discord stub + apps/mobile placeholder"
-            status: ready
+            status: in-progress
             priority: med
             complexity: small
             workspaces: ["apps/discord", "apps/mobile"]
@@ -120,8 +120,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-10T02:06:00Z'
+            attempt_count: 1
 
           - id: TASK-006
             title: "ESLint + Prettier root config (flat config)"

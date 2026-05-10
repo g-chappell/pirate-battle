@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 22 (47%)
-- **Ready:** 24
-- **In progress:** 0
+- **Ready:** 23
+- **In progress:** 1
 - **Blocked:** 1
 
 ---
@@ -59,7 +59,7 @@ implementation.
     > src/main.tsx mounting <App/>, src/App.tsx returning the project
     > name + a "Connect wallet" placeholder. dev on port 5173.
     > Build outputs to dist/.
-  - :black_circle: **TASK-005** — Scaffold apps/discord stub + apps/mobile placeholder  `med` `small` _(apps/discord, apps/mobile)_  
+  - :large_orange_diamond: **TASK-005** — Scaffold apps/discord stub + apps/mobile placeholder  `med` `small` _(apps/discord, apps/mobile)_  
     _depends on: TASK-002_
     > apps/discord: package.json with discord.js v14+ dependency,
     > tsconfig.json (composite, references core + shared), src/index.ts
