@@ -543,8 +543,8 @@ gaps.
 - Test counts: discord=30, server=151, web=113, content=17, core=61, shared=9
 - Files changed: roadmap/roadmap.yml, ROADMAP.md (status-flip only — code already on main from PR #36)
 - Regression alert: false
-- Deploy: pending
-- Lessons learned: TASK-019 was the last of the six cascade-rollforwards triggered by the prod migration fix in PR #37; all six (TASK-005, -019, -027, -029, -036, -044) are now re-deployed.
+- Deploy: success
+- Lessons learned: TASK-019 was the last of the six cascade-rollforwards triggered by the prod migration fix in PR #37; all six (TASK-005, -019, -027, -029, -036, -044) are now re-deployed. Stale local `auto/TASK-019-*` branch from the original PR #36 squash-merge needed `git branch -D` before scripts/new-branch.sh could re-use the slug — same hiccup that bit TASK-036 and TASK-044.
 
 ---
 
