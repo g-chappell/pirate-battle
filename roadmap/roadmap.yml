@@ -816,7 +816,7 @@ epics:
 
           - id: TASK-036
             title: "Server: /api/discord/link-token + /api/discord/link-claim"
-            status: ready
+            status: in-progress
             priority: high
             complexity: medium
             workspaces: ["apps/server"]
@@ -830,8 +830,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-10T04:04:00Z'
+            attempt_count: 1
 
           - id: TASK-037
             title: "Discord bot: /link command + DM flow → server claim"

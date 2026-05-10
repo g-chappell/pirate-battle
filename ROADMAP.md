@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 22 (47%)
-- **Ready:** 22
-- **In progress:** 0
+- **Ready:** 21
+- **In progress:** 1
 - **Blocked:** 3
 
 ---
@@ -375,7 +375,7 @@ Async-friendly so battles can span hours.
     > DISCORD_DEV_GUILD_ID is set (instant dev iteration), else
     > applicationCommands (global). Run as a one-off deploy step,
     > not on bot startup.
-  - :black_circle: **TASK-036** — Server: /api/discord/link-token + /api/discord/link-claim  `high` `medium` _(apps/server)_  
+  - :large_orange_diamond: **TASK-036** — Server: /api/discord/link-token + /api/discord/link-claim  `high` `medium` _(apps/server)_  
     _depends on: TASK-023_
     > apps/server: POST /api/discord/link-token (auth required by
     > wallet session) returns a one-time token (15-min expiry).
