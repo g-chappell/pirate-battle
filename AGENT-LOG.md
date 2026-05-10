@@ -432,3 +432,16 @@ gaps.
 
 ---
 
+### Run [2026-05-10 12:10]
+- Task: TASK-029 — Server: XP grant on battle end + level-up curve
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/39
+- Test counts: core=61, content=17, shared=9, web=93, server=148
+- Files changed: roadmap/roadmap.yml, ROADMAP.md (status flips only — code already on main from PR #33)
+- Regression alert: false
+- Notes: cascade-rollforward cycle. PR #33 originally rolled back due to missing prod migrations; PR #37 wired `prisma migrate deploy` into deploy.sh, so this re-deploy validates the fix end-to-end for TASK-029's BattleCaptain migration. No code changes this cycle.
+- Deploy: pending Step 12-14
+- Review proposed: pending Step 15
+
+---
+
