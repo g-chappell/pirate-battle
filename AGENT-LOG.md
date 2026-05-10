@@ -530,7 +530,7 @@ gaps.
 - Test counts: discord=30, server=151, web=113, content=17, core=61, shared=9
 - Files changed: apps/server/src/battleStore.ts, apps/server/src/routes/pvp.ts, apps/server/src/routes/pvp.test.ts, apps/web/src/api.ts, apps/web/src/App.tsx, apps/web/src/PvpPage.tsx (new), apps/web/src/PvpBattlePage.tsx (new), apps/web/src/pvpView.ts (new), apps/web/src/pvpView.test.ts (new)
 - Regression alert: false
-- Review proposed: (filled in Step 15)
+- Review proposed: false (open auto/review-* PR #29 blocks new review)
 - Deploy: success
 - Lessons learned: roadmap yaml-lite parser does not support `>-` folded scalars; render.mjs has been silently producing "0 tasks" since commit 51abe9e (2026-05-10). Task selection still worked because Claude reads roadmap.yml directly, but `node roadmap/render.mjs` and `node roadmap/validate.mjs` are unreliable. Candidate for `/autonomous-review` to fix (either teach yaml-lite the `>-` style or rewrite the descriptions to `|`).
 
