@@ -441,7 +441,7 @@ gaps.
 - Regression alert: false
 - Notes: cascade-rollforward cycle. PR #33 originally rolled back due to missing prod migrations; PR #37 wired `prisma migrate deploy` into deploy.sh, so this re-deploy validates the fix end-to-end for TASK-029's BattleCaptain migration. No code changes this cycle.
 - Deploy: success (rolling redeploy via patched deploy.sh — image pirate-battle:latest rebuilt, `prisma migrate deploy` ran, no pending migrations, /health 200 on attempt 2; cascade rollforward of TASK-029 confirmed end-to-end)
-- Review proposed: pending Step 15
+- Review proposed: false (only 2 trailing successes — TASK-027 at 11:21, TASK-029 at 12:10 — the 10:03 skipped cycle broke the streak; below successThreshold=5; PR #29 from 2026-05-09 23:16 still open)
 
 ---
 
