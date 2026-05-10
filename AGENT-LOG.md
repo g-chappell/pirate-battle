@@ -318,3 +318,14 @@ gaps.
 
 ---
 
+### Run [2026-05-10 02:10]
+- Task: TASK-005 — Scaffold apps/discord stub + apps/mobile placeholder
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/32
+- Test counts: core=42, content=17, shared=9, server=92, web=80
+- Files changed: apps/discord/package.json, apps/discord/tsconfig.json, apps/discord/src/index.ts, apps/mobile/README.md, tsconfig.json, package-lock.json
+- Regression alert: false
+- Deploy: pending
+
+---
+
