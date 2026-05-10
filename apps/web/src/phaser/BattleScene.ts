@@ -1,14 +1,30 @@
 import Phaser from "phaser";
-import type { BattleState, CrewSnapshot } from "@pirate-battle/core";
+import type {
+  BattleEvent,
+  BattleState,
+  CrewSnapshot,
+  Side,
+} from "@pirate-battle/core";
 
 import {
   PLACEHOLDER_SPRITE_SIZE,
   computeHpBarWidth,
   textureKeyForAffinity,
 } from "./affinity";
+import {
+  type AnimationTrigger,
+  FAINT_FADE_ALPHA,
+  FAINT_FADE_DURATION_MS,
+  HIT_FLASH_DURATION_MS,
+  HIT_FLASH_TINT,
+  HIT_SHAKE_DURATION_MS,
+  HIT_SHAKE_OFFSET_PX,
+  triggersFromEvents,
+} from "./animations";
 
 export const BATTLE_SCENE_KEY = "battle";
 export const BATTLE_STATE_REGISTRY_KEY = "battleState";
+export const RECENT_EVENTS_REGISTRY_KEY = "battleRecentEvents";
 
 const HP_BAR_WIDTH = 160;
 const HP_BAR_HEIGHT = 12;
@@ -17,12 +33,20 @@ const HP_BAR_FILL_COLOR = 0x4caf50;
 const HP_BAR_LOW_COLOR = 0xc62828;
 const HP_BAR_LOW_THRESHOLD = 0.25;
 
+interface CrewSpriteRefs {
+  sprite: Phaser.GameObjects.Image;
+  baseX: number;
+}
+
 export class BattleScene extends Phaser.Scene {
+  private crewSprites: Partial<Record<Side, CrewSpriteRefs>> = {};
+
   constructor() {
     super(BATTLE_SCENE_KEY);
   }
 
   create(): void {
+    this.crewSprites = {};
     const battleState = this.registry.get(BATTLE_STATE_REGISTRY_KEY) as
       | BattleState
       | undefined;
@@ -46,15 +70,63 @@ export class BattleScene extends Phaser.Scene {
       fontFamily: "system-ui, sans-serif",
       fontSize: "14px",
     });
+
+    const recent = this.registry.get(RECENT_EVENTS_REGISTRY_KEY) as
+      | BattleEvent[]
+      | undefined;
+    if (recent && recent.length > 0) {
+      this.applyTriggers(triggersFromEvents(recent));
+    }
+  }
+
+  applyTriggers(triggers: AnimationTrigger[]): void {
+    for (const t of triggers) this.applyTrigger(t);
+  }
+
+  applyTrigger(trigger: AnimationTrigger): void {
+    const refs = this.crewSprites[trigger.side];
+    if (!refs) return;
+    if (trigger.kind === "hit") {
+      this.playHit(refs);
+    } else {
+      this.playFaint(refs);
+    }
+  }
+
+  private playHit({ sprite, baseX }: CrewSpriteRefs): void {
+    sprite.setTint(HIT_FLASH_TINT);
+    this.time.delayedCall(HIT_FLASH_DURATION_MS, () => {
+      if (sprite.active) sprite.clearTint();
+    });
+    this.tweens.add({
+      targets: sprite,
+      x: baseX + HIT_SHAKE_OFFSET_PX,
+      duration: HIT_SHAKE_DURATION_MS,
+      yoyo: true,
+      ease: "Sine.easeInOut",
+      onComplete: () => {
+        sprite.x = baseX;
+      },
+    });
+  }
+
+  private playFaint({ sprite }: CrewSpriteRefs): void {
+    this.tweens.add({
+      targets: sprite,
+      alpha: FAINT_FADE_ALPHA,
+      duration: FAINT_FADE_DURATION_MS,
+      ease: "Sine.easeIn",
+    });
   }
 
   private drawCrew(
-    label: "A" | "B",
+    label: Side,
     crew: CrewSnapshot,
     x: number,
     y: number,
   ): void {
-    this.add.image(x, y, textureKeyForAffinity(crew.affinity));
+    const sprite = this.add.image(x, y, textureKeyForAffinity(crew.affinity));
+    this.crewSprites[label] = { sprite, baseX: x };
     const barX = x - HP_BAR_WIDTH / 2;
     const barY = y - PLACEHOLDER_SPRITE_SIZE / 2 - HP_BAR_HEIGHT - 18;
     this.add

@@ -4,7 +4,12 @@ import Phaser from "phaser";
 import type { BattleState } from "@pirate-battle/core";
 
 import { BootScene } from "./BootScene";
-import { BATTLE_STATE_REGISTRY_KEY, BattleScene } from "./BattleScene";
+import {
+  BATTLE_STATE_REGISTRY_KEY,
+  BattleScene,
+  RECENT_EVENTS_REGISTRY_KEY,
+} from "./BattleScene";
+import { newEventsSlice } from "./animations";
 
 export interface BattleCanvasProps {
   battleState: BattleState;
@@ -22,10 +27,13 @@ export function BattleCanvas({
 }: BattleCanvasProps): ReactElement {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
+  const prevLogRef = useRef<BattleState["log"]>([]);
 
   useEffect(() => {
     const parent = containerRef.current;
     if (!parent) return;
+    const recent = newEventsSlice(prevLogRef.current, battleState.log);
+    prevLogRef.current = battleState.log;
     const game = new Phaser.Game({
       type: Phaser.AUTO,
       parent,
@@ -37,6 +45,7 @@ export function BattleCanvas({
       callbacks: {
         preBoot: (g) => {
           g.registry.set(BATTLE_STATE_REGISTRY_KEY, battleState);
+          g.registry.set(RECENT_EVENTS_REGISTRY_KEY, recent);
         },
       },
     });
