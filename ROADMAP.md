@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 22 (47%)
-- **Ready:** 21
-- **In progress:** 0
+- **Ready:** 20
+- **In progress:** 1
 - **Blocked:** 4
 
 ---
@@ -453,7 +453,7 @@ engine; no new authority anywhere.
     > mobile) via custom scheme; document fallback in docs/MOBILE.md.
 
 - **STORY-18** — Async PvP: challenge-by-link + match queue + persistence
-  - :black_circle: **TASK-044** — Server: PvP challenge create/accept + match queue  `high` `large` _(apps/server)_  
+  - :large_orange_diamond: **TASK-044** — Server: PvP challenge create/accept + match queue  `high` `large` _(apps/server)_  
     _depends on: TASK-020_
     > POST /api/pvp/challenge creates a Challenge row (tokenized
     > link, 24h expiry). Anyone with the link who is signed in
