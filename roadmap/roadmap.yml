@@ -609,7 +609,7 @@ epics:
         tasks:
           - id: TASK-027
             title: "Trait→stat derivation: deterministic mapper + collection registry"
-            status: in-progress
+            status: done
             priority: high
             complexity: large
             workspaces: ["apps/server", "packages/db", "packages/shared"]
@@ -622,8 +622,8 @@ epics:
               applied to each NFT in fetchUserNfts. Deterministic — same
               input → same output, no RNG, no DB lookup mid-derive.
             depends_on: ["TASK-026"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/31
+            completed: '2026-05-10T01:14:00Z'
             blocked_reason: null
             last_attempted: '2026-05-10T01:01:00Z'
             attempt_count: 1

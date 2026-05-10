@@ -9,9 +9,9 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 22 (47%)
+- **Done:** 23 (49%)
 - **Ready:** 24
-- **In progress:** 1
+- **In progress:** 0
 - **Blocked:** 0
 
 ---
@@ -283,7 +283,7 @@ Free starter remains usable; NFT crews add to the available roster.
     > this to populate the chooser.
 
 - **STORY-10** — Trait → stat derivation pipeline + admin tooling
-  - :large_orange_diamond: **TASK-027** — Trait→stat derivation: deterministic mapper + collection registry  `high` `large` _(apps/server, packages/db, packages/shared)_  
+  - :white_check_mark: **TASK-027** — Trait→stat derivation: deterministic mapper + collection registry  `high` `large` _(apps/server, packages/db, packages/shared)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/31)  
     _depends on: TASK-026_
     > packages/shared/src/nftMapping.ts: pure function
     > deriveCrewStats(metadata, collectionRules) → CrewSnapshot.
