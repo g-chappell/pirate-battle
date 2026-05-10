@@ -726,7 +726,7 @@ epics:
             attempt_count: 2
           - id: TASK-030
             title: 'Web: crew detail screen + attribute training UI'
-            status: ready
+            status: in-progress
             priority: med
             complexity: medium
             workspaces:
@@ -742,8 +742,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-10T23:04:00Z'
+            attempt_count: 1
       - id: STORY-12
         title: 'Item system: drops, inventory, apply-to-crew'
         tasks:
