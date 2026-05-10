@@ -17,9 +17,10 @@ enum BattleMode {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  stakeAddr String?  @unique
-  createdAt DateTime @default(now())
+  id            String   @id @default(cuid())
+  stakeAddr     String?  @unique
+  discordUserId String?  @unique
+  createdAt     DateTime @default(now())
 
   captains       Captain[]
   items          Item[]

@@ -9,8 +9,8 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 22 (47%)
-- **Ready:** 22
+- **Done:** 23 (49%)
+- **Ready:** 21
 - **In progress:** 0
 - **Blocked:** 3
 
@@ -375,7 +375,7 @@ Async-friendly so battles can span hours.
     > DISCORD_DEV_GUILD_ID is set (instant dev iteration), else
     > applicationCommands (global). Run as a one-off deploy step,
     > not on bot startup.
-  - :black_circle: **TASK-036** — Server: /api/discord/link-token + /api/discord/link-claim  `high` `medium` _(apps/server)_  
+  - :white_check_mark: **TASK-036** — Server: /api/discord/link-token + /api/discord/link-claim  `high` `medium` _(apps/server)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/34)  
     _depends on: TASK-023_
     > apps/server: POST /api/discord/link-token (auth required by
     > wallet session) returns a one-time token (15-min expiry).

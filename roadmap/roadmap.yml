@@ -816,7 +816,7 @@ epics:
 
           - id: TASK-036
             title: "Server: /api/discord/link-token + /api/discord/link-claim"
-            status: ready
+            status: done
             priority: high
             complexity: medium
             workspaces: ["apps/server"]
@@ -827,11 +827,11 @@ epics:
               from the bot, looks up the User, sets User.discordUserId,
               invalidates token. Reject if token already used / expired.
             depends_on: ["TASK-023"]
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/34
+            completed: '2026-05-10T04:15:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-10T04:04:00Z'
+            attempt_count: 1
 
           - id: TASK-037
             title: "Discord bot: /link command + DM flow → server claim"

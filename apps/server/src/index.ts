@@ -18,11 +18,16 @@ import {
   PrismaBattleStore,
   type BattleStore,
 } from "./battleStore.js";
+import {
+  InMemoryDiscordLinkTokenStore,
+  type DiscordLinkTokenStore,
+} from "./discordLinkStore.js";
 import { InMemoryNonceStore, type NonceStore } from "./nonceStore.js";
 import { RosterDerivationService } from "./rosterDerivation.js";
 import { authRoutes } from "./routes/auth.js";
 import { battleRoutes } from "./routes/battle.js";
 import { captainRoutes } from "./routes/captain.js";
+import { discordLinkRoutes } from "./routes/discordLink.js";
 import { rosterRoutes } from "./routes/roster.js";
 import { sessionRoutes } from "./routes/session.js";
 import {
@@ -40,6 +45,7 @@ export interface BuildServerOptions {
   userStore: UserStore;
   battleStore: BattleStore;
   nonceStore?: NonceStore;
+  discordLinkTokenStore?: DiscordLinkTokenStore;
   walletAuthVerifier?: WalletAuthVerifier;
   nftService?: BlockfrostNftService;
   derivationService?: RosterDerivationService;
@@ -71,6 +77,11 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
     nonceStore: opts.nonceStore ?? new InMemoryNonceStore(),
     verifier: opts.walletAuthVerifier ?? new CardanoWalletAuthVerifier(),
   });
+  app.register(discordLinkRoutes, {
+    userStore: opts.userStore,
+    tokenStore:
+      opts.discordLinkTokenStore ?? new InMemoryDiscordLinkTokenStore(),
+  });
 
   return app;
 }
@@ -81,6 +92,7 @@ export {
   InMemoryBattleStore,
   PrismaBattleStore,
   InMemoryNonceStore,
+  InMemoryDiscordLinkTokenStore,
   InMemoryCollectionStore,
   PrismaCollectionStore,
   CardanoWalletAuthVerifier,
@@ -90,6 +102,7 @@ export type {
   UserStore,
   BattleStore,
   NonceStore,
+  DiscordLinkTokenStore,
   WalletAuthVerifier,
   CollectionStore,
 };
