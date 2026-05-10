@@ -465,7 +465,7 @@ gaps.
 - Test counts: core=61, content=17, shared=9, server=148, web=93
 - Files changed: roadmap/roadmap.yml, ROADMAP.md (status-flip-only re-deploy; implementation already on main from PR #35)
 - Regression alert: false
-- Deploy: pending (will fill after Step 12)
+- Deploy: success (rolling redeploy via patched deploy.sh — image rebuilt, `prisma migrate deploy` ran, no pending migrations, /health 200 on attempt 3; cascade rollforward of TASK-044 confirmed end-to-end)
 - Lessons learned: Cascade re-deploy continues from TASK-027/029/036 — TASK-044 is the 4th of 6 cascade-root tasks; remaining are TASK-005 (apps/discord stub) and TASK-019 (web turn animations). Stale local branch from squash-merged PR #35 needed `git branch -D` cleanup before scripts/new-branch.sh could re-use the slug — same hiccup noted in TASK-036's lessons.
 
 ---
