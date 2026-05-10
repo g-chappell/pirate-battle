@@ -704,7 +704,7 @@ epics:
         tasks:
           - id: TASK-029
             title: 'Server: XP grant on battle end + level-up curve'
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces:
@@ -719,8 +719,8 @@ epics:
             depends_on:
               - TASK-020
               - TASK-007
-            pr: https://github.com/g-chappell/pirate-battle/pull/33
-            completed: '2026-05-10T03:23:00Z'
+            pr: https://github.com/g-chappell/pirate-battle/pull/39
+            completed: '2026-05-10T12:10:00Z'
             blocked_reason: null
             last_attempted: '2026-05-10T12:08:00Z'
             attempt_count: 2
