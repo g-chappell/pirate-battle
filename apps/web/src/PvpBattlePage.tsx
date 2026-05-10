@@ -8,6 +8,7 @@ import { BattleView } from "./BattleView";
 interface PvpBattlePageProps {
   battleId: string;
   onBack: () => void;
+  onViewHistory?: () => void;
 }
 
 const headerStyle: CSSProperties = {
@@ -21,7 +22,11 @@ const backButton: CSSProperties = {
   padding: "0.3rem 0.7rem",
 };
 
-export function PvpBattlePage({ battleId, onBack }: PvpBattlePageProps): ReactElement {
+export function PvpBattlePage({
+  battleId,
+  onBack,
+  onViewHistory,
+}: PvpBattlePageProps): ReactElement {
   const [view, setView] = useState<PvpBattleView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -113,6 +118,8 @@ export function PvpBattlePage({ battleId, onBack }: PvpBattlePageProps): ReactEl
           battleState={view.state}
           viewer={view.yourSide}
           onSubmit={handleSubmit}
+          onBattleAgain={onBack}
+          onViewHistory={onViewHistory}
           submitting={submitting || view.pendingYou}
           error={null}
         />

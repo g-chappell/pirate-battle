@@ -16,9 +16,9 @@ import { computeXpAwards } from "./battle.js";
 import { TEAM_SIZE } from "./captain.js";
 import { SESSION_COOKIE_NAME } from "./session.js";
 
-function makeApp(seed = 12345) {
+function makeApp(seed = 12345, now?: () => number) {
   const userStore = new InMemoryUserStore();
-  const battleStore = new InMemoryBattleStore();
+  const battleStore = new InMemoryBattleStore(now ? { now } : {});
   const app = buildServer({
     sessionSecret: "test-secret-not-used-in-prod",
     userStore,
@@ -427,6 +427,150 @@ describe("POST /api/battle/:id/action", () => {
     const b = await run();
     expect(b.state.log).toEqual(a.state.log);
     expect(b.state.activeB.hp).toBe(a.state.activeB.hp);
+  });
+});
+
+describe("GET /api/battle/history", () => {
+  async function startAndForfeit(
+    app: ReturnType<typeof makeApp>["app"],
+    cookie: string,
+  ): Promise<string> {
+    const captainId = await createCaptain(app, cookie);
+    const start = await app.inject({
+      method: "POST",
+      url: "/api/battle/start",
+      headers: { cookie },
+      payload: { captainId },
+    });
+    const battleId = start.json().id as string;
+    const forfeit = await app.inject({
+      method: "POST",
+      url: `/api/battle/${battleId}/action`,
+      headers: { cookie },
+      payload: { action: { type: "forfeit" } },
+    });
+    if (forfeit.statusCode !== 200) {
+      throw new Error(`forfeit failed: ${forfeit.statusCode} ${forfeit.body}`);
+    }
+    return battleId;
+  }
+
+  it("returns 401 without a session", async () => {
+    const { app } = makeApp();
+    await app.ready();
+    const res = await app.inject({ method: "GET", url: "/api/battle/history" });
+    expect(res.statusCode).toBe(401);
+    expect(res.json()).toEqual({ error: "no_session" });
+    await app.close();
+  });
+
+  it("returns an empty list when the user has no finished battles", async () => {
+    const { app } = makeApp();
+    await app.ready();
+    const { cookie } = await authedSession(app);
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/battle/history",
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ battles: [] });
+    await app.close();
+  });
+
+  it("excludes in-progress battles and returns finished ones with mode + result", async () => {
+    const { app } = makeApp();
+    await app.ready();
+    const { cookie } = await authedSession(app);
+    const finishedId = await startAndForfeit(app, cookie);
+
+    // also start a fresh battle that does not get finished
+    const capId2 = await createCaptain(app, cookie);
+    await app.inject({
+      method: "POST",
+      url: "/api/battle/start",
+      headers: { cookie },
+      payload: { captainId: capId2 },
+    });
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/battle/history",
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as { battles: unknown[] };
+    expect(body.battles).toHaveLength(1);
+    const row = body.battles[0] as {
+      id: string;
+      mode: string;
+      userSide: "A" | "B";
+      winner: "A" | "B";
+      turn: number;
+      startedAt: number;
+      endedAt: number;
+    };
+    expect(row.id).toBe(finishedId);
+    expect(row.mode).toBe("PVE");
+    expect(row.userSide).toBe("A");
+    expect(row.winner).toBe("B");
+    expect(row.turn).toBeGreaterThanOrEqual(0);
+    expect(row.endedAt).toBeGreaterThan(0);
+    await app.close();
+  });
+
+  it("returns most-recent finished battles first up to the limit", async () => {
+    let tick = 0;
+    const { app } = makeApp(12345, () => ++tick);
+    await app.ready();
+    const { cookie } = await authedSession(app);
+    const ids: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      ids.push(await startAndForfeit(app, cookie));
+    }
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/battle/history?limit=2",
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as { battles: Array<{ id: string }> };
+    expect(body.battles).toHaveLength(2);
+    // Most-recent (last forfeited) first
+    expect(body.battles[0]!.id).toBe(ids[2]);
+    expect(body.battles[1]!.id).toBe(ids[1]);
+    await app.close();
+  });
+
+  it("does not leak another user's battles", async () => {
+    const { app } = makeApp();
+    await app.ready();
+    const { cookie: cookie1 } = await authedSession(app);
+    await startAndForfeit(app, cookie1);
+
+    const { cookie: cookie2 } = await authedSession(app);
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/battle/history",
+      headers: { cookie: cookie2 },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ battles: [] });
+    await app.close();
+  });
+
+  it("rejects a non-numeric limit with 400", async () => {
+    const { app } = makeApp();
+    await app.ready();
+    const { cookie } = await authedSession(app);
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/battle/history?limit=abc",
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: "invalid_limit" });
+    await app.close();
   });
 });
 

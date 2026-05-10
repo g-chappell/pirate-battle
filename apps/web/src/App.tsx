@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import { useEffect, useState } from "react";
 
 import { type CaptainSummary, type UserSummary, createAnonymousSession, getMe } from "./api";
+import { BattleHistoryPage } from "./BattleHistoryPage";
 import { PvpBattlePage } from "./PvpBattlePage";
 import { PvpPage } from "./PvpPage";
 import { readChallengeFromUrl } from "./pvpView";
@@ -82,7 +83,11 @@ interface SessionViewProps {
   onCaptainCreated: (captain: CaptainSummary) => void;
 }
 
-type View = { kind: "captains" } | { kind: "pvp" } | { kind: "pvpBattle"; battleId: string };
+type View =
+  | { kind: "captains" }
+  | { kind: "pvp" }
+  | { kind: "pvpBattle"; battleId: string }
+  | { kind: "history" };
 
 function initialView(captainCount: number): View {
   if (typeof window !== "undefined" && readChallengeFromUrl(window.location.search)) {
@@ -109,6 +114,9 @@ function SessionView({ user, onCaptainCreated }: SessionViewProps): ReactElement
         >
           PvP
         </NavButton>
+        <NavButton active={view.kind === "history"} onClick={() => setView({ kind: "history" })}>
+          History
+        </NavButton>
       </nav>
       {view.kind === "captains" ? (
         user.captains.length > 0 ? (
@@ -124,8 +132,13 @@ function SessionView({ user, onCaptainCreated }: SessionViewProps): ReactElement
         />
       ) : null}
       {view.kind === "pvpBattle" ? (
-        <PvpBattlePage battleId={view.battleId} onBack={() => setView({ kind: "pvp" })} />
+        <PvpBattlePage
+          battleId={view.battleId}
+          onBack={() => setView({ kind: "pvp" })}
+          onViewHistory={() => setView({ kind: "history" })}
+        />
       ) : null}
+      {view.kind === "history" ? <BattleHistoryPage /> : null}
     </>
   );
 }
