@@ -4,12 +4,11 @@ import {
   DEFAULT_LEVEL,
   resolveTurn,
   xpReward,
-  type Action,
-  type BattleState,
 } from "@pirate-battle/core";
 import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 
 import { buildAIOpponentTeam } from "../aiTeam.js";
+import { parseAction, validateAction } from "../battleAction.js";
 import { buildInitialBattleState, teamToSnapshots } from "../crewSnapshot.js";
 import type { BattleStore } from "../battleStore.js";
 import type { CaptainTeam, UserStore, XpAward } from "../userStore.js";
@@ -31,48 +30,6 @@ interface ActionRequestBody {
 
 function defaultSeedFactory(): number {
   return Math.floor(Math.random() * 0x100000000) >>> 0;
-}
-
-function parseAction(raw: unknown): Action | { error: string } {
-  if (!raw || typeof raw !== "object") return { error: "invalid_action" };
-  const a = raw as { type?: unknown };
-  if (a.type === "forfeit") return { type: "forfeit" };
-  if (a.type === "move") {
-    const moveKey = (raw as { moveKey?: unknown }).moveKey;
-    if (typeof moveKey !== "string" || moveKey.length === 0) {
-      return { error: "invalid_move_key" };
-    }
-    return { type: "move", moveKey };
-  }
-  if (a.type === "switch") {
-    const idx = (raw as { targetIndex?: unknown }).targetIndex;
-    if (typeof idx !== "number" || !Number.isInteger(idx) || idx < 0) {
-      return { error: "invalid_target_index" };
-    }
-    return { type: "switch", targetIndex: idx };
-  }
-  return { error: "invalid_action_type" };
-}
-
-function validatePlayerAction(
-  action: Action,
-  state: BattleState,
-): { ok: true } | { ok: false; error: string } {
-  if (state.pendingSwapA && action.type !== "switch") {
-    return { ok: false, error: "swap_required" };
-  }
-  if (action.type === "move") {
-    const known = state.activeA.moves.some((m) => m.key === action.moveKey);
-    if (!known) return { ok: false, error: "unknown_move" };
-  }
-  if (action.type === "switch") {
-    if (action.targetIndex >= state.benchA.length) {
-      return { ok: false, error: "switch_out_of_range" };
-    }
-    const target = state.benchA[action.targetIndex]!;
-    if (target.hp <= 0) return { ok: false, error: "switch_to_fainted" };
-  }
-  return { ok: true };
 }
 
 export const battleRoutes: FastifyPluginCallback<BattlePluginOptions> = (
@@ -150,7 +107,7 @@ export const battleRoutes: FastifyPluginCallback<BattlePluginOptions> = (
         return reply.code(400).send({ error: parsed.error });
       }
 
-      const validation = validatePlayerAction(parsed, summary.state);
+      const validation = validateAction(parsed, summary.state, "A");
       if (!validation.ok) {
         return reply.code(400).send({ error: validation.error });
       }

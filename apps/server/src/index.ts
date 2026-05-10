@@ -23,11 +23,22 @@ import {
   type DiscordLinkTokenStore,
 } from "./discordLinkStore.js";
 import { InMemoryNonceStore, type NonceStore } from "./nonceStore.js";
+import {
+  InMemoryPvpChallengeStore,
+  PrismaPvpChallengeStore,
+  type PvpChallengeStore,
+} from "./pvpChallengeStore.js";
+import {
+  InMemoryPvpQueueStore,
+  PrismaPvpQueueStore,
+  type PvpQueueStore,
+} from "./pvpQueueStore.js";
 import { RosterDerivationService } from "./rosterDerivation.js";
 import { authRoutes } from "./routes/auth.js";
 import { battleRoutes } from "./routes/battle.js";
 import { captainRoutes } from "./routes/captain.js";
 import { discordLinkRoutes } from "./routes/discordLink.js";
+import { pvpRoutes } from "./routes/pvp.js";
 import { rosterRoutes } from "./routes/roster.js";
 import { sessionRoutes } from "./routes/session.js";
 import {
@@ -46,10 +57,13 @@ export interface BuildServerOptions {
   battleStore: BattleStore;
   nonceStore?: NonceStore;
   discordLinkTokenStore?: DiscordLinkTokenStore;
+  pvpChallengeStore?: PvpChallengeStore;
+  pvpQueueStore?: PvpQueueStore;
   walletAuthVerifier?: WalletAuthVerifier;
   nftService?: BlockfrostNftService;
   derivationService?: RosterDerivationService;
   seedFactory?: () => number;
+  nowFn?: () => number;
   logger?: boolean;
 }
 
@@ -82,6 +96,14 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
     tokenStore:
       opts.discordLinkTokenStore ?? new InMemoryDiscordLinkTokenStore(),
   });
+  app.register(pvpRoutes, {
+    userStore: opts.userStore,
+    battleStore: opts.battleStore,
+    challengeStore: opts.pvpChallengeStore ?? new InMemoryPvpChallengeStore(),
+    queueStore: opts.pvpQueueStore ?? new InMemoryPvpQueueStore(),
+    seedFactory: opts.seedFactory,
+    nowFn: opts.nowFn,
+  });
 
   return app;
 }
@@ -93,6 +115,10 @@ export {
   PrismaBattleStore,
   InMemoryNonceStore,
   InMemoryDiscordLinkTokenStore,
+  InMemoryPvpChallengeStore,
+  PrismaPvpChallengeStore,
+  InMemoryPvpQueueStore,
+  PrismaPvpQueueStore,
   InMemoryCollectionStore,
   PrismaCollectionStore,
   CardanoWalletAuthVerifier,
@@ -103,6 +129,8 @@ export type {
   BattleStore,
   NonceStore,
   DiscordLinkTokenStore,
+  PvpChallengeStore,
+  PvpQueueStore,
   WalletAuthVerifier,
   CollectionStore,
 };
@@ -122,6 +150,8 @@ if (isMain) {
   const prismaClient = getPrisma();
   const userStore = new PrismaUserStore(prismaClient);
   const battleStore = new PrismaBattleStore(prismaClient);
+  const pvpChallengeStore = new PrismaPvpChallengeStore(prismaClient);
+  const pvpQueueStore = new PrismaPvpQueueStore(prismaClient);
 
   const blockfrostProjectId = process.env.BLOCKFROST_PROJECT_ID;
   const allowlist = loadAllowlistFromEnv(process.env);
@@ -147,6 +177,8 @@ if (isMain) {
     battleStore,
     nftService,
     derivationService,
+    pvpChallengeStore,
+    pvpQueueStore,
   });
   app.listen({ port, host }).catch((err) => {
     app.log.error(err);
