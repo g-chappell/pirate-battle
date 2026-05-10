@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 22 (47%)
-- **Ready:** 23
-- **In progress:** 0
+- **Ready:** 22
+- **In progress:** 1
 - **Blocked:** 2
 
 ---
@@ -310,7 +310,7 @@ battle-history with replays. Persistence keyed on User; survives across
 sessions and devices.
 
 - **STORY-11** — XP, level-up, attribute training UI
-  - :black_circle: **TASK-029** — Server: XP grant on battle end + level-up curve  `high` `medium` _(apps/server, packages/core)_  
+  - :large_orange_diamond: **TASK-029** — Server: XP grant on battle end + level-up curve  `high` `medium` _(apps/server, packages/core)_  
     _depends on: TASK-020, TASK-007_
     > On Battle.endedAt set, server grants XP to participating
     > Crew rows (winner ×1.5, loser ×1.0, scaled by opponent
