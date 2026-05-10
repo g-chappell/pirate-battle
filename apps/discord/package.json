@@ -1,0 +1,19 @@
+{
+  "name": "@pirate-battle/discord",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@pirate-battle/core": "*",
+    "@pirate-battle/shared": "*",
+    "discord.js": "^14.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0"
+  }
+}
