@@ -440,7 +440,7 @@ gaps.
 - Files changed: roadmap/roadmap.yml, ROADMAP.md (status flips only — code already on main from PR #33)
 - Regression alert: false
 - Notes: cascade-rollforward cycle. PR #33 originally rolled back due to missing prod migrations; PR #37 wired `prisma migrate deploy` into deploy.sh, so this re-deploy validates the fix end-to-end for TASK-029's BattleCaptain migration. No code changes this cycle.
-- Deploy: pending Step 12-14
+- Deploy: success (rolling redeploy via patched deploy.sh — image pirate-battle:latest rebuilt, `prisma migrate deploy` ran, no pending migrations, /health 200 on attempt 2; cascade rollforward of TASK-029 confirmed end-to-end)
 - Review proposed: pending Step 15
 
 ---
