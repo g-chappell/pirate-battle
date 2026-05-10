@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { type CaptainSummary, type UserSummary, createAnonymousSession, getMe } from "./api";
 import { BattleHistoryPage } from "./BattleHistoryPage";
+import { CaptainCrewsView } from "./CaptainCrewsView";
 import { PvpBattlePage } from "./PvpBattlePage";
 import { PvpPage } from "./PvpPage";
 import { readChallengeFromUrl } from "./pvpView";
@@ -172,13 +173,32 @@ function NavButton({
 }
 
 function CaptainList({ user }: { user: UserSummary }): ReactElement {
+  const [openCaptain, setOpenCaptain] = useState<CaptainSummary | null>(null);
+
+  if (openCaptain) {
+    return <CaptainCrewsView captain={openCaptain} onBack={() => setOpenCaptain(null)} />;
+  }
+
   return (
     <section aria-labelledby="captains-heading">
       <h2 id="captains-heading">Your captains</h2>
-      <ul>
+      <ul style={{ listStyle: "none", padding: 0 }}>
         {user.captains.map((c) => (
-          <li key={c.id}>
-            <strong>{c.name}</strong> — {c.factionId}
+          <li key={c.id} style={{ marginBottom: "0.4rem" }}>
+            <button
+              type="button"
+              onClick={() => setOpenCaptain(c)}
+              style={{
+                padding: "0.4rem 0.7rem",
+                background: "transparent",
+                border: "1px solid #1f2030",
+                borderRadius: "0.3rem",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              <strong>{c.name}</strong> — {c.factionId}
+            </button>
           </li>
         ))}
       </ul>

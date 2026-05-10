@@ -26,6 +26,7 @@ import { RosterDerivationService } from "./rosterDerivation.js";
 import { authRoutes } from "./routes/auth.js";
 import { battleRoutes } from "./routes/battle.js";
 import { captainRoutes } from "./routes/captain.js";
+import { crewRoutes } from "./routes/crew.js";
 import { discordLinkRoutes } from "./routes/discordLink.js";
 import { pvpRoutes } from "./routes/pvp.js";
 import { rosterRoutes } from "./routes/roster.js";
@@ -58,6 +59,7 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
 
   app.register(sessionRoutes, { userStore: opts.userStore });
   app.register(captainRoutes, { userStore: opts.userStore });
+  app.register(crewRoutes, { userStore: opts.userStore });
   app.register(rosterRoutes, {
     userStore: opts.userStore,
     nftService: opts.nftService,

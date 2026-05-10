@@ -726,7 +726,7 @@ epics:
             attempt_count: 2
           - id: TASK-030
             title: 'Web: crew detail screen + attribute training UI'
-            status: ready
+            status: done
             priority: med
             complexity: medium
             workspaces:
@@ -739,11 +739,11 @@ epics:
               base per stat. Server enforces caps server-side.
             depends_on:
               - TASK-029
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/50
+            completed: '2026-05-10T23:19:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-10T23:04:00Z'
+            attempt_count: 1
       - id: STORY-12
         title: 'Item system: drops, inventory, apply-to-crew'
         tasks:

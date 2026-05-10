@@ -51,3 +51,11 @@ export {
   type LevelUpResult,
   type XpRewardInput,
 } from "./leveling.js";
+export {
+  canTrainStat,
+  maxTrainedDelta,
+  trainedDeltaOf,
+  TRAINABLE_STATS,
+  TRAINING_CAP_RATIO,
+  type TrainableStat,
+} from "./training.js";
