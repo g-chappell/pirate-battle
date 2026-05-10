@@ -1,3 +1,4 @@
+import { TRAINING_CHIP_KEY } from "@pirate-battle/content";
 import { DEFAULT_LEVEL, xpToAdvance } from "@pirate-battle/core";
 import { describe, expect, it } from "vitest";
 
@@ -79,5 +80,99 @@ describe("InMemoryUserStore applyXpRewards", () => {
   it("returns [] when given no awards", async () => {
     const { store } = await setupCaptainWithCrews();
     expect(await store.applyXpRewards([])).toEqual([]);
+  });
+});
+
+describe("InMemoryUserStore inventory + training", () => {
+  it("grantItems stacks qty and returns the new total", async () => {
+    const { store, userId } = await setupCaptainWithCrews();
+    const first = await store.grantItems(userId, TRAINING_CHIP_KEY, 3);
+    expect(first).toEqual({ templateKey: TRAINING_CHIP_KEY, qty: 3 });
+    const second = await store.grantItems(userId, TRAINING_CHIP_KEY, 2);
+    expect(second).toEqual({ templateKey: TRAINING_CHIP_KEY, qty: 5 });
+    const inv = await store.getInventory(userId);
+    expect(inv).toEqual([{ templateKey: TRAINING_CHIP_KEY, qty: 5 }]);
+  });
+
+  it("grantItems rejects non-positive qty and unknown users", async () => {
+    const { store, userId } = await setupCaptainWithCrews();
+    expect(await store.grantItems(userId, TRAINING_CHIP_KEY, 0)).toBeNull();
+    expect(await store.grantItems(userId, TRAINING_CHIP_KEY, -1)).toBeNull();
+    expect(await store.grantItems("ghost", TRAINING_CHIP_KEY, 1)).toBeNull();
+  });
+
+  it("trainCrewAttribute increments attrs, decrements chips, returns crew", async () => {
+    const { store, userId, captainId, team } = await setupCaptainWithCrews();
+    const crewId = team.crews[0]!.id!;
+    await store.grantItems(userId, TRAINING_CHIP_KEY, 2);
+
+    const result = await store.trainCrewAttribute({
+      userId,
+      captainId,
+      crewId,
+      stat: "atk",
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.crew.attrs).toEqual({ atk: 1 });
+      expect(result.remainingChips).toBe(1);
+    }
+
+    const refreshed = await store.getCaptainTeam(userId, captainId);
+    expect(refreshed!.crews[0]!.attrs).toEqual({ atk: 1 });
+  });
+
+  it("trainCrewAttribute refuses when no chips remain", async () => {
+    const { store, userId, captainId, team } = await setupCaptainWithCrews();
+    const crewId = team.crews[0]!.id!;
+    const result = await store.trainCrewAttribute({
+      userId,
+      captainId,
+      crewId,
+      stat: "def",
+    });
+    expect(result).toEqual({ ok: false, reason: "no_chips" });
+  });
+
+  it("trainCrewAttribute caps at +20% of base, never consumes a chip past the cap", async () => {
+    const { store, userId, captainId, team } = await setupCaptainWithCrews();
+    const crewId = team.crews[0]!.id!;
+    // tide_brawler base atk = 60 → cap = 12
+    await store.grantItems(userId, TRAINING_CHIP_KEY, 20);
+
+    for (let i = 0; i < 12; i++) {
+      const r = await store.trainCrewAttribute({
+        userId,
+        captainId,
+        crewId,
+        stat: "atk",
+      });
+      expect(r.ok).toBe(true);
+    }
+    const overflow = await store.trainCrewAttribute({
+      userId,
+      captainId,
+      crewId,
+      stat: "atk",
+    });
+    expect(overflow).toEqual({ ok: false, reason: "at_cap" });
+
+    const inv = await store.getInventory(userId);
+    expect(inv[0]!.qty).toBe(20 - 12);
+  });
+
+  it("trainCrewAttribute rejects cross-captain access", async () => {
+    const { store, captainId, team } = await setupCaptainWithCrews();
+    const crewId = team.crews[0]!.id!;
+    // Different user
+    const otherUser = await store.createAnonymous();
+    await store.grantItems(otherUser.id, TRAINING_CHIP_KEY, 5);
+    const result = await store.trainCrewAttribute({
+      userId: otherUser.id,
+      captainId,
+      crewId,
+      stat: "spd",
+    });
+    expect(result).toEqual({ ok: false, reason: "not_found" });
   });
 });

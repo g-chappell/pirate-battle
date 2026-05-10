@@ -1,4 +1,12 @@
-import { applyXp, DEFAULT_LEVEL, type CrewAttrs } from "@pirate-battle/core";
+import { CREWS_BY_KEY, TRAINING_CHIP_KEY } from "@pirate-battle/content";
+import {
+  applyXp,
+  DEFAULT_LEVEL,
+  maxTrainedDelta,
+  trainedDeltaOf,
+  type CrewAttrs,
+  type TrainableStat,
+} from "@pirate-battle/core";
 import type { PrismaClient } from "@pirate-battle/db";
 
 export interface CaptainSummary {
@@ -54,6 +62,22 @@ export interface CrewProgress {
 
 export type SetDiscordUserIdResult = { ok: true } | { ok: false; reason: "not_found" | "conflict" };
 
+export interface InventoryEntry {
+  templateKey: string;
+  qty: number;
+}
+
+export type TrainCrewResult =
+  | {
+      ok: true;
+      crew: CaptainTeamCrew;
+      remainingChips: number;
+    }
+  | {
+      ok: false;
+      reason: "not_found" | "no_chips" | "at_cap" | "unknown_template";
+    };
+
 export interface UserStore {
   createAnonymous(): Promise<UserSummary>;
   findById(id: string): Promise<UserSummary | null>;
@@ -65,6 +89,16 @@ export interface UserStore {
   getCaptainTeam(userId: string, captainId: string): Promise<CaptainTeam | null>;
   applyXpRewards(awards: readonly XpAward[]): Promise<CrewProgress[]>;
   setDiscordUserId(userId: string, discordUserId: string): Promise<SetDiscordUserIdResult>;
+  getInventory(userId: string): Promise<InventoryEntry[]>;
+  grantItems(userId: string, templateKey: string, qty: number): Promise<InventoryEntry | null>;
+  trainCrewAttribute(input: TrainCrewInput): Promise<TrainCrewResult>;
+}
+
+export interface TrainCrewInput {
+  userId: string;
+  captainId: string;
+  crewId: string;
+  stat: TrainableStat;
 }
 
 function parseAttrs(raw: unknown): CrewAttrs | null {
@@ -282,6 +316,106 @@ export class PrismaUserStore implements UserStore {
       return { ok: true };
     });
   }
+
+  async getInventory(userId: string): Promise<InventoryEntry[]> {
+    const items = await this.prisma.item.findMany({
+      where: { ownerUserId: userId },
+      orderBy: { templateKey: "asc" },
+      select: { templateKey: true, qty: true },
+    });
+    return items;
+  }
+
+  async grantItems(
+    userId: string,
+    templateKey: string,
+    qty: number,
+  ): Promise<InventoryEntry | null> {
+    if (!Number.isInteger(qty) || qty <= 0) return null;
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return null;
+    const updated = await this.prisma.item.upsert({
+      where: { ownerUserId_templateKey: { ownerUserId: userId, templateKey } },
+      create: { ownerUserId: userId, templateKey, qty },
+      update: { qty: { increment: qty } },
+      select: { templateKey: true, qty: true },
+    });
+    return updated;
+  }
+
+  async trainCrewAttribute(input: TrainCrewInput): Promise<TrainCrewResult> {
+    return this.prisma.$transaction(async (tx) => {
+      const captain = await tx.captain.findUnique({
+        where: { id: input.captainId },
+        select: { userId: true },
+      });
+      if (!captain || captain.userId !== input.userId) {
+        return { ok: false, reason: "not_found" };
+      }
+      const crew = await tx.crew.findUnique({ where: { id: input.crewId } });
+      if (!crew || crew.captainId !== input.captainId) {
+        return { ok: false, reason: "not_found" };
+      }
+
+      const template = CREWS_BY_KEY[crew.templateKey];
+      if (!template) {
+        return { ok: false, reason: "unknown_template" };
+      }
+
+      const attrs = parseAttrs(crew.attrs) ?? {};
+      const current = trainedDeltaOf(attrs, input.stat);
+      if (current >= maxTrainedDelta(template.baseStats[input.stat])) {
+        return { ok: false, reason: "at_cap" };
+      }
+
+      const chip = await tx.item.findUnique({
+        where: {
+          ownerUserId_templateKey: {
+            ownerUserId: input.userId,
+            templateKey: TRAINING_CHIP_KEY,
+          },
+        },
+      });
+      if (!chip || chip.qty < 1) {
+        return { ok: false, reason: "no_chips" };
+      }
+
+      const nextAttrs: CrewAttrs = { ...attrs, [input.stat]: current + 1 };
+      await tx.crew.update({
+        where: { id: crew.id },
+        data: { attrs: nextAttrs as Record<string, number> },
+      });
+      const remaining = await tx.item.update({
+        where: {
+          ownerUserId_templateKey: {
+            ownerUserId: input.userId,
+            templateKey: TRAINING_CHIP_KEY,
+          },
+        },
+        data: { qty: { decrement: 1 } },
+        select: { qty: true },
+      });
+
+      const refreshed = await tx.crew.findUnique({
+        where: { id: crew.id },
+        include: { moves: { orderBy: { slot: "asc" } } },
+      });
+      if (!refreshed) return { ok: false, reason: "not_found" };
+
+      return {
+        ok: true,
+        crew: {
+          id: refreshed.id,
+          templateKey: refreshed.templateKey,
+          moveKeys: refreshed.moves.map((m) => m.moveKey),
+          level: refreshed.level,
+          xp: refreshed.xp,
+          attrs: parseAttrs(refreshed.attrs),
+        },
+        remainingChips: remaining.qty,
+      };
+    });
+  }
 }
 
 interface InMemoryCrew {
@@ -302,6 +436,7 @@ export class InMemoryUserStore implements UserStore {
   private readonly users = new Map<string, UserSummary>();
   private readonly captains = new Map<string, InMemoryCaptain>();
   private readonly discordUserIds = new Map<string, string>();
+  private readonly inventories = new Map<string, Map<string, number>>();
   private nextUserId = 1;
   private nextCaptainId = 1;
   private nextCrewId = 1;
@@ -464,5 +599,70 @@ export class InMemoryUserStore implements UserStore {
 
   getCaptain(id: string): InMemoryCaptain | undefined {
     return this.captains.get(id);
+  }
+
+  async getInventory(userId: string): Promise<InventoryEntry[]> {
+    const inv = this.inventories.get(userId);
+    if (!inv) return [];
+    return Array.from(inv.entries())
+      .filter(([, qty]) => qty > 0)
+      .map(([templateKey, qty]) => ({ templateKey, qty }))
+      .sort((a, b) => a.templateKey.localeCompare(b.templateKey));
+  }
+
+  async grantItems(
+    userId: string,
+    templateKey: string,
+    qty: number,
+  ): Promise<InventoryEntry | null> {
+    if (!Number.isInteger(qty) || qty <= 0) return null;
+    if (!this.users.has(userId)) return null;
+    let inv = this.inventories.get(userId);
+    if (!inv) {
+      inv = new Map();
+      this.inventories.set(userId, inv);
+    }
+    const next = (inv.get(templateKey) ?? 0) + qty;
+    inv.set(templateKey, next);
+    return { templateKey, qty: next };
+  }
+
+  async trainCrewAttribute(input: TrainCrewInput): Promise<TrainCrewResult> {
+    const captain = this.captains.get(input.captainId);
+    if (!captain || captain.userId !== input.userId) {
+      return { ok: false, reason: "not_found" };
+    }
+    const crew = captain.crews.find((c) => c.id === input.crewId);
+    if (!crew) return { ok: false, reason: "not_found" };
+
+    const template = CREWS_BY_KEY[crew.templateKey];
+    if (!template) return { ok: false, reason: "unknown_template" };
+
+    const attrs: CrewAttrs = { ...(crew.attrs ?? {}) };
+    const current = trainedDeltaOf(attrs, input.stat);
+    if (current >= maxTrainedDelta(template.baseStats[input.stat])) {
+      return { ok: false, reason: "at_cap" };
+    }
+
+    const inv = this.inventories.get(input.userId);
+    const qty = inv?.get(TRAINING_CHIP_KEY) ?? 0;
+    if (qty < 1) return { ok: false, reason: "no_chips" };
+
+    attrs[input.stat] = current + 1;
+    crew.attrs = attrs;
+    inv!.set(TRAINING_CHIP_KEY, qty - 1);
+
+    return {
+      ok: true,
+      crew: {
+        id: crew.id,
+        templateKey: crew.templateKey,
+        moveKeys: [...crew.moveKeys],
+        level: crew.level,
+        xp: crew.xp,
+        attrs: { ...attrs },
+      },
+      remainingChips: qty - 1,
+    };
   }
 }

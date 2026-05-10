@@ -1,4 +1,4 @@
-import type { Action, BattleState, Side } from "@pirate-battle/core";
+import type { Action, BattleState, CrewAttrs, Side, TrainableStat } from "@pirate-battle/core";
 
 export interface CaptainSummary {
   id: string;
@@ -99,6 +99,52 @@ export async function createCaptain(payload: CreateCaptainPayload): Promise<Capt
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload),
   });
+}
+
+export interface CaptainTeamCrewApi {
+  id: string;
+  templateKey: string;
+  level: number;
+  xp: number;
+  moveKeys: string[];
+  attrs: CrewAttrs | null;
+}
+
+export interface InventoryEntryApi {
+  templateKey: string;
+  qty: number;
+}
+
+export interface CaptainTeamApi {
+  captainId: string;
+  name: string;
+  factionId: string;
+  crews: CaptainTeamCrewApi[];
+  inventory: InventoryEntryApi[];
+}
+
+export interface TrainCrewApiResponse {
+  crew: CaptainTeamCrewApi;
+  remainingChips: number;
+}
+
+export async function getCaptainTeam(captainId: string): Promise<CaptainTeamApi> {
+  return request<CaptainTeamApi>(`/api/captain/${encodeURIComponent(captainId)}/team`);
+}
+
+export async function trainCrew(
+  captainId: string,
+  crewId: string,
+  stat: TrainableStat,
+): Promise<TrainCrewApiResponse> {
+  return request<TrainCrewApiResponse>(
+    `/api/captain/${encodeURIComponent(captainId)}/crew/${encodeURIComponent(crewId)}/train`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ stat }),
+    },
+  );
 }
 
 export async function submitBattleAction(
