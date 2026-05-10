@@ -888,7 +888,7 @@ epics:
             attempt_count: 2
           - id: TASK-037
             title: 'Discord bot: /link command + DM flow → server claim'
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces:
@@ -903,8 +903,8 @@ epics:
             depends_on:
               - TASK-035
               - TASK-036
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/45
+            completed: '2026-05-10T18:14:00Z'
             blocked_reason: null
             last_attempted: '2026-05-10T18:03:00Z'
             attempt_count: 1
