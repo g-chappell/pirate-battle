@@ -9,9 +9,9 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 22 (47%)
+- **Done:** 23 (49%)
 - **Ready:** 23
-- **In progress:** 1
+- **In progress:** 0
 - **Blocked:** 1
 
 ---
@@ -59,7 +59,7 @@ implementation.
     > src/main.tsx mounting <App/>, src/App.tsx returning the project
     > name + a "Connect wallet" placeholder. dev on port 5173.
     > Build outputs to dist/.
-  - :large_orange_diamond: **TASK-005** — Scaffold apps/discord stub + apps/mobile placeholder  `med` `small` _(apps/discord, apps/mobile)_  
+  - :white_check_mark: **TASK-005** — Scaffold apps/discord stub + apps/mobile placeholder  `med` `small` _(apps/discord, apps/mobile)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/32)  
     _depends on: TASK-002_
     > apps/discord: package.json with discord.js v14+ dependency,
     > tsconfig.json (composite, references core + shared), src/index.ts
