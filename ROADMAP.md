@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 21 (45%)
-- **Ready:** 26
-- **In progress:** 0
+- **Ready:** 25
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -274,7 +274,7 @@ Free starter remains usable; NFT crews add to the available roster.
     > from NFT_ALLOWLIST_POLICY_IDS env. Cache results in a new
     > NftSnapshot table (Prisma migration) keyed (userId,
     > fetchedAt) with 5-min freshness window before refetch.
-  - :black_circle: **TASK-026** — Server: GET /api/roster (free starter + NFT crews)  `high` `medium` _(apps/server)_  
+  - :large_orange_diamond: **TASK-026** — Server: GET /api/roster (free starter + NFT crews)  `high` `medium` _(apps/server)_  
     _depends on: TASK-025_
     > GET /api/roster returns { starter: [...], nft: [...] } —
     > starter is the 8 free crews from packages/content;
