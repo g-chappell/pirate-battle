@@ -299,7 +299,7 @@ gaps.
 - Test counts: core=42, content=17, web=80, server=90
 - Files changed: apps/server/src/index.ts, apps/server/src/routes/roster.ts (new), apps/server/src/routes/roster.test.ts (new)
 - Regression alert: false
-- Review proposed: pending (Step 15)
+- Review proposed: false (PR #29 from 2026-05-09 23:16 still open & in trailing-success window; only 1 cycle since last review, below successThreshold=5)
 - Deploy: success (image pirate-battle:latest, http://localhost:3001/health → 200, healthcheck attempt 2, rolling strategy)
 - Lessons learned: GET /api/roster keeps the contract shape stable across the three population paths (anonymous → starter only; wallet without NFT service configured → starter only; wallet + nftService → starter + filtered NFTs) by making nftService an optional BuildServerOptions field. Production wires it only when both BLOCKFROST_PROJECT_ID and NFT_ALLOWLIST_POLICY_IDS are present, so the deploy keeps booting in environments without Cardano config. NFT entries land as raw UserNft (policyId/assetName/unit/quantity) — the trait→stat enrichment is TASK-027's job, so the field is forward-compatible with that pipeline.
 
