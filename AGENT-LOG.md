@@ -343,3 +343,16 @@ gaps.
 
 ---
 
+### Run [2026-05-10 04:15]
+- Task: TASK-036 — Server: /api/discord/link-token + /api/discord/link-claim
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/34
+- Test counts: core=61, content=17, shared=9, web=80, server=124
+- Files changed: apps/server/src/{discordLinkStore.ts (new), discordLinkStore.test.ts (new), routes/discordLink.ts (new), routes/discordLink.test.ts (new), index.ts, userStore.ts}, packages/db/prisma/{schema.prisma, migrations/20260510040000_user_discord_link/migration.sql (new)}
+- Regression alert: false
+- Review proposed: pending Step 15
+- Deploy: pending Step 12
+- Lessons learned: New `InMemoryDiscordLinkTokenStore` mirrors `InMemoryNonceStore` exactly (issue/consume + injectable randomFn/nowFn) but binds a userId per record so consume returns it; this keeps the bot-side endpoint stateless while still authoritative. `User.discordUserId` is gated by a unique index — setDiscordUserId checks for cross-user conflict before update so the route can return 409 cleanly. Discord ID validation is `^[0-9]+$` + ≤64 chars (Discord snowflakes are decimal strings; a non-numeric ID would never be a real Discord user). Deploy is still expected to roll back due to the unmigrated prod DB flagged in TASK-027/TASK-005/TASK-029 — TASK-036 doesn't introduce that path but inherits it.
+
+---
+
