@@ -555,6 +555,7 @@ gaps.
 - Test counts: discord=30, server=157, web=125, content=17, core=61, shared=9
 - Files changed: apps/server/src/battleStore.ts, apps/server/src/routes/battle.ts, apps/server/src/routes/battle.test.ts, apps/web/src/App.tsx, apps/web/src/BattleView.tsx, apps/web/src/PvpBattlePage.tsx, apps/web/src/api.ts, apps/web/src/BattleHistoryPage.tsx (new), apps/web/src/BattleResultModal.tsx (new), apps/web/src/battleSummary.ts (new), apps/web/src/battleSummary.test.ts (new)
 - Regression alert: false
+- Review proposed: false (open auto/review-* PR #29 blocks new review)
 - Deploy: success
 - Lessons learned: Re-confirmed the yaml-lite `>-` issue from TASK-045's lessons — selected the task by parsing roadmap.yml directly with a line-based scanner rather than via render.mjs. The `/autonomous-review` follow-up to either teach yaml-lite folded scalars or rewrite the four `>-` descriptions to `|` would unstick render.mjs / validate.mjs reporting.
 
