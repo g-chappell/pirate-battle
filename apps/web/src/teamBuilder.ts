@@ -1,9 +1,6 @@
 export const TEAM_SIZE = 6;
 
-export function toggleSelection(
-  current: readonly string[],
-  templateKey: string,
-): string[] {
+export function toggleSelection(current: readonly string[], templateKey: string): string[] {
   const idx = current.indexOf(templateKey);
   if (idx >= 0) {
     return current.filter((k) => k !== templateKey);

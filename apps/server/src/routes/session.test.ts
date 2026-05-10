@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { InMemoryBattleStore } from "../battleStore.js";
 import { buildServer } from "../index.js";
 import { InMemoryUserStore } from "../userStore.js";
+
 import { SESSION_COOKIE_NAME } from "./session.js";
 
 function makeApp() {
@@ -19,9 +20,7 @@ function makeApp() {
 
 function extractCookieHeader(setCookieHeader: string | string[] | undefined) {
   if (!setCookieHeader) return undefined;
-  const list = Array.isArray(setCookieHeader)
-    ? setCookieHeader
-    : [setCookieHeader];
+  const list = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
   const target = list.find((c) => c.startsWith(`${SESSION_COOKIE_NAME}=`));
   if (!target) return undefined;
   return target.split(";")[0];
@@ -134,9 +133,7 @@ describe("session routes", () => {
     expect(cookieHeader).toBeDefined();
 
     const body = create.json();
-    (userStore as unknown as { users: Map<string, unknown> }).users.delete(
-      body.id,
-    );
+    (userStore as unknown as { users: Map<string, unknown> }).users.delete(body.id);
 
     const res = await app.inject({
       method: "GET",

@@ -10,9 +10,7 @@ export interface NonceRecord {
 
 export type ConsumeFailure = "unknown" | "expired" | "used";
 
-export type ConsumeResult =
-  | { ok: true }
-  | { ok: false; reason: ConsumeFailure };
+export type ConsumeResult = { ok: true } | { ok: false; reason: ConsumeFailure };
 
 export interface NonceStore {
   issue(): Promise<NonceRecord>;

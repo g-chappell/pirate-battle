@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
+
+import { STATUS_BURN, STATUS_POISON, STATUS_STUN } from "./constants.js";
 import { resolveTurn } from "./engine.js";
 import { createRng, type Rng } from "./rng.js";
-import { STATUS_BURN, STATUS_POISON, STATUS_STUN } from "./constants.js";
 import type { Action, BattleState, CrewSnapshot, MoveDef } from "./types.js";
 
 const tackle: MoveDef = {
@@ -110,12 +111,7 @@ function scriptedRng(values: number[]): Rng {
 describe("resolveTurn — turn loop, ordering, swap, faint", () => {
   it("applies damage from move action with the standard formula", () => {
     const state = initialState();
-    const next = resolveTurn(
-      state,
-      move("tackle"),
-      move("tackle"),
-      constantRng(0.5),
-    );
+    const next = resolveTurn(state, move("tackle"), move("tackle"), constantRng(0.5));
     expect(next.activeA.hp).toBe(85);
     expect(next.activeB.hp).toBe(85);
     expect(next.turn).toBe(1);
@@ -126,12 +122,7 @@ describe("resolveTurn — turn loop, ordering, swap, faint", () => {
       activeA: crew({ spd: 90, hp: 50, moves: [tackle] }),
       activeB: crew({ spd: 10, hp: 50, moves: [heavyHit] }),
     });
-    const next = resolveTurn(
-      state,
-      move("tackle"),
-      move("heavy"),
-      constantRng(0.5),
-    );
+    const next = resolveTurn(state, move("tackle"), move("heavy"), constantRng(0.5));
     const moveEvents = next.log.filter((e) => e.kind === "move");
     expect(moveEvents[0]?.kind === "move" && moveEvents[0].side).toBe("A");
     expect(moveEvents[1]?.kind === "move" && moveEvents[1].side).toBe("B");
@@ -142,12 +133,7 @@ describe("resolveTurn — turn loop, ordering, swap, faint", () => {
       activeA: crew({ spd: 10, moves: [quickJab] }),
       activeB: crew({ spd: 90, moves: [tackle] }),
     });
-    const next = resolveTurn(
-      state,
-      move("quick"),
-      move("tackle"),
-      constantRng(0.5),
-    );
+    const next = resolveTurn(state, move("quick"), move("tackle"), constantRng(0.5));
     const moveEvents = next.log.filter((e) => e.kind === "move");
     expect(moveEvents[0]?.kind === "move" && moveEvents[0].side).toBe("A");
   });
@@ -169,18 +155,11 @@ describe("resolveTurn — turn loop, ordering, swap, faint", () => {
       activeA: crew({ spd: 90, moves: [heavyHit] }),
       activeB: crew({ spd: 10, hp: 5, moves: [tackle] }),
     });
-    const next = resolveTurn(
-      state,
-      move("heavy"),
-      move("tackle"),
-      constantRng(0.5),
-    );
+    const next = resolveTurn(state, move("heavy"), move("tackle"), constantRng(0.5));
     expect(next.activeB.hp).toBe(0);
     expect(next.pendingSwapB).toBe(true);
     expect(next.winner).toBeNull();
-    expect(
-      next.log.some((e) => e.kind === "swap_required" && e.side === "B"),
-    ).toBe(true);
+    expect(next.log.some((e) => e.kind === "swap_required" && e.side === "B")).toBe(true);
   });
 
   it("declares the opposite side winner when all crews are fainted", () => {
@@ -189,46 +168,30 @@ describe("resolveTurn — turn loop, ordering, swap, faint", () => {
       activeB: crew({ spd: 10, hp: 5, moves: [tackle] }),
       benchB: [crew({ hp: 0 }), crew({ hp: 0 })],
     });
-    const next = resolveTurn(
-      state,
-      move("heavy"),
-      move("tackle"),
-      constantRng(0.5),
-    );
+    const next = resolveTurn(state, move("heavy"), move("tackle"), constantRng(0.5));
     expect(next.winner).toBe("A");
-    expect(next.log.some((e) => e.kind === "victory" && e.side === "A")).toBe(
-      true,
-    );
+    expect(next.log.some((e) => e.kind === "victory" && e.side === "A")).toBe(true);
   });
 
   it("forfeit ends the battle and the other side wins", () => {
     const state = initialState();
-    const next = resolveTurn(
-      state,
-      { type: "forfeit" },
-      move("tackle"),
-      createRng(1),
-    );
+    const next = resolveTurn(state, { type: "forfeit" }, move("tackle"), createRng(1));
     expect(next.winner).toBe("B");
-    expect(next.log.some((e) => e.kind === "forfeit" && e.side === "A")).toBe(
-      true,
-    );
+    expect(next.log.some((e) => e.kind === "forfeit" && e.side === "A")).toBe(true);
   });
 
   it("rejects a non-switch action when a swap is pending", () => {
     const state = initialState({ pendingSwapA: true });
-    expect(() =>
-      resolveTurn(state, move("tackle"), move("tackle"), createRng(1)),
-    ).toThrow(/must switch/);
+    expect(() => resolveTurn(state, move("tackle"), move("tackle"), createRng(1))).toThrow(
+      /must switch/,
+    );
   });
 
   it("rejects switching to a fainted crew", () => {
     const state = initialState({
       benchA: [crew({ hp: 0 }), crew()],
     });
-    expect(() =>
-      resolveTurn(state, swap(0), move("tackle"), createRng(1)),
-    ).toThrow(/fainted/);
+    expect(() => resolveTurn(state, swap(0), move("tackle"), createRng(1))).toThrow(/fainted/);
   });
 
   it("threads the rng state through into the new state", () => {
@@ -245,32 +208,12 @@ describe("resolveTurn — turn loop, ordering, swap, faint", () => {
   it("is deterministic — same seed + actions produces identical logs", () => {
     const stateA = initialState();
     const stateB = initialState();
-    const turn1A = resolveTurn(
-      stateA,
-      move("tackle"),
-      move("tackle"),
-      createRng(stateA.rngState),
-    );
-    const turn1B = resolveTurn(
-      stateB,
-      move("tackle"),
-      move("tackle"),
-      createRng(stateB.rngState),
-    );
+    const turn1A = resolveTurn(stateA, move("tackle"), move("tackle"), createRng(stateA.rngState));
+    const turn1B = resolveTurn(stateB, move("tackle"), move("tackle"), createRng(stateB.rngState));
     expect(JSON.stringify(turn1A)).toBe(JSON.stringify(turn1B));
 
-    const turn2A = resolveTurn(
-      turn1A,
-      move("tackle"),
-      move("tackle"),
-      createRng(turn1A.rngState),
-    );
-    const turn2B = resolveTurn(
-      turn1B,
-      move("tackle"),
-      move("tackle"),
-      createRng(turn1B.rngState),
-    );
+    const turn2A = resolveTurn(turn1A, move("tackle"), move("tackle"), createRng(turn1A.rngState));
+    const turn2B = resolveTurn(turn1B, move("tackle"), move("tackle"), createRng(turn1B.rngState));
     expect(JSON.stringify(turn2A)).toBe(JSON.stringify(turn2B));
   });
 });
@@ -281,16 +224,9 @@ describe("resolveTurn — accuracy + crit", () => {
       activeA: crew({ spd: 90, moves: [sureMiss] }),
       activeB: crew({ spd: 10, moves: [tackle] }),
     });
-    const next = resolveTurn(
-      state,
-      move("miss50"),
-      move("tackle"),
-      scriptedRng([0.99, 0.5, 0.5]),
-    );
+    const next = resolveTurn(state, move("miss50"), move("tackle"), scriptedRng([0.99, 0.5, 0.5]));
     expect(next.activeB.hp).toBe(100);
-    expect(next.log.some((e) => e.kind === "miss" && e.side === "A")).toBe(
-      true,
-    );
+    expect(next.log.some((e) => e.kind === "miss" && e.side === "A")).toBe(true);
   });
 
   it("doubles damage on a critical hit", () => {
@@ -312,12 +248,7 @@ describe("resolveTurn — type chart", () => {
       activeA: crew({ spd: 90, affinity: "kraken", moves: [tackle] }),
       activeB: crew({ spd: 10, affinity: "ironclad", moves: [tackle] }),
     });
-    const next = resolveTurn(
-      state,
-      move("tackle"),
-      move("tackle"),
-      constantRng(0.5),
-    );
+    const next = resolveTurn(state, move("tackle"), move("tackle"), constantRng(0.5));
     const aMove = next.log.find((e) => e.kind === "move" && e.side === "A");
     expect(aMove?.kind === "move" && aMove.effective).toBe(2);
     expect(aMove?.kind === "move" && aMove.damage).toBe(30);
@@ -328,12 +259,7 @@ describe("resolveTurn — type chart", () => {
       activeA: crew({ spd: 90, affinity: "phantom", moves: [quickJab] }),
       activeB: crew({ spd: 10, affinity: "ironclad", moves: [tackle] }),
     });
-    const next = resolveTurn(
-      state,
-      move("quick"),
-      move("tackle"),
-      constantRng(0.5),
-    );
+    const next = resolveTurn(state, move("quick"), move("tackle"), constantRng(0.5));
     const aMove = next.log.find((e) => e.kind === "move" && e.side === "A");
     expect(aMove?.kind === "move" && aMove.effective).toBe(1);
   });
@@ -345,28 +271,17 @@ describe("resolveTurn — status effects", () => {
       activeA: crew({ spd: 90, moves: [venomFangs] }),
       activeB: crew({ spd: 10, moves: [tackle] }),
     });
-    const next = resolveTurn(
-      state,
-      move("venom"),
-      move("tackle"),
-      constantRng(0.5),
-    );
+    const next = resolveTurn(state, move("venom"), move("tackle"), constantRng(0.5));
     expect(next.activeB.statuses).toContain(STATUS_POISON);
     expect(next.activeB.hp).toBe(100 - Math.floor(100 / 8));
     expect(
       next.log.some(
-        (e) =>
-          e.kind === "status_apply" &&
-          e.side === "B" &&
-          e.status === STATUS_POISON,
+        (e) => e.kind === "status_apply" && e.side === "B" && e.status === STATUS_POISON,
       ),
     ).toBe(true);
     expect(
       next.log.some(
-        (e) =>
-          e.kind === "status_tick" &&
-          e.side === "B" &&
-          e.status === STATUS_POISON,
+        (e) => e.kind === "status_tick" && e.side === "B" && e.status === STATUS_POISON,
       ),
     ).toBe(true);
   });
@@ -404,9 +319,7 @@ describe("resolveTurn — status effects", () => {
       move("tackle"),
       scriptedRng([0.0, 0.5, 0.5, 0.5]),
     );
-    expect(next.log.some((e) => e.kind === "stun_skip" && e.side === "A")).toBe(
-      true,
-    );
+    expect(next.log.some((e) => e.kind === "stun_skip" && e.side === "A")).toBe(true);
     expect(next.activeB.hp).toBe(100);
   });
 
@@ -425,12 +338,8 @@ describe("resolveTurn — status effects", () => {
     const next = resolveTurn(state, move("tackle"), swap(0), constantRng(0.5));
     expect(next.activeA.hp).toBe(0);
     expect(next.pendingSwapA).toBe(true);
-    const tickIdx = next.log.findIndex(
-      (e) => e.kind === "status_tick" && e.side === "A",
-    );
-    const faintIdx = next.log.findIndex(
-      (e) => e.kind === "faint" && e.side === "A",
-    );
+    const tickIdx = next.log.findIndex((e) => e.kind === "status_tick" && e.side === "A");
+    const faintIdx = next.log.findIndex((e) => e.kind === "faint" && e.side === "A");
     expect(tickIdx).toBeGreaterThanOrEqual(0);
     expect(faintIdx).toBeGreaterThan(tickIdx);
   });

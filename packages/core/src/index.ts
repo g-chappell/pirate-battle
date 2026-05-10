@@ -11,12 +11,7 @@ export type {
 export { createRng, type Rng } from "./rng.js";
 export { resolveTurn } from "./engine.js";
 export { aiPickAction } from "./aiPickAction.js";
-export {
-  computeDamage,
-  rollAccuracy,
-  rollCrit,
-  type DamageResult,
-} from "./resolveMove.js";
+export { computeDamage, rollAccuracy, rollCrit, type DamageResult } from "./resolveMove.js";
 export {
   AFFINITY_NEUTRAL,
   AFFINITY_SUPER_EFFECTIVE,

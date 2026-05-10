@@ -52,36 +52,19 @@ export interface CrewProgress {
   levelsGained: number;
 }
 
-export type SetDiscordUserIdResult =
-  | { ok: true }
-  | { ok: false; reason: "not_found" | "conflict" };
+export type SetDiscordUserIdResult = { ok: true } | { ok: false; reason: "not_found" | "conflict" };
 
 export interface UserStore {
   createAnonymous(): Promise<UserSummary>;
   findById(id: string): Promise<UserSummary | null>;
   findByStakeAddr(stakeAddr: string): Promise<UserSummary | null>;
   createWithStakeAddr(stakeAddr: string): Promise<UserSummary>;
-  attachStakeAddrToUser(
-    userId: string,
-    stakeAddr: string,
-  ): Promise<UserSummary | null>;
-  mergeAnonymousIntoWallet(
-    anonUserId: string,
-    walletUserId: string,
-  ): Promise<UserSummary | null>;
-  createCaptain(
-    userId: string,
-    input: CreateCaptainInput,
-  ): Promise<CaptainSummary | null>;
-  getCaptainTeam(
-    userId: string,
-    captainId: string,
-  ): Promise<CaptainTeam | null>;
+  attachStakeAddrToUser(userId: string, stakeAddr: string): Promise<UserSummary | null>;
+  mergeAnonymousIntoWallet(anonUserId: string, walletUserId: string): Promise<UserSummary | null>;
+  createCaptain(userId: string, input: CreateCaptainInput): Promise<CaptainSummary | null>;
+  getCaptainTeam(userId: string, captainId: string): Promise<CaptainTeam | null>;
   applyXpRewards(awards: readonly XpAward[]): Promise<CrewProgress[]>;
-  setDiscordUserId(
-    userId: string,
-    discordUserId: string,
-  ): Promise<SetDiscordUserIdResult>;
+  setDiscordUserId(userId: string, discordUserId: string): Promise<SetDiscordUserIdResult>;
 }
 
 function parseAttrs(raw: unknown): CrewAttrs | null {
@@ -148,10 +131,7 @@ export class PrismaUserStore implements UserStore {
     return { id: user.id, stakeAddr: user.stakeAddr, captains: [] };
   }
 
-  async attachStakeAddrToUser(
-    userId: string,
-    stakeAddr: string,
-  ): Promise<UserSummary | null> {
+  async attachStakeAddrToUser(userId: string, stakeAddr: string): Promise<UserSummary | null> {
     try {
       const updated = await this.prisma.user.update({
         where: { id: userId },
@@ -214,10 +194,7 @@ export class PrismaUserStore implements UserStore {
     });
   }
 
-  async createCaptain(
-    userId: string,
-    input: CreateCaptainInput,
-  ): Promise<CaptainSummary | null> {
+  async createCaptain(userId: string, input: CreateCaptainInput): Promise<CaptainSummary | null> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) return null;
 
@@ -244,10 +221,7 @@ export class PrismaUserStore implements UserStore {
     return captain;
   }
 
-  async getCaptainTeam(
-    userId: string,
-    captainId: string,
-  ): Promise<CaptainTeam | null> {
+  async getCaptainTeam(userId: string, captainId: string): Promise<CaptainTeam | null> {
     const captain = await this.prisma.captain.findUnique({
       where: { id: captainId },
       include: {
@@ -296,10 +270,7 @@ export class PrismaUserStore implements UserStore {
     });
   }
 
-  async setDiscordUserId(
-    userId: string,
-    discordUserId: string,
-  ): Promise<SetDiscordUserIdResult> {
+  async setDiscordUserId(userId: string, discordUserId: string): Promise<SetDiscordUserIdResult> {
     return this.prisma.$transaction(async (tx) => {
       const target = await tx.user.findUnique({ where: { id: userId } });
       if (!target) return { ok: false, reason: "not_found" };
@@ -360,10 +331,7 @@ export class InMemoryUserStore implements UserStore {
     return user;
   }
 
-  async attachStakeAddrToUser(
-    userId: string,
-    stakeAddr: string,
-  ): Promise<UserSummary | null> {
+  async attachStakeAddrToUser(userId: string, stakeAddr: string): Promise<UserSummary | null> {
     const user = this.users.get(userId);
     if (!user) return null;
     for (const other of this.users.values()) {
@@ -377,8 +345,7 @@ export class InMemoryUserStore implements UserStore {
     anonUserId: string,
     walletUserId: string,
   ): Promise<UserSummary | null> {
-    if (anonUserId === walletUserId)
-      return this.users.get(walletUserId) ?? null;
+    if (anonUserId === walletUserId) return this.users.get(walletUserId) ?? null;
     const anon = this.users.get(anonUserId);
     if (!anon) return null;
     if (anon.stakeAddr !== null) return null;
@@ -399,10 +366,7 @@ export class InMemoryUserStore implements UserStore {
     return wallet;
   }
 
-  async createCaptain(
-    userId: string,
-    input: CreateCaptainInput,
-  ): Promise<CaptainSummary | null> {
+  async createCaptain(userId: string, input: CreateCaptainInput): Promise<CaptainSummary | null> {
     const user = this.users.get(userId);
     if (!user) return null;
 
@@ -430,10 +394,7 @@ export class InMemoryUserStore implements UserStore {
     return { id: captain.id, name: captain.name, factionId: captain.factionId };
   }
 
-  async getCaptainTeam(
-    userId: string,
-    captainId: string,
-  ): Promise<CaptainTeam | null> {
+  async getCaptainTeam(userId: string, captainId: string): Promise<CaptainTeam | null> {
     const captain = this.captains.get(captainId);
     if (!captain || captain.userId !== userId) return null;
     return {
@@ -472,10 +433,7 @@ export class InMemoryUserStore implements UserStore {
     return out;
   }
 
-  async setDiscordUserId(
-    userId: string,
-    discordUserId: string,
-  ): Promise<SetDiscordUserIdResult> {
+  async setDiscordUserId(userId: string, discordUserId: string): Promise<SetDiscordUserIdResult> {
     if (!this.users.has(userId)) return { ok: false, reason: "not_found" };
     const existingOwner = this.discordUserIds.get(discordUserId);
     if (existingOwner && existingOwner !== userId) {

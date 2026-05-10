@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
+
+import { STATUS_POISON } from "./constants.js";
 import { resolveTurn } from "./engine.js";
 import { createRng } from "./rng.js";
-import { STATUS_POISON } from "./constants.js";
 import type { Action, BattleState, CrewSnapshot, MoveDef } from "./types.js";
 
 const RUNS = 100;
@@ -113,9 +114,7 @@ describe("engine determinism — same seed + actions produces byte-equal logs ac
     expect(final.winner).toBeNull();
     expect(final.activeA.hp).toBeLessThan(100);
     expect(final.activeB.hp).toBeLessThan(100);
-    expect(final.log.filter((e) => e.kind === "move").length).toBe(
-      actions.length * 2,
-    );
+    expect(final.log.filter((e) => e.kind === "move").length).toBe(actions.length * 2);
   });
 
   it("status proc on right turn — poison applied turn 1, ticks every subsequent turn", () => {
@@ -133,17 +132,11 @@ describe("engine determinism — same seed + actions produces byte-equal logs ac
     const final = expectByteEqualAcrossRuns(build, actions, SEED);
     expect(final.activeB.statuses).toContain(STATUS_POISON);
     const ticks = final.log.filter(
-      (e) =>
-        e.kind === "status_tick" &&
-        e.side === "B" &&
-        e.status === STATUS_POISON,
+      (e) => e.kind === "status_tick" && e.side === "B" && e.status === STATUS_POISON,
     );
     expect(ticks.length).toBe(actions.length);
     const applies = final.log.filter(
-      (e) =>
-        e.kind === "status_apply" &&
-        e.side === "B" &&
-        e.status === STATUS_POISON,
+      (e) => e.kind === "status_apply" && e.side === "B" && e.status === STATUS_POISON,
     );
     expect(applies.length).toBe(1);
   });
@@ -162,15 +155,9 @@ describe("engine determinism — same seed + actions produces byte-equal logs ac
       [moveAction("tackle"), moveAction("tackle")],
     ];
     const final = expectByteEqualAcrossRuns(build, actions, SEED);
-    expect(final.log.some((e) => e.kind === "faint" && e.side === "B")).toBe(
-      true,
-    );
-    expect(
-      final.log.some((e) => e.kind === "swap_required" && e.side === "B"),
-    ).toBe(true);
-    expect(final.log.some((e) => e.kind === "switch" && e.side === "B")).toBe(
-      true,
-    );
+    expect(final.log.some((e) => e.kind === "faint" && e.side === "B")).toBe(true);
+    expect(final.log.some((e) => e.kind === "swap_required" && e.side === "B")).toBe(true);
+    expect(final.log.some((e) => e.kind === "switch" && e.side === "B")).toBe(true);
     expect(final.winner).toBeNull();
     expect(final.pendingSwapB).toBe(false);
   });
@@ -183,14 +170,10 @@ describe("engine determinism — same seed + actions produces byte-equal logs ac
         benchA: [crew(), crew()],
         benchB: [crew({ hp: 0 }), crew({ hp: 0 })],
       });
-    const actions: Array<[Action, Action]> = [
-      [moveAction("heavy"), moveAction("tackle")],
-    ];
+    const actions: Array<[Action, Action]> = [[moveAction("heavy"), moveAction("tackle")]];
     const final = expectByteEqualAcrossRuns(build, actions, SEED);
     expect(final.winner).toBe("A");
-    expect(final.log.some((e) => e.kind === "victory" && e.side === "A")).toBe(
-      true,
-    );
+    expect(final.log.some((e) => e.kind === "victory" && e.side === "A")).toBe(true);
     expect(final.log.some((e) => e.kind === "swap_required")).toBe(false);
   });
 });

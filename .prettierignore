@@ -1,0 +1,35 @@
+# Build outputs + deps
+node_modules
+dist
+dist-types
+dist-types-node
+build
+out
+coverage
+.vite
+package-lock.json
+*.tsbuildinfo
+
+# Native mobile builds
+ios
+android
+
+# Generated docs
+ROADMAP.md
+
+# Starter content preserved as-is
+README.md
+AGENT-LOG.md
+REVIEW-LOG.md
+CLAUDE.md
+memory-seeds/**
+lore/**
+
+# Claude Code config (managed separately, not project source)
+.claude/**
+
+# Roadmap tooling + data
+roadmap/**
+
+# Prisma generated client
+packages/db/generated/**

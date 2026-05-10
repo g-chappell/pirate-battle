@@ -48,9 +48,7 @@ export class InMemoryPvpQueueStore implements PvpQueueStore {
     return { entry, created: true };
   }
 
-  async findOldestUnmatchedOther(
-    userId: string,
-  ): Promise<PvpQueueEntryRecord | null> {
+  async findOldestUnmatchedOther(userId: string): Promise<PvpQueueEntryRecord | null> {
     let best: PvpQueueEntryRecord | null = null;
     for (const entry of this.entries.values()) {
       if (entry.userId === userId) continue;
@@ -64,10 +62,7 @@ export class InMemoryPvpQueueStore implements PvpQueueStore {
     return this.entries.get(userId) ?? null;
   }
 
-  async markMatched(
-    userIds: readonly string[],
-    battleId: string,
-  ): Promise<void> {
+  async markMatched(userIds: readonly string[], battleId: string): Promise<void> {
     for (const userId of userIds) {
       const entry = this.entries.get(userId);
       if (entry) entry.matchedBattleId = battleId;
@@ -102,9 +97,7 @@ export class PrismaPvpQueueStore implements PvpQueueStore {
     return { entry: toRecord(created), created: true };
   }
 
-  async findOldestUnmatchedOther(
-    userId: string,
-  ): Promise<PvpQueueEntryRecord | null> {
+  async findOldestUnmatchedOther(userId: string): Promise<PvpQueueEntryRecord | null> {
     const found = await this.prisma.pvpQueueEntry.findFirst({
       where: { userId: { not: userId }, matchedBattleId: null },
       orderBy: { joinedAt: "asc" },
@@ -119,10 +112,7 @@ export class PrismaPvpQueueStore implements PvpQueueStore {
     return found ? toRecord(found) : null;
   }
 
-  async markMatched(
-    userIds: readonly string[],
-    battleId: string,
-  ): Promise<void> {
+  async markMatched(userIds: readonly string[], battleId: string): Promise<void> {
     if (userIds.length === 0) return;
     await this.prisma.pvpQueueEntry.updateMany({
       where: { userId: { in: [...userIds] } },
@@ -131,9 +121,7 @@ export class PrismaPvpQueueStore implements PvpQueueStore {
   }
 
   async remove(userId: string): Promise<void> {
-    await this.prisma.pvpQueueEntry
-      .delete({ where: { userId } })
-      .catch(() => undefined);
+    await this.prisma.pvpQueueEntry.delete({ where: { userId } }).catch(() => undefined);
   }
 }
 

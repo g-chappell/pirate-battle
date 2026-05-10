@@ -1,10 +1,4 @@
-import type {
-  Action,
-  BattleEvent,
-  BattleState,
-  CrewSnapshot,
-  Side,
-} from "@pirate-battle/core";
+import type { Action, BattleEvent, BattleState, CrewSnapshot, Side } from "@pirate-battle/core";
 
 export type ViewerSide = Side;
 
@@ -33,24 +27,15 @@ export function isViewersTurn(state: BattleState, viewer: ViewerSide): boolean {
   return !otherPending;
 }
 
-export function activeCrewFor(
-  state: BattleState,
-  viewer: ViewerSide,
-): CrewSnapshot {
+export function activeCrewFor(state: BattleState, viewer: ViewerSide): CrewSnapshot {
   return viewer === "A" ? state.activeA : state.activeB;
 }
 
-export function benchFor(
-  state: BattleState,
-  viewer: ViewerSide,
-): CrewSnapshot[] {
+export function benchFor(state: BattleState, viewer: ViewerSide): CrewSnapshot[] {
   return viewer === "A" ? state.benchA : state.benchB;
 }
 
-export function moveOptionsFor(
-  state: BattleState,
-  viewer: ViewerSide,
-): MoveOption[] {
+export function moveOptionsFor(state: BattleState, viewer: ViewerSide): MoveOption[] {
   const pending = viewer === "A" ? state.pendingSwapA : state.pendingSwapB;
   if (pending) return [];
   return activeCrewFor(state, viewer).moves.map((m) => ({
@@ -63,10 +48,7 @@ export function moveOptionsFor(
   }));
 }
 
-export function benchOptionsFor(
-  state: BattleState,
-  viewer: ViewerSide,
-): BenchOption[] {
+export function benchOptionsFor(state: BattleState, viewer: ViewerSide): BenchOption[] {
   return benchFor(state, viewer).map((c, i) => ({
     index: i,
     affinity: c.affinity,
@@ -99,9 +81,7 @@ export function describeBattleEvent(event: BattleEvent): string {
     case "move":
       return `Side ${event.side} used ${event.moveKey}${
         event.crit ? " (crit!)" : ""
-      } — ${event.damage} dmg${
-        event.effective !== 1 ? ` (×${event.effective})` : ""
-      }`;
+      } — ${event.damage} dmg${event.effective !== 1 ? ` (×${event.effective})` : ""}`;
     case "miss":
       return `Side ${event.side}'s ${event.moveKey} missed`;
     case "stun_skip":

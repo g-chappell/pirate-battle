@@ -21,9 +21,7 @@ class StubBlockfrostClient implements BlockfrostClient {
 
   constructor(private readonly assets: RawAccountAsset[]) {}
 
-  async accountsAddressesAssetsAll(
-    stakeAddr: string,
-  ): Promise<RawAccountAsset[]> {
+  async accountsAddressesAssetsAll(stakeAddr: string): Promise<RawAccountAsset[]> {
     this.callCount++;
     this.lastStakeAddr = stakeAddr;
     return this.assets;
@@ -35,17 +33,14 @@ describe("getNetworkFromEnv", () => {
     expect(getNetworkFromEnv({})).toBe("mainnet");
   });
 
-  it.each(["mainnet", "preview", "preprod", "sanchonet"] as const)(
-    "accepts %s",
-    (network) => {
-      expect(getNetworkFromEnv({ BLOCKFROST_NETWORK: network })).toBe(network);
-    },
-  );
+  it.each(["mainnet", "preview", "preprod", "sanchonet"] as const)("accepts %s", (network) => {
+    expect(getNetworkFromEnv({ BLOCKFROST_NETWORK: network })).toBe(network);
+  });
 
   it("throws on invalid network value", () => {
-    expect(() =>
-      getNetworkFromEnv({ BLOCKFROST_NETWORK: "testnet" }),
-    ).toThrowError(/BLOCKFROST_NETWORK/);
+    expect(() => getNetworkFromEnv({ BLOCKFROST_NETWORK: "testnet" })).toThrowError(
+      /BLOCKFROST_NETWORK/,
+    );
   });
 });
 
@@ -73,9 +68,7 @@ describe("loadAllowlistFromEnv", () => {
 
 describe("filterByAllowlist", () => {
   it("returns nothing when allowlist is empty", () => {
-    expect(
-      filterByAllowlist([{ unit: `${POLICY_A}4f544b`, quantity: "1" }], []),
-    ).toEqual([]);
+    expect(filterByAllowlist([{ unit: `${POLICY_A}4f544b`, quantity: "1" }], [])).toEqual([]);
   });
 
   it("returns only assets whose policy id is on the allowlist", () => {
@@ -103,9 +96,7 @@ describe("filterByAllowlist", () => {
   });
 
   it("matches case-insensitively", () => {
-    const assets: RawAccountAsset[] = [
-      { unit: `${POLICY_A.toUpperCase()}AB`, quantity: "1" },
-    ];
+    const assets: RawAccountAsset[] = [{ unit: `${POLICY_A.toUpperCase()}AB`, quantity: "1" }];
     const result = filterByAllowlist(assets, [POLICY_A]);
     expect(result).toHaveLength(1);
     expect(result[0]!.policyId).toBe(POLICY_A);
@@ -155,9 +146,7 @@ describe("BlockfrostNftService.fetchUserNfts", () => {
   });
 
   it("returns the cached snapshot when within the freshness window", async () => {
-    const client = new StubBlockfrostClient([
-      { unit: `${POLICY_A}feed`, quantity: "1" },
-    ]);
+    const client = new StubBlockfrostClient([{ unit: `${POLICY_A}feed`, quantity: "1" }]);
     let now = 10_000;
     const store = new InMemoryNftSnapshotStore({ nowFn: () => now });
     const service = new BlockfrostNftService({
@@ -184,9 +173,7 @@ describe("BlockfrostNftService.fetchUserNfts", () => {
   });
 
   it("refetches once the cache passes the freshness window", async () => {
-    const client = new StubBlockfrostClient([
-      { unit: `${POLICY_A}aa`, quantity: "1" },
-    ]);
+    const client = new StubBlockfrostClient([{ unit: `${POLICY_A}aa`, quantity: "1" }]);
     let now = 0;
     const store = new InMemoryNftSnapshotStore({ nowFn: () => now });
     const service = new BlockfrostNftService({
@@ -210,9 +197,7 @@ describe("BlockfrostNftService.fetchUserNfts", () => {
   });
 
   it("isolates cache by userId", async () => {
-    const client = new StubBlockfrostClient([
-      { unit: `${POLICY_A}11`, quantity: "1" },
-    ]);
+    const client = new StubBlockfrostClient([{ unit: `${POLICY_A}11`, quantity: "1" }]);
     const now = 1_000;
     const store = new InMemoryNftSnapshotStore({ nowFn: () => now });
     const service = new BlockfrostNftService({

@@ -1,11 +1,5 @@
 import { affinityMultiplier } from "./constants.js";
-import type {
-  Action,
-  BattleState,
-  CrewSnapshot,
-  MoveDef,
-  Side,
-} from "./types.js";
+import type { Action, BattleState, CrewSnapshot, MoveDef, Side } from "./types.js";
 
 function isFainted(crew: CrewSnapshot): boolean {
   return crew.hp <= 0;
@@ -18,11 +12,7 @@ function firstHealthyBenchIndex(bench: readonly CrewSnapshot[]): number {
   return -1;
 }
 
-function expectedDamage(
-  attacker: CrewSnapshot,
-  defender: CrewSnapshot,
-  move: MoveDef,
-): number {
+function expectedDamage(attacker: CrewSnapshot, defender: CrewSnapshot, move: MoveDef): number {
   if (move.kind !== "damage" || move.basePower <= 0) return 0;
   const eff = affinityMultiplier(move.affinity, defender.affinity);
   return move.basePower * eff * (move.accuracy / 100);

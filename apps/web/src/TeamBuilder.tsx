@@ -16,9 +16,7 @@ const FACTION_OPTIONS = [
   { id: "bloodborne", label: "Bloodborne Crew" },
 ];
 
-export function TeamBuilder({
-  onCaptainCreated,
-}: TeamBuilderProps): ReactElement {
+export function TeamBuilder({ onCaptainCreated }: TeamBuilderProps): ReactElement {
   const [name, setName] = useState("");
   const [factionId, setFactionId] = useState(FACTION_OPTIONS[0]!.id);
   const [selection, setSelection] = useState<string[]>([]);
@@ -58,15 +56,11 @@ export function TeamBuilder({
     <section aria-labelledby="team-builder-heading">
       <h2 id="team-builder-heading">Assemble your crew</h2>
       <p>
-        Pick {TEAM_SIZE} crews from the starter roster. Selected:{" "}
-        {selection.length}/{TEAM_SIZE}.
+        Pick {TEAM_SIZE} crews from the starter roster. Selected: {selection.length}/{TEAM_SIZE}.
       </p>
 
       <fieldset style={{ border: "none", padding: 0, margin: "1rem 0" }}>
-        <label
-          htmlFor="captain-name"
-          style={{ display: "block", marginBottom: "0.25rem" }}
-        >
+        <label htmlFor="captain-name" style={{ display: "block", marginBottom: "0.25rem" }}>
           Captain name
         </label>
         <input
@@ -79,10 +73,7 @@ export function TeamBuilder({
           style={{ padding: "0.4rem", width: "20rem", maxWidth: "100%" }}
         />
 
-        <label
-          htmlFor="captain-faction"
-          style={{ display: "block", marginTop: "0.75rem" }}
-        >
+        <label htmlFor="captain-faction" style={{ display: "block", marginTop: "0.75rem" }}>
           Faction
         </label>
         <select
@@ -114,10 +105,7 @@ export function TeamBuilder({
             key={crew.templateKey}
             crew={crew}
             selected={selection.includes(crew.templateKey)}
-            disabled={
-              !selection.includes(crew.templateKey) &&
-              selection.length >= TEAM_SIZE
-            }
+            disabled={!selection.includes(crew.templateKey) && selection.length >= TEAM_SIZE}
             onToggle={() => handleToggle(crew.templateKey)}
           />
         ))}
@@ -148,12 +136,7 @@ interface CrewCardProps {
   onToggle: () => void;
 }
 
-function CrewCard({
-  crew,
-  selected,
-  disabled,
-  onToggle,
-}: CrewCardProps): ReactElement {
+function CrewCard({ crew, selected, disabled, onToggle }: CrewCardProps): ReactElement {
   return (
     <li
       style={{
@@ -172,11 +155,10 @@ function CrewCard({
           onChange={onToggle}
           style={{ marginRight: "0.4rem" }}
         />
-        <strong>{crew.name}</strong>{" "}
-        <em style={{ color: "#555" }}>({crew.affinity})</em>
+        <strong>{crew.name}</strong> <em style={{ color: "#555" }}>({crew.affinity})</em>
         <div style={{ fontSize: "0.85rem", marginTop: "0.25rem" }}>
-          HP {crew.baseStats.hp} · ATK {crew.baseStats.atk} · DEF{" "}
-          {crew.baseStats.def} · SPD {crew.baseStats.spd}
+          HP {crew.baseStats.hp} · ATK {crew.baseStats.atk} · DEF {crew.baseStats.def} · SPD{" "}
+          {crew.baseStats.spd}
         </div>
       </label>
     </li>

@@ -3,12 +3,10 @@ import { describe, expect, it } from "vitest";
 
 import { InMemoryBattleStore } from "../battleStore.js";
 import { buildServer } from "../index.js";
-import {
-  InMemoryPvpChallengeStore,
-  type PvpChallengeRecord,
-} from "../pvpChallengeStore.js";
+import { InMemoryPvpChallengeStore, type PvpChallengeRecord } from "../pvpChallengeStore.js";
 import { InMemoryPvpQueueStore } from "../pvpQueueStore.js";
 import { InMemoryUserStore } from "../userStore.js";
+
 import { TEAM_SIZE } from "./captain.js";
 import { PVP_ACTION_TIMEOUT_MS } from "./pvp.js";
 import { SESSION_COOKIE_NAME } from "./session.js";
@@ -52,9 +50,7 @@ function makeApp(seed = 12345, clock: TestClock = makeClock()) {
 
 function extractCookieHeader(setCookieHeader: string | string[] | undefined) {
   if (!setCookieHeader) return undefined;
-  const list = Array.isArray(setCookieHeader)
-    ? setCookieHeader
-    : [setCookieHeader];
+  const list = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
   const target = list.find((c) => c.startsWith(`${SESSION_COOKIE_NAME}=`));
   if (!target) return undefined;
   return target.split(";")[0];
@@ -112,9 +108,7 @@ describe("POST /api/pvp/challenge", () => {
     expect(body.token.length).toBeGreaterThan(8);
     expect(typeof body.expiresAt).toBe("number");
 
-    const stored = (await challengeStore.findByToken(
-      body.token,
-    )) as PvpChallengeRecord;
+    const stored = (await challengeStore.findByToken(body.token)) as PvpChallengeRecord;
     expect(stored.challengerUserId).toBe(userId);
     expect(stored.challengerCaptainId).toBe(captainId);
     await app.close();
@@ -170,9 +164,7 @@ describe("POST /api/pvp/challenge/:token/accept", () => {
     await harness.app.ready();
     const { token, hostUserId } = await issueChallenge(harness.app);
 
-    const { cookie: guestCookie, userId: guestUserId } = await authedSession(
-      harness.app,
-    );
+    const { cookie: guestCookie, userId: guestUserId } = await authedSession(harness.app);
     const guestCaptain = await createCaptain(harness.app, guestCookie, "Guest");
 
     const accept = await harness.app.inject({
@@ -195,9 +187,7 @@ describe("POST /api/pvp/challenge/:token/accept", () => {
   it("rejects accepting your own challenge", async () => {
     const harness = makeApp();
     await harness.app.ready();
-    const { token, hostCookie, hostCaptain } = await issueChallenge(
-      harness.app,
-    );
+    const { token, hostCookie, hostCaptain } = await issueChallenge(harness.app);
 
     const accept = await harness.app.inject({
       method: "POST",
@@ -419,11 +409,7 @@ describe("PvP turn submission", () => {
       const { token } = issue.json() as { token: string };
 
       const { cookie: guestCookie } = await authedSession(harness.app);
-      const guestCaptain = await createCaptain(
-        harness.app,
-        guestCookie,
-        "Guest",
-      );
+      const guestCaptain = await createCaptain(harness.app, guestCookie, "Guest");
       const accept = await harness.app.inject({
         method: "POST",
         url: `/api/pvp/challenge/${token}/accept`,

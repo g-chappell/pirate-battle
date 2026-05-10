@@ -121,9 +121,7 @@ describe("rewardAddressBytesToBech32", () => {
 
 describe("bytesToHex", () => {
   it("encodes bytes as lowercase hex with padding", () => {
-    expect(bytesToHex(new Uint8Array([0, 1, 15, 16, 254, 255]))).toBe(
-      "00010f10feff",
-    );
+    expect(bytesToHex(new Uint8Array([0, 1, 15, 16, 254, 255]))).toBe("00010f10feff");
   });
 
   it("returns empty string for empty input", () => {

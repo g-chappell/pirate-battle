@@ -1,8 +1,4 @@
-import type {
-  FastifyInstance,
-  FastifyPluginCallback,
-  FastifyRequest,
-} from "fastify";
+import type { FastifyInstance, FastifyPluginCallback, FastifyRequest } from "fastify";
 
 import type { UserStore, UserSummary } from "../userStore.js";
 

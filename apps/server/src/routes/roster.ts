@@ -5,6 +5,7 @@ import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 import type { BlockfrostNftService } from "../cardano/blockfrost.js";
 import type { RosterDerivationService } from "../rosterDerivation.js";
 import type { UserStore } from "../userStore.js";
+
 import { getUserIdFromCookie } from "./session.js";
 
 export interface RosterPluginOptions {

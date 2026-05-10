@@ -4,12 +4,14 @@ import {
   DEFAULT_LEVEL,
   LOSER_XP_MULTIPLIER,
   WINNER_XP_MULTIPLIER,
+  type BattleState,
 } from "@pirate-battle/core";
 import { describe, expect, it } from "vitest";
 
 import { InMemoryBattleStore } from "../battleStore.js";
 import { buildServer } from "../index.js";
 import { InMemoryUserStore, type CaptainTeam } from "../userStore.js";
+
 import { computeXpAwards } from "./battle.js";
 import { TEAM_SIZE } from "./captain.js";
 import { SESSION_COOKIE_NAME } from "./session.js";
@@ -29,9 +31,7 @@ function makeApp(seed = 12345) {
 
 function extractCookieHeader(setCookieHeader: string | string[] | undefined) {
   if (!setCookieHeader) return undefined;
-  const list = Array.isArray(setCookieHeader)
-    ? setCookieHeader
-    : [setCookieHeader];
+  const list = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
   const target = list.find((c) => c.startsWith(`${SESSION_COOKIE_NAME}=`));
   if (!target) return undefined;
   return target.split(";")[0];
@@ -49,10 +49,7 @@ async function authedSession(app: ReturnType<typeof makeApp>["app"]) {
   return { cookie, userId: create.json().id as string };
 }
 
-async function createCaptain(
-  app: ReturnType<typeof makeApp>["app"],
-  cookie: string,
-) {
+async function createCaptain(app: ReturnType<typeof makeApp>["app"], cookie: string) {
   const res = await app.inject({
     method: "POST",
     url: "/api/captain",
@@ -215,10 +212,7 @@ describe("GET /api/battle/:id", () => {
 });
 
 describe("POST /api/battle/:id/action", () => {
-  async function startBattle(
-    app: ReturnType<typeof makeApp>["app"],
-    cookie: string,
-  ) {
+  async function startBattle(app: ReturnType<typeof makeApp>["app"], cookie: string) {
     const captainId = await createCaptain(app, cookie);
     const start = await app.inject({
       method: "POST",
@@ -228,7 +222,7 @@ describe("POST /api/battle/:id/action", () => {
     });
     return start.json() as {
       id: string;
-      state: import("@pirate-battle/core").BattleState;
+      state: BattleState;
     };
   }
 
@@ -467,9 +461,7 @@ describe("computeXpAwards", () => {
   it("awards loser-multiplier XP on loss", () => {
     const team = teamWith(["c1"]);
     const awards = computeXpAwards({ team, playerWon: false });
-    expect(awards[0]!.xpGain).toBe(
-      Math.floor(BASE_XP_PER_BATTLE * LOSER_XP_MULTIPLIER),
-    );
+    expect(awards[0]!.xpGain).toBe(Math.floor(BASE_XP_PER_BATTLE * LOSER_XP_MULTIPLIER));
   });
 
   it("skips crews without a persisted id", () => {

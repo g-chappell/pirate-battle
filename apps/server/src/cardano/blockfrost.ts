@@ -34,9 +34,7 @@ export class BlockfrostHttpClient implements BlockfrostClient {
     });
   }
 
-  async accountsAddressesAssetsAll(
-    stakeAddr: string,
-  ): Promise<RawAccountAsset[]> {
+  async accountsAddressesAssetsAll(stakeAddr: string): Promise<RawAccountAsset[]> {
     const result = await this.api.accountsAddressesAssetsAll(stakeAddr);
     return result.map((a) => ({ unit: a.unit, quantity: a.quantity }));
   }
@@ -45,12 +43,7 @@ export class BlockfrostHttpClient implements BlockfrostClient {
 export function getNetworkFromEnv(env: NodeJS.ProcessEnv): CardanoNetwork {
   const raw = env["BLOCKFROST_NETWORK"];
   if (!raw) return DEFAULT_BLOCKFROST_NETWORK;
-  if (
-    raw === "mainnet" ||
-    raw === "preview" ||
-    raw === "preprod" ||
-    raw === "sanchonet"
-  ) {
+  if (raw === "mainnet" || raw === "preview" || raw === "preprod" || raw === "sanchonet") {
     return raw;
   }
   throw new Error(

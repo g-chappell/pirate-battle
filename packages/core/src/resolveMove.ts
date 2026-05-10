@@ -58,11 +58,9 @@ export function computeDamage(
   const def = Math.max(1, defender.def);
 
   const levelTerm =
-    (DAMAGE_LEVEL_NUMERATOR * attacker.level) / DAMAGE_LEVEL_DIVISOR +
-    DAMAGE_LEVEL_OFFSET;
+    (DAMAGE_LEVEL_NUMERATOR * attacker.level) / DAMAGE_LEVEL_DIVISOR + DAMAGE_LEVEL_OFFSET;
   const base =
-    Math.floor((levelTerm * move.basePower * atk) / def / DAMAGE_DIVISOR) +
-    DAMAGE_BASE_OFFSET;
+    Math.floor((levelTerm * move.basePower * atk) / def / DAMAGE_DIVISOR) + DAMAGE_BASE_OFFSET;
   const withCrit = crit ? base * CRIT_MULTIPLIER : base;
   const damage = Math.max(1, Math.floor(withCrit * effective));
 

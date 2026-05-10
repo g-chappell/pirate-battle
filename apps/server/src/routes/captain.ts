@@ -2,6 +2,7 @@ import { CREWS_BY_KEY } from "@pirate-battle/content";
 import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 
 import type { CreateCaptainCrewInput, UserStore } from "../userStore.js";
+
 import { getUserIdFromCookie } from "./session.js";
 
 export interface CaptainPluginOptions {

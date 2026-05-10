@@ -46,20 +46,15 @@ const KNOWN_WALLETS: Readonly<Record<string, string>> = Object.freeze({
 export function isCip30Wallet(value: unknown): value is Cip30Wallet {
   if (value === null || typeof value !== "object") return false;
   const obj = value as Record<string, unknown>;
-  return (
-    typeof obj.enable === "function" && typeof obj.isEnabled === "function"
-  );
+  return typeof obj.enable === "function" && typeof obj.isEnabled === "function";
 }
 
-export function detectWallets(
-  ns: CardanoNamespace | undefined | null,
-): WalletInfo[] {
+export function detectWallets(ns: CardanoNamespace | undefined | null): WalletInfo[] {
   if (!ns) return [];
   const out: WalletInfo[] = [];
   for (const [key, provider] of Object.entries(ns)) {
     if (!isCip30Wallet(provider)) continue;
-    const providerName =
-      typeof provider.name === "string" ? provider.name : null;
+    const providerName = typeof provider.name === "string" ? provider.name : null;
     const label = KNOWN_WALLETS[key] ?? providerName ?? key;
     const icon = typeof provider.icon === "string" ? provider.icon : null;
     out.push({ key, label, icon });
@@ -73,11 +68,7 @@ export function detectWallets(
   return out;
 }
 
-export function truncateBech32(
-  addr: string,
-  leading = 12,
-  trailing = 6,
-): string {
+export function truncateBech32(addr: string, leading = 12, trailing = 6): string {
   if (addr.length <= leading + trailing + 1) return addr;
   return `${addr.slice(0, leading)}…${addr.slice(-trailing)}`;
 }
@@ -196,9 +187,7 @@ export function rewardCborHexToBech32(hex: string): string {
   return rewardAddressBytesToBech32(decodeCborBytestring(hex));
 }
 
-export function loadStoredWalletKey(
-  storage: WalletStorage | null | undefined,
-): string | null {
+export function loadStoredWalletKey(storage: WalletStorage | null | undefined): string | null {
   if (!storage) return null;
   try {
     return storage.getItem(STORAGE_KEY);
@@ -207,10 +196,7 @@ export function loadStoredWalletKey(
   }
 }
 
-export function saveStoredWalletKey(
-  storage: WalletStorage | null | undefined,
-  key: string,
-): void {
+export function saveStoredWalletKey(storage: WalletStorage | null | undefined, key: string): void {
   if (!storage) return;
   try {
     storage.setItem(STORAGE_KEY, key);
@@ -219,9 +205,7 @@ export function saveStoredWalletKey(
   }
 }
 
-export function clearStoredWalletKey(
-  storage: WalletStorage | null | undefined,
-): void {
+export function clearStoredWalletKey(storage: WalletStorage | null | undefined): void {
   if (!storage) return;
   try {
     storage.removeItem(STORAGE_KEY);

@@ -33,10 +33,7 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(
-  url: string,
-  init?: RequestInit & { allow401?: boolean },
-): Promise<T> {
+async function request<T>(url: string, init?: RequestInit & { allow401?: boolean }): Promise<T> {
   const res = await fetch(url, {
     credentials: "include",
     ...init,
@@ -64,8 +61,7 @@ async function request<T>(
 export async function getMe(): Promise<UserSummary | null> {
   const res = await fetch("/me", { credentials: "include" });
   if (res.status === 401) return null;
-  if (!res.ok)
-    throw new ApiError(`/me failed: ${res.status}`, res.status, null);
+  if (!res.ok) throw new ApiError(`/me failed: ${res.status}`, res.status, null);
   return (await res.json()) as UserSummary;
 }
 
@@ -89,9 +85,7 @@ export async function requestNonce(): Promise<{
   });
 }
 
-export async function submitWalletAuth(
-  body: WalletAuthBody,
-): Promise<UserSummary> {
+export async function submitWalletAuth(body: WalletAuthBody): Promise<UserSummary> {
   return request<UserSummary>("/api/auth/wallet", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -99,9 +93,7 @@ export async function submitWalletAuth(
   });
 }
 
-export async function createCaptain(
-  payload: CreateCaptainPayload,
-): Promise<CaptainSummary> {
+export async function createCaptain(payload: CreateCaptainPayload): Promise<CaptainSummary> {
   return request<CaptainSummary>("/api/captain", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -113,12 +105,9 @@ export async function submitBattleAction(
   battleId: string,
   action: Action,
 ): Promise<BattleActionResponse> {
-  return request<BattleActionResponse>(
-    `/api/battle/${encodeURIComponent(battleId)}/action`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(action),
-    },
-  );
+  return request<BattleActionResponse>(`/api/battle/${encodeURIComponent(battleId)}/action`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(action),
+  });
 }

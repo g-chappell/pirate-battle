@@ -16,10 +16,7 @@ import {
   tryReconnectStored,
 } from "./walletChooser";
 
-type SignInState =
-  | { kind: "idle" }
-  | { kind: "signing" }
-  | { kind: "error"; error: SignInError };
+type SignInState = { kind: "idle" } | { kind: "signing" } | { kind: "error"; error: SignInError };
 
 type ChooserState =
   | { kind: "detecting" }
@@ -103,8 +100,7 @@ export function WalletChooser({
       setState({ kind: "connected", result, signIn: { kind: "idle" } });
       onConnected?.(result);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "wallet connection failed";
+      const message = err instanceof Error ? err.message : "wallet connection failed";
       setState({ kind: "error", wallets, message });
     }
   }
@@ -135,9 +131,7 @@ export function WalletChooser({
     clearStoredWalletKey(store);
     const ns = namespace !== undefined ? namespace : getDefaultNamespace();
     const wallets = detectWallets(ns);
-    setState(
-      wallets.length === 0 ? { kind: "no-wallets" } : { kind: "idle", wallets },
-    );
+    setState(wallets.length === 0 ? { kind: "no-wallets" } : { kind: "idle", wallets });
   }
 
   function renderSignInBlock(signIn: SignInState): ReactElement {
@@ -175,8 +169,7 @@ export function WalletChooser({
     return (
       <section aria-label="Wallet" style={sectionStyle}>
         <p style={{ margin: 0 }}>
-          No Cardano wallet detected. Install Nami, Eternl, Lace, or Typhon to
-          link a stake address.
+          No Cardano wallet detected. Install Nami, Eternl, Lace, or Typhon to link a stake address.
         </p>
       </section>
     );

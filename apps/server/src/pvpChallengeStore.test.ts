@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  DEFAULT_PVP_CHALLENGE_TTL_MS,
-  InMemoryPvpChallengeStore,
-} from "./pvpChallengeStore.js";
+import { DEFAULT_PVP_CHALLENGE_TTL_MS, InMemoryPvpChallengeStore } from "./pvpChallengeStore.js";
 
 describe("InMemoryPvpChallengeStore", () => {
   it("issues unique tokens scoped to the challenger captain", async () => {

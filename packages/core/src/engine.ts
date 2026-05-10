@@ -8,14 +8,7 @@ import {
 } from "./constants.js";
 import { computeDamage, rollAccuracy } from "./resolveMove.js";
 import { createRng, type Rng } from "./rng.js";
-import type {
-  Action,
-  BattleEvent,
-  BattleState,
-  CrewSnapshot,
-  MoveDef,
-  Side,
-} from "./types.js";
+import type { Action, BattleEvent, BattleState, CrewSnapshot, MoveDef, Side } from "./types.js";
 
 interface SideSlot {
   side: Side;
@@ -137,11 +130,7 @@ export function resolveTurn(
   for (const side of ["A", "B"] as const) {
     const slot = slots[side];
     if (slot.action.type === "switch") {
-      const { active, bench } = applySwitch(
-        slot.active,
-        slot.bench,
-        slot.action.targetIndex,
-      );
+      const { active, bench } = applySwitch(slot.active, slot.bench, slot.action.targetIndex);
       slots = {
         ...slots,
         [side]: { ...slot, active, bench },
@@ -208,12 +197,7 @@ export function resolveTurn(
 
     if (mover.move.kind === "buff") continue;
 
-    const result = computeDamage(
-      attackerSlot.active,
-      defenderSlot.active,
-      mover.move,
-      rng,
-    );
+    const result = computeDamage(attackerSlot.active, defenderSlot.active, mover.move, rng);
     if (!result.hit) {
       events.push({
         kind: "miss",

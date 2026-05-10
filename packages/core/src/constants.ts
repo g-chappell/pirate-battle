@@ -57,9 +57,6 @@ export const TYPE_CHART: Record<Affinity, Record<Affinity, number>> = {
   },
 };
 
-export function affinityMultiplier(
-  attacker: Affinity,
-  defender: Affinity,
-): number {
+export function affinityMultiplier(attacker: Affinity, defender: Affinity): number {
   return TYPE_CHART[attacker][defender];
 }

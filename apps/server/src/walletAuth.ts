@@ -50,10 +50,7 @@ export class CardanoWalletAuthVerifier implements WalletAuthVerifier {
         return { ok: false, reason: "payload_mismatch" };
       }
 
-      const protectedMap = coseSign1
-        .headers()
-        .protected()
-        .deserialized_headers();
+      const protectedMap = coseSign1.headers().protected().deserialized_headers();
       const addressHeader = protectedMap.header(cms.Label.new_text("address"));
       if (!addressHeader) return { ok: false, reason: "missing_address" };
       let addressBytes: Uint8Array | undefined;

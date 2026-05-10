@@ -1,11 +1,7 @@
 import type { MoveDef } from "@pirate-battle/core";
 import { describe, expect, it } from "vitest";
 
-import {
-  deriveCrewStats,
-  type CollectionRules,
-  type NftMetadata,
-} from "./nftMapping.js";
+import { deriveCrewStats, type CollectionRules, type NftMetadata } from "./nftMapping.js";
 
 const TIDE_SURGE: MoveDef = {
   key: "tide_surge",
@@ -82,10 +78,7 @@ describe("deriveCrewStats", () => {
   });
 
   it("applies stat deltas when a matching trait value is present", () => {
-    const result = deriveCrewStats(
-      metadata({ rarity: "rare" }),
-      BASELINE_RULES,
-    );
+    const result = deriveCrewStats(metadata({ rarity: "rare" }), BASELINE_RULES);
 
     expect(result.hp).toBe(80);
     expect(result.maxHp).toBe(80);
@@ -97,10 +90,7 @@ describe("deriveCrewStats", () => {
   });
 
   it("layers multiple matching trait rules additively", () => {
-    const result = deriveCrewStats(
-      metadata({ rarity: "rare", armor: "heavy" }),
-      BASELINE_RULES,
-    );
+    const result = deriveCrewStats(metadata({ rarity: "rare", armor: "heavy" }), BASELINE_RULES);
 
     expect(result.hp).toBe(80);
     expect(result.atk).toBe(55);
@@ -109,10 +99,7 @@ describe("deriveCrewStats", () => {
   });
 
   it("overrides affinity and moves when a trait rule supplies them", () => {
-    const result = deriveCrewStats(
-      metadata({ rarity: "legendary" }),
-      BASELINE_RULES,
-    );
+    const result = deriveCrewStats(metadata({ rarity: "legendary" }), BASELINE_RULES);
 
     expect(result.affinity).toBe("phantom");
     expect(result.moves).toEqual([PHANTOM_STRIKE]);
@@ -120,10 +107,7 @@ describe("deriveCrewStats", () => {
   });
 
   it("ignores trait values not registered in the rules", () => {
-    const result = deriveCrewStats(
-      metadata({ rarity: "mythic", colour: "blue" }),
-      BASELINE_RULES,
-    );
+    const result = deriveCrewStats(metadata({ rarity: "mythic", colour: "blue" }), BASELINE_RULES);
 
     expect(result.hp).toBe(70);
     expect(result.affinity).toBe("kraken");
@@ -164,9 +148,7 @@ describe("deriveCrewStats", () => {
   });
 
   it("does not mutate the input rules or metadata", () => {
-    const rules: CollectionRules = JSON.parse(
-      JSON.stringify(BASELINE_RULES),
-    ) as CollectionRules;
+    const rules: CollectionRules = JSON.parse(JSON.stringify(BASELINE_RULES)) as CollectionRules;
     const before = JSON.stringify(rules);
     const meta = metadata({ rarity: "rare" });
     const metaBefore = JSON.stringify(meta);
