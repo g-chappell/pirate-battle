@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 22 (47%)
-- **Ready:** 25
-- **In progress:** 0
+- **Ready:** 24
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -283,7 +283,7 @@ Free starter remains usable; NFT crews add to the available roster.
     > this to populate the chooser.
 
 - **STORY-10** — Trait → stat derivation pipeline + admin tooling
-  - :black_circle: **TASK-027** — Trait→stat derivation: deterministic mapper + collection registry  `high` `large` _(apps/server, packages/db, packages/shared)_  
+  - :large_orange_diamond: **TASK-027** — Trait→stat derivation: deterministic mapper + collection registry  `high` `large` _(apps/server, packages/db, packages/shared)_  
     _depends on: TASK-026_
     > packages/shared/src/nftMapping.ts: pure function
     > deriveCrewStats(metadata, collectionRules) → CrewSnapshot.
