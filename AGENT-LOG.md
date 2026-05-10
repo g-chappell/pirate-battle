@@ -536,3 +536,15 @@ gaps.
 
 ---
 
+### Run [2026-05-10 20:12]
+- Task: TASK-019 — Web: turn animation placeholders (sprite shake + flash) (cascade re-deploy)
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/47
+- Test counts: discord=30, server=151, web=113, content=17, core=61, shared=9
+- Files changed: roadmap/roadmap.yml, ROADMAP.md (status-flip only — code already on main from PR #36)
+- Regression alert: false
+- Deploy: pending
+- Lessons learned: TASK-019 was the last of the six cascade-rollforwards triggered by the prod migration fix in PR #37; all six (TASK-005, -019, -027, -029, -036, -044) are now re-deployed.
+
+---
+
