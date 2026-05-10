@@ -453,6 +453,7 @@ gaps.
 - Files changed: roadmap/roadmap.yml, ROADMAP.md (status-flip-only re-deploy; implementation already on main from PR #34)
 - Regression alert: false
 - Deploy: success
+- Review proposed: false (3 trailing successes — TASK-027 11:21, TASK-029 12:10, TASK-036 13:05 — below successThreshold=5; PR #29 from 2026-05-09 23:16 still open anyway)
 - Lessons learned: Cascade re-deploy pattern continues from TASK-027/029 — status-flip PRs are sufficient to roll forward already-merged work after deploy.sh fix in PR #37. Stale local branches from squash-merged PRs needed `git branch -D` cleanup before scripts/new-branch.sh could re-use the slug.
 
 ---
