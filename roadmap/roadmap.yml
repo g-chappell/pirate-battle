@@ -500,7 +500,7 @@ epics:
             attempt_count: 1
           - id: TASK-021
             title: 'Web: win/loss screens + battle history list'
-            status: in-progress
+            status: done
             priority: med
             complexity: small
             workspaces:
@@ -513,8 +513,8 @@ epics:
             depends_on:
               - TASK-020
               - TASK-019
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/48
+            completed: '2026-05-10T21:27:00Z'
             blocked_reason: null
             last_attempted: '2026-05-10T21:11:00Z'
             attempt_count: 1
