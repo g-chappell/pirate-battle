@@ -505,7 +505,7 @@ gaps.
 - Files changed: apps/discord/{package.json,tsconfig.json,vitest.config.ts,src/{index.ts,bot.ts,bot.test.ts,commands.ts,commands.test.ts,registration.ts,registration.test.ts},scripts/register-commands.ts}, package-lock.json
 - Regression alert: false
 - Review proposed: pending (Step 15)
-- Deploy: pending (Step 12)
+- Deploy: success (image pirate-battle:latest, container pirate-battle-app-1, healthcheck ok attempt 2)
 - Lessons learned: tsconfig with `rootDir: src` blocks adding a top-level scripts/ dir for one-off tooling; dropping rootDir + including scripts/** lets `tsc -b` type-check the deploy script alongside src, but shifts compiled main from `dist/index.js` to `dist/src/index.js` (package.json `main`/`start` updated). Vitest workspace bootstrap kept the canonical 3-thing pattern (devDep + script + explicit `include`), no tweaks needed.
 
 ---
