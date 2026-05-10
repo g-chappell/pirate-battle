@@ -356,3 +356,15 @@ gaps.
 
 ---
 
+### Run [2026-05-10 05:21]
+- Task: TASK-044 — Server: PvP challenge create/accept + match queue
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/35
+- Test counts: core=61, content=17, shared=9, web=80, server=148 (+24)
+- Files changed: apps/server/src/{battleAction,battleStore,index,pvpChallengeStore,pvpChallengeStore.test,pvpQueueStore,pvpQueueStore.test}.ts; apps/server/src/routes/{battle,pvp,pvp.test}.ts; packages/db/{prisma/schema.prisma,prisma/migrations/20260510050000_pvp_challenge_and_queue/migration.sql,src/index.ts}
+- Regression alert: false
+- Deploy: pending
+- Lessons learned: Prisma's nullable JSON columns require Prisma.JsonNull (not raw null) in update payloads — needed exporting Prisma as a value (not just a type) from packages/db. Both PvP queue peers must be reachable through one polling endpoint, so PvpQueueEntry carries matchedBattleId rather than relying on transient state.
+
+---
+
