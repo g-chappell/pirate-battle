@@ -106,7 +106,7 @@ epics:
 
           - id: TASK-005
             title: "Scaffold apps/discord stub + apps/mobile placeholder"
-            status: done
+            status: blocked
             priority: med
             complexity: small
             workspaces: ["apps/discord", "apps/mobile"]
@@ -119,7 +119,7 @@ epics:
             depends_on: ["TASK-002"]
             pr: https://github.com/g-chappell/pirate-battle/pull/32
             completed: '2026-05-10T02:10:00Z'
-            blocked_reason: null
+            blocked_reason: "deploy failed health check"
             last_attempted: '2026-05-10T02:06:00Z'
             attempt_count: 1
 

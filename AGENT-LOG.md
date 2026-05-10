@@ -325,7 +325,8 @@ gaps.
 - Test counts: core=42, content=17, shared=9, server=92, web=80
 - Files changed: apps/discord/package.json, apps/discord/tsconfig.json, apps/discord/src/index.ts, apps/mobile/README.md, tsconfig.json, package-lock.json
 - Regression alert: false
-- Deploy: pending
+- Deploy: rolled_back (health check timeout 90s → rollback to previous image succeeded). TASK-005 is a pure scaffold change (no runtime code on the server) so the failure is inherited from the unresolved prod-DB gap flagged in TASK-027: server still calls `await collectionStore.listAll()` at startup against a DB with no tables. Marking TASK-005 blocked per Step 14 convention even though the bad startup path didn't originate in this task.
+- Lessons learned: deploy will keep rolling back every cycle until the latent prod-migration issue from TASK-027 is fixed (prisma migrate deploy + .env DATABASE_URL pointing at the prod DB, or a Dockerfile/entrypoint migrate step). Worth flagging to the operator before the next cycle.
 
 ---
 
