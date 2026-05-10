@@ -11,7 +11,14 @@
       "default": "./dist/index.js"
     }
   },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --passWithNoTests"
+  },
   "dependencies": {
     "@pirate-battle/core": "*"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.5"
   }
 }
