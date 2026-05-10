@@ -569,7 +569,7 @@ gaps.
 - Files changed: apps/server/scripts/register-collection.{ts,test.ts} (new), apps/server/src/cardano/{collectionRulesParser,collectionRulesParser.test,registerCollection,registerCollection.test}.ts (new), apps/server/src/cardano/collectionStore.ts (upsertOne), apps/server/{tsconfig.json,vitest.config.ts,package.json}, docker/Dockerfile, docs/ADMIN.md (new)
 - Regression alert: false
 - Review proposed: <pending Step 15>
-- Deploy: <pending Step 12>
+- Deploy: success
 - Lessons learned: TASK-042 (Capacitor scaffold) was first-eligible by priority but is environmentally infeasible on the headless Linux deploy host (no Xcode/CocoaPods/Android SDK), so the cycle skipped it without consuming an attempt and picked TASK-028 instead. The skip is flagged in the PR body — needs a human decision on whether to (a) split TASK-042 into autonomous-doable + manual-verify halves, or (b) mark it human-only so future cycles stop reconsidering it. Separately, adding scripts/**/* to apps/server's tsconfig had the side-effect of relocating dist/index.js -> dist/src/index.js (tsc's rootDir auto-computation); kept consistent with the discord workspace pattern but required Dockerfile CMD + package.json main/start to follow.
 
 ---
