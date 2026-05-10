@@ -368,3 +368,15 @@ gaps.
 
 ---
 
+### Run [2026-05-10 06:11]
+- Task: TASK-019 — Web: turn animation placeholders (sprite shake + flash)
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/36
+- Test counts: core=61, content=17, shared=9, server=148, web=93 (web +13 from animations.test.ts)
+- Files changed: apps/web/src/phaser/animations.ts (new), apps/web/src/phaser/animations.test.ts (new), apps/web/src/phaser/BattleScene.ts, apps/web/src/phaser/BattleCanvas.tsx, apps/web/src/phaser/index.ts
+- Regression alert: false
+- Deploy: pending
+- Lessons learned: pure-TS animation derivation (triggersFromEvents + newEventsSlice) keeps the Phaser scene a thin renderer per CLAUDE.md split; sprite refs stored on scene + RECENT_EVENTS_REGISTRY_KEY thread the just-arrived turn's events into create() without changing the destroy/recreate React lifecycle.
+
+---
+
