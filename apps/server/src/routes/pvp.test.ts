@@ -554,3 +554,112 @@ describe("PvP queue", () => {
     await harness.app.close();
   });
 });
+
+describe("GET /api/pvp/battles", () => {
+  it("returns 401 without a session", async () => {
+    const { app } = makeApp();
+    await app.ready();
+    const res = await app.inject({ method: "GET", url: "/api/pvp/battles" });
+    expect(res.statusCode).toBe(401);
+    await app.close();
+  });
+
+  it("lists in-progress PvP battles with yourSide and pending flags", async () => {
+    const harness = makeApp();
+    await harness.app.ready();
+
+    const { cookie: hostCookie } = await authedSession(harness.app);
+    const hostCaptain = await createCaptain(harness.app, hostCookie, "Host");
+    const issue = await harness.app.inject({
+      method: "POST",
+      url: "/api/pvp/challenge",
+      headers: { cookie: hostCookie },
+      payload: { captainId: hostCaptain },
+    });
+    const { token } = issue.json() as { token: string };
+
+    const { cookie: guestCookie } = await authedSession(harness.app);
+    const guestCaptain = await createCaptain(harness.app, guestCookie, "Guest");
+    const accept = await harness.app.inject({
+      method: "POST",
+      url: `/api/pvp/challenge/${token}/accept`,
+      headers: { cookie: guestCookie },
+      payload: { captainId: guestCaptain },
+    });
+    expect(accept.statusCode).toBe(201);
+    const battleId = (accept.json() as { id: string }).id;
+
+    const hostList = await harness.app.inject({
+      method: "GET",
+      url: "/api/pvp/battles",
+      headers: { cookie: hostCookie },
+    });
+    expect(hostList.statusCode).toBe(200);
+    const hostBody = hostList.json() as {
+      battles: { id: string; yourSide: "A" | "B"; pendingYou: boolean }[];
+    };
+    expect(hostBody.battles).toHaveLength(1);
+    expect(hostBody.battles[0]?.id).toBe(battleId);
+    expect(hostBody.battles[0]?.yourSide).toBe("A");
+
+    const guestList = await harness.app.inject({
+      method: "GET",
+      url: "/api/pvp/battles",
+      headers: { cookie: guestCookie },
+    });
+    const guestBody = guestList.json() as {
+      battles: { id: string; yourSide: "A" | "B" }[];
+    };
+    expect(guestBody.battles).toHaveLength(1);
+    expect(guestBody.battles[0]?.yourSide).toBe("B");
+
+    await harness.app.close();
+  });
+
+  it("excludes finished battles and other users' battles", async () => {
+    const harness = makeApp();
+    await harness.app.ready();
+
+    const { cookie: aliceCookie, userId: aliceId } = await authedSession(harness.app);
+    const aliceCaptain = await createCaptain(harness.app, aliceCookie, "Alice");
+    const issue = await harness.app.inject({
+      method: "POST",
+      url: "/api/pvp/challenge",
+      headers: { cookie: aliceCookie },
+      payload: { captainId: aliceCaptain },
+    });
+    const { token } = issue.json() as { token: string };
+
+    const { cookie: bobCookie } = await authedSession(harness.app);
+    const bobCaptain = await createCaptain(harness.app, bobCookie, "Bob");
+    const accept = await harness.app.inject({
+      method: "POST",
+      url: `/api/pvp/challenge/${token}/accept`,
+      headers: { cookie: bobCookie },
+      payload: { captainId: bobCaptain },
+    });
+    const battleId = (accept.json() as { id: string }).id;
+
+    const { cookie: outsiderCookie } = await authedSession(harness.app);
+    const outsiderList = await harness.app.inject({
+      method: "GET",
+      url: "/api/pvp/battles",
+      headers: { cookie: outsiderCookie },
+    });
+    expect(outsiderList.json()).toEqual({ battles: [] });
+
+    const stored = await harness.battleStore.get(battleId);
+    if (!stored) throw new Error("battle should exist");
+    await harness.battleStore.recordTurn(battleId, { ...stored.state, winner: "A" }, []);
+
+    const aliceList = await harness.app.inject({
+      method: "GET",
+      url: "/api/pvp/battles",
+      headers: { cookie: aliceCookie },
+    });
+    expect((aliceList.json() as { battles: unknown[] }).battles).toHaveLength(0);
+    expect(aliceId).toBeTruthy();
+
+    await harness.app.close();
+  });
+});

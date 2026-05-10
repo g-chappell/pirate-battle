@@ -2,6 +2,9 @@ import type { ReactElement } from "react";
 import { useEffect, useState } from "react";
 
 import { type CaptainSummary, type UserSummary, createAnonymousSession, getMe } from "./api";
+import { PvpBattlePage } from "./PvpBattlePage";
+import { PvpPage } from "./PvpPage";
+import { readChallengeFromUrl } from "./pvpView";
 import { TeamBuilder } from "./TeamBuilder";
 import { WalletChooser } from "./WalletChooser";
 
@@ -79,18 +82,79 @@ interface SessionViewProps {
   onCaptainCreated: (captain: CaptainSummary) => void;
 }
 
+type View = { kind: "captains" } | { kind: "pvp" } | { kind: "pvpBattle"; battleId: string };
+
+function initialView(captainCount: number): View {
+  if (typeof window !== "undefined" && readChallengeFromUrl(window.location.search)) {
+    return captainCount > 0 ? { kind: "pvp" } : { kind: "captains" };
+  }
+  return { kind: "captains" };
+}
+
 function SessionView({ user, onCaptainCreated }: SessionViewProps): ReactElement {
+  const [view, setView] = useState<View>(() => initialView(user.captains.length));
+
   return (
     <>
       <p style={{ color: "#555" }}>
         Anonymous session: <code>{user.id}</code>
       </p>
-      {user.captains.length > 0 ? (
-        <CaptainList user={user} />
-      ) : (
-        <TeamBuilder onCaptainCreated={onCaptainCreated} />
-      )}
+      <nav style={{ marginBottom: "1rem" }}>
+        <NavButton active={view.kind === "captains"} onClick={() => setView({ kind: "captains" })}>
+          Captains
+        </NavButton>
+        <NavButton
+          active={view.kind === "pvp" || view.kind === "pvpBattle"}
+          onClick={() => setView({ kind: "pvp" })}
+        >
+          PvP
+        </NavButton>
+      </nav>
+      {view.kind === "captains" ? (
+        user.captains.length > 0 ? (
+          <CaptainList user={user} />
+        ) : (
+          <TeamBuilder onCaptainCreated={onCaptainCreated} />
+        )
+      ) : null}
+      {view.kind === "pvp" ? (
+        <PvpPage
+          captains={user.captains}
+          onOpenBattle={(battleId) => setView({ kind: "pvpBattle", battleId })}
+        />
+      ) : null}
+      {view.kind === "pvpBattle" ? (
+        <PvpBattlePage battleId={view.battleId} onBack={() => setView({ kind: "pvp" })} />
+      ) : null}
     </>
+  );
+}
+
+function NavButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactElement | string;
+}): ReactElement {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        marginRight: "0.5rem",
+        padding: "0.4rem 0.9rem",
+        background: active ? "#1f2030" : "transparent",
+        color: active ? "#fff" : "#1f2030",
+        border: "1px solid #1f2030",
+        borderRadius: "0.3rem",
+        cursor: "pointer",
+      }}
+    >
+      {children}
+    </button>
   );
 }
 

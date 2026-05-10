@@ -44,6 +44,7 @@ export interface BattleStore {
     submittedAt: number | null,
   ): Promise<BattleSummary>;
   clearPendingActions(battleId: string): Promise<BattleSummary>;
+  listInProgressPvpForUser(userId: string): Promise<BattleSummary[]>;
 }
 
 function seedToBuffer(seed: number): Uint8Array<ArrayBuffer> {
@@ -185,6 +186,18 @@ export class PrismaBattleStore implements BattleStore {
     });
     return toSummary(updated);
   }
+
+  async listInProgressPvpForUser(userId: string): Promise<BattleSummary[]> {
+    const rows = await this.prisma.battle.findMany({
+      where: {
+        mode: BattleMode.PVP,
+        endedAt: null,
+        OR: [{ participantAId: userId }, { participantBId: userId }],
+      },
+      orderBy: { startedAt: "desc" },
+    });
+    return rows.filter((r) => r.resultJson !== null).map(toSummary);
+  }
 }
 
 interface InMemoryBattleRow {
@@ -300,6 +313,17 @@ export class InMemoryBattleStore implements BattleStore {
     row.pendingActionB = null;
     row.pendingSubmitAt = null;
     return rowToSummary(row);
+  }
+
+  async listInProgressPvpForUser(userId: string): Promise<BattleSummary[]> {
+    const out: BattleSummary[] = [];
+    for (const row of this.battles.values()) {
+      if (row.mode !== BattleMode.PVP) continue;
+      if (row.state.winner !== null) continue;
+      if (row.ownerUserId !== userId && row.participantBId !== userId) continue;
+      out.push(rowToSummary(row));
+    }
+    return out;
   }
 
   getEvents(battleId: string): readonly BattleEvent[] {
