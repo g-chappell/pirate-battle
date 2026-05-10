@@ -375,8 +375,8 @@ gaps.
 - Test counts: core=61, content=17, shared=9, server=148, web=93 (web +13 from animations.test.ts)
 - Files changed: apps/web/src/phaser/animations.ts (new), apps/web/src/phaser/animations.test.ts (new), apps/web/src/phaser/BattleScene.ts, apps/web/src/phaser/BattleCanvas.tsx, apps/web/src/phaser/index.ts
 - Regression alert: false
-- Deploy: pending
-- Lessons learned: pure-TS animation derivation (triggersFromEvents + newEventsSlice) keeps the Phaser scene a thin renderer per CLAUDE.md split; sprite refs stored on scene + RECENT_EVENTS_REGISTRY_KEY thread the just-arrived turn's events into create() without changing the destroy/recreate React lifecycle.
+- Deploy: rolled_back (health check 90s timeout, previous image restored ok); task marked blocked
+- Lessons learned: pure-TS animation derivation (triggersFromEvents + newEventsSlice) keeps the Phaser scene a thin renderer per CLAUDE.md split; sprite refs stored on scene + RECENT_EVENTS_REGISTRY_KEY thread the just-arrived turn's events into create() without changing the destroy/recreate React lifecycle. Deploy rolled back even though this PR is web-only — the failing image carries TASK-044's PvP code which still references an unmigrated prod DB schema (same root cause flagged in TASK-027/029/036/044). Until prod runs `prisma migrate deploy` (or a roadmap task automates it) every subsequent cycle's deploy will keep rolling back regardless of what the cycle changed.
 
 ---
 
