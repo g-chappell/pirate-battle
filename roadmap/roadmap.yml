@@ -846,7 +846,7 @@ epics:
         tasks:
           - id: TASK-035
             title: Discord bot scaffold + slash command registration tooling
-            status: ready
+            status: done
             priority: high
             complexity: medium
             workspaces:
@@ -861,11 +861,11 @@ epics:
               not on bot startup.
             depends_on:
               - TASK-005
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/44
+            completed: '2026-05-10T17:14:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-10T17:06:00Z'
+            attempt_count: 1
           - id: TASK-036
             title: 'Server: /api/discord/link-token + /api/discord/link-claim'
             status: done
