@@ -426,7 +426,7 @@ epics:
 
           - id: TASK-019
             title: "Web: turn animation placeholders (sprite shake + flash)"
-            status: ready
+            status: in-progress
             priority: med
             complexity: small
             workspaces: ["apps/web"]
@@ -440,8 +440,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-10T06:04:00Z'
+            attempt_count: 1
 
       - id: STORY-07
         title: "First PvE opponent + win/loss screens"

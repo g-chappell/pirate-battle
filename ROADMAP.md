@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 22 (47%)
-- **Ready:** 20
-- **In progress:** 0
+- **Ready:** 19
+- **In progress:** 1
 - **Blocked:** 5
 
 ---
@@ -204,7 +204,7 @@ one PvE opponent, sees turn-by-turn animated battle. Validates engine
     > CLAUDE.md "React owns DOM chrome, Phaser owns canvas"), swap
     > button revealing bench. Wire submit → POST /api/battle/<id>/action.
     > Display turn log in a side panel (also React DOM).
-  - :black_circle: **TASK-019** — Web: turn animation placeholders (sprite shake + flash)  `med` `small` _(apps/web)_  
+  - :large_orange_diamond: **TASK-019** — Web: turn animation placeholders (sprite shake + flash)  `med` `small` _(apps/web)_  
     _depends on: TASK-018_
     > Minimal hit feedback: when an attack lands, flash the target
     > red and add a brief x-offset shake via Phaser tweens. When
