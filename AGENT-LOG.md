@@ -510,3 +510,16 @@ gaps.
 
 ---
 
+### Run [2026-05-10 18:14]
+- Task: TASK-037 — Discord bot: /link command + DM flow → server claim
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/45
+- Test counts: discord=30, server=148, web=93, content=17, core=61, shared=9
+- Files changed: apps/discord/src/{bot,commands,index}.ts, apps/discord/src/commands.test.ts, apps/discord/src/{interactions,interactions.test,link,link.test}.ts (new)
+- Regression alert: false
+- Review proposed: pending (Step 15)
+- Deploy: pending (Step 12)
+- Lessons learned: discord.js v14 InteractionCreate dispatch pairs cleanly with a small InteractionLike interface — the dispatcher (adaptChatInputInteraction) stays trivial, and all handler logic is plain Vitest with mocked fetch + send. Worth reusing for upcoming /battle Discord commands.
+
+---
+
