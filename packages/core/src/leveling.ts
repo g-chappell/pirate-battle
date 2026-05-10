@@ -25,9 +25,7 @@ export interface CrewAttrs {
 
 export function xpToAdvance(currentLevel: number): number {
   if (currentLevel < 1 || !Number.isInteger(currentLevel)) {
-    throw new Error(
-      `xpToAdvance: level must be integer >= 1, got ${currentLevel}`,
-    );
+    throw new Error(`xpToAdvance: level must be integer >= 1, got ${currentLevel}`);
   }
   return currentLevel * currentLevel * XP_LEVEL_CURVE_FACTOR;
 }
@@ -50,11 +48,7 @@ export interface LevelUpResult {
   levelsGained: number;
 }
 
-export function applyXp(
-  level: number,
-  xp: number,
-  gain: number,
-): LevelUpResult {
+export function applyXp(level: number, xp: number, gain: number): LevelUpResult {
   if (gain < 0) throw new Error(`applyXp: gain must be >= 0, got ${gain}`);
   let newLevel = level;
   let newXp = xp + gain;
@@ -71,14 +65,8 @@ export function applyXp(
   return { level: newLevel, xp: newXp, levelsGained: gained };
 }
 
-export function effectiveStat(
-  baseStat: number,
-  level: number,
-  trained: number = 0,
-): number {
-  const levelScaled = Math.floor(
-    baseStat * (1 + STAT_GROWTH_PER_LEVEL * (level - 1)),
-  );
+export function effectiveStat(baseStat: number, level: number, trained: number = 0): number {
+  const levelScaled = Math.floor(baseStat * (1 + STAT_GROWTH_PER_LEVEL * (level - 1)));
   const cap = Math.floor(baseStat * STAT_GROWTH_CAP_RATIO);
   const capped = Math.min(levelScaled, cap);
   return capped + trained;

@@ -14,6 +14,7 @@ import { InMemoryNftSnapshotStore } from "../cardano/nftSnapshotStore.js";
 import { buildServer } from "../index.js";
 import { RosterDerivationService } from "../rosterDerivation.js";
 import { InMemoryUserStore } from "../userStore.js";
+
 import { SESSION_COOKIE_NAME } from "./session.js";
 
 const POLICY_A = "a".repeat(56);
@@ -59,9 +60,7 @@ function makeApp(opts: MakeAppOptions = {}) {
 
 function extractCookieHeader(setCookieHeader: string | string[] | undefined) {
   if (!setCookieHeader) return undefined;
-  const list = Array.isArray(setCookieHeader)
-    ? setCookieHeader
-    : [setCookieHeader];
+  const list = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
   const target = list.find((c) => c.startsWith(`${SESSION_COOKIE_NAME}=`));
   if (!target) return undefined;
   return target.split(";")[0];
@@ -173,9 +172,7 @@ describe("GET /api/roster", () => {
     const collections: CollectionRecord[] = [
       { policyId: POLICY_A, name: "Order of the Kraken Crew", rules },
     ];
-    const assets: RawAccountAsset[] = [
-      { unit: `${POLICY_A}deadbeef`, quantity: "1" },
-    ];
+    const assets: RawAccountAsset[] = [{ unit: `${POLICY_A}deadbeef`, quantity: "1" }];
     const { app, userStore } = makeApp({
       withNftService: true,
       assets,
@@ -221,9 +218,7 @@ describe("GET /api/roster", () => {
     const collections: CollectionRecord[] = [
       { policyId: POLICY_B, name: "Other Collection", rules },
     ];
-    const assets: RawAccountAsset[] = [
-      { unit: `${POLICY_A}beef`, quantity: "1" },
-    ];
+    const assets: RawAccountAsset[] = [{ unit: `${POLICY_A}beef`, quantity: "1" }];
     const { app, userStore } = makeApp({
       withNftService: true,
       assets,

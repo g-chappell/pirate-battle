@@ -26,9 +26,7 @@ export interface SignInError {
   message: string;
 }
 
-export type SignInResult =
-  | { ok: true; user: UserSummary }
-  | { ok: false; error: SignInError };
+export type SignInResult = { ok: true; user: UserSummary } | { ok: false; error: SignInError };
 
 export function buildLoginMessage(nonce: string): string {
   return [
@@ -68,11 +66,7 @@ const SIGN_PROOF_FAILURES = new Set([
   "not_keyhash_credential",
   "parse_error",
 ]);
-const NONCE_FAILURES = new Set([
-  "nonce_unknown",
-  "nonce_used",
-  "nonce_expired",
-]);
+const NONCE_FAILURES = new Set(["nonce_unknown", "nonce_used", "nonce_expired"]);
 
 export function classifyWalletError(err: unknown): SignInError {
   const code = readWalletErrorCode(err);
@@ -109,8 +103,7 @@ export function classifyServerError(err: ApiError): SignInError {
   if (SIGN_ADDRESS_FAILURES.has(code)) {
     return {
       kind: "network_mismatch",
-      message:
-        "Wallet network does not match the server (mainnet vs testnet?).",
+      message: "Wallet network does not match the server (mainnet vs testnet?).",
     };
   }
   if (SIGN_PROOF_FAILURES.has(code)) {
@@ -131,10 +124,7 @@ export function classifyServerError(err: ApiError): SignInError {
   };
 }
 
-export async function runWalletSignIn(
-  stakeAddr: string,
-  deps: SignInDeps,
-): Promise<SignInResult> {
+export async function runWalletSignIn(stakeAddr: string, deps: SignInDeps): Promise<SignInResult> {
   let nonce: string;
   try {
     const issued = await deps.requestNonce();

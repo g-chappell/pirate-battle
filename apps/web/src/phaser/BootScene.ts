@@ -1,10 +1,6 @@
 import Phaser from "phaser";
 
-import {
-  AFFINITY_COLORS,
-  PLACEHOLDER_SPRITE_SIZE,
-  textureKeyForAffinity,
-} from "./affinity";
+import { AFFINITY_COLORS, PLACEHOLDER_SPRITE_SIZE, textureKeyForAffinity } from "./affinity";
 
 export const BOOT_SCENE_KEY = "boot";
 

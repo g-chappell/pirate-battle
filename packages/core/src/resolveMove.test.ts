@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
+
+import { CRIT_RATE, STATUS_BURN } from "./constants.js";
 import { computeDamage, rollAccuracy, rollCrit } from "./resolveMove.js";
 import type { Rng } from "./rng.js";
 import type { CrewSnapshot, MoveDef } from "./types.js";
-import { CRIT_RATE, STATUS_BURN } from "./constants.js";
 
 function constantRng(value: number): Rng {
   return {
@@ -41,12 +42,7 @@ const tackle: MoveDef = {
 
 describe("computeDamage formula", () => {
   it("matches the canonical formula for a neutral, non-crit hit", () => {
-    const result = computeDamage(
-      baseAttacker,
-      baseDefender,
-      tackle,
-      constantRng(0.5),
-    );
+    const result = computeDamage(baseAttacker, baseDefender, tackle, constantRng(0.5));
     expect(result).toEqual({
       hit: true,
       crit: false,
@@ -56,12 +52,7 @@ describe("computeDamage formula", () => {
   });
 
   it("doubles damage on a critical hit", () => {
-    const result = computeDamage(
-      baseAttacker,
-      baseDefender,
-      tackle,
-      constantRng(0),
-    );
+    const result = computeDamage(baseAttacker, baseDefender, tackle, constantRng(0));
     expect(result.crit).toBe(true);
     expect(result.damage).toBe(30);
   });
@@ -71,12 +62,7 @@ describe("computeDamage formula", () => {
       ...baseDefender,
       affinity: "ironclad",
     };
-    const result = computeDamage(
-      baseAttacker,
-      ironcladDefender,
-      tackle,
-      constantRng(0.5),
-    );
+    const result = computeDamage(baseAttacker, ironcladDefender, tackle, constantRng(0.5));
     expect(result.effective).toBe(2);
     expect(result.damage).toBe(30);
   });
@@ -86,36 +72,21 @@ describe("computeDamage formula", () => {
       ...baseAttacker,
       statuses: [STATUS_BURN],
     };
-    const result = computeDamage(
-      burned,
-      baseDefender,
-      tackle,
-      constantRng(0.5),
-    );
+    const result = computeDamage(burned, baseDefender, tackle, constantRng(0.5));
     expect(result.damage).toBeLessThan(15);
     expect(result.damage).toBeGreaterThanOrEqual(1);
   });
 
   it("misses when accuracy roll fails", () => {
     const inaccurate: MoveDef = { ...tackle, accuracy: 50 };
-    const result = computeDamage(
-      baseAttacker,
-      baseDefender,
-      inaccurate,
-      constantRng(0.99),
-    );
+    const result = computeDamage(baseAttacker, baseDefender, inaccurate, constantRng(0.99));
     expect(result.hit).toBe(false);
     expect(result.damage).toBe(0);
   });
 
   it("returns zero for non-damage moves", () => {
     const buff: MoveDef = { ...tackle, kind: "buff", basePower: 0 };
-    const result = computeDamage(
-      baseAttacker,
-      baseDefender,
-      buff,
-      constantRng(0.5),
-    );
+    const result = computeDamage(baseAttacker, baseDefender, buff, constantRng(0.5));
     expect(result.damage).toBe(0);
   });
 });

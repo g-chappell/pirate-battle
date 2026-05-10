@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { InMemoryBattleStore } from "../battleStore.js";
 import { buildServer } from "../index.js";
 import { InMemoryUserStore } from "../userStore.js";
+
 import { TEAM_SIZE } from "./captain.js";
 import { SESSION_COOKIE_NAME } from "./session.js";
 
@@ -21,9 +22,7 @@ function makeApp() {
 
 function extractCookieHeader(setCookieHeader: string | string[] | undefined) {
   if (!setCookieHeader) return undefined;
-  const list = Array.isArray(setCookieHeader)
-    ? setCookieHeader
-    : [setCookieHeader];
+  const list = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
   const target = list.find((c) => c.startsWith(`${SESSION_COOKIE_NAME}=`));
   if (!target) return undefined;
   return target.split(";")[0];
@@ -137,10 +136,7 @@ describe("POST /api/captain", () => {
       payload: {
         name: "Bonny",
         factionId: "kraken",
-        crewTemplateKeys: [
-          ...SIX_KEYS.slice(0, 5),
-          "definitely_not_a_real_crew",
-        ],
+        crewTemplateKeys: [...SIX_KEYS.slice(0, 5), "definitely_not_a_real_crew"],
       },
     });
     expect(res.statusCode).toBe(400);

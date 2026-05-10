@@ -9,14 +9,11 @@ import type {
   WalletAuthVerifyInput,
   WalletAuthVerifyResult,
 } from "../walletAuth.js";
+
 import { SESSION_COOKIE_NAME } from "./session.js";
 
 class StubVerifier implements WalletAuthVerifier {
-  constructor(
-    public readonly result: (
-      input: WalletAuthVerifyInput,
-    ) => WalletAuthVerifyResult,
-  ) {}
+  constructor(public readonly result: (input: WalletAuthVerifyInput) => WalletAuthVerifyResult) {}
   verify(input: WalletAuthVerifyInput): WalletAuthVerifyResult {
     return this.result(input);
   }
@@ -48,8 +45,7 @@ function makeApp(opts: {
     battleStore,
     nonceStore,
     walletAuthVerifier:
-      opts.verifier ??
-      new StubVerifier(() => ({ ok: true, payload: new Uint8Array() })),
+      opts.verifier ?? new StubVerifier(() => ({ ok: true, payload: new Uint8Array() })),
     logger: false,
   });
   return { app, userStore, nonceStore };

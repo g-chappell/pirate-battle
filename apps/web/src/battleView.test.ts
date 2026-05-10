@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import type { BattleState, CrewSnapshot, MoveDef } from "@pirate-battle/core";
+import { describe, expect, it } from "vitest";
 
 import {
   benchOptionsFor,
@@ -129,13 +129,11 @@ describe("describeBattleEvent / turnLogLines", () => {
       }),
     ).toMatch(/Side A used tide-surge.*crit.*24 dmg.*×2/);
 
-    expect(
-      describeBattleEvent({ kind: "miss", side: "B", moveKey: "ink-cloud" }),
-    ).toBe("Side B's ink-cloud missed");
-
-    expect(describeBattleEvent({ kind: "victory", side: "A" })).toBe(
-      "Side A wins the battle",
+    expect(describeBattleEvent({ kind: "miss", side: "B", moveKey: "ink-cloud" })).toBe(
+      "Side B's ink-cloud missed",
     );
+
+    expect(describeBattleEvent({ kind: "victory", side: "A" })).toBe("Side A wins the battle");
   });
 
   it("lifts every log entry into a description string", () => {
@@ -147,9 +145,6 @@ describe("describeBattleEvent / turnLogLines", () => {
         ],
       }),
     );
-    expect(lines).toEqual([
-      "Side A switched to bench slot 0",
-      "Side B's active crew fainted",
-    ]);
+    expect(lines).toEqual(["Side A switched to bench slot 0", "Side B's active crew fainted"]);
   });
 });

@@ -27,32 +27,35 @@
 //   1  regression detected (some workspace count decreased)
 //   2  unreadable prior entry (missing log, no success entries, bad format)
 
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const LOG = resolve(ROOT, 'AGENT-LOG.md');
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const LOG = resolve(ROOT, "AGENT-LOG.md");
 
 function normalise(ts) {
   let n = ts;
-  n = n.replace(/Z$/, '');
-  n = n.replace(/T/, ' ');
-  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(n)) n += ':00';
+  n = n.replace(/Z$/, "");
+  n = n.replace(/T/, " ");
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(n)) n += ":00";
   return n;
 }
 
 function latestSuccessEntry(text) {
   const blocks = text.split(/^### Run /m).slice(1);
   let best = null;
-  let bestTs = '';
+  let bestTs = "";
   for (const b of blocks) {
     const m = b.match(/^\[(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(?::(\d{2}))?Z?\]/);
     if (!m) continue;
-    const ts = normalise(`${m[1]} ${m[2]}:${m[3] ?? '00'}`);
+    const ts = normalise(`${m[1]} ${m[2]}:${m[3] ?? "00"}`);
     const outcome = b.match(/^- Outcome:\s*(\S+)/m)?.[1];
-    if (outcome !== 'success' && outcome !== 'success_with_warning') continue;
-    if (ts > bestTs) { bestTs = ts; best = b; }
+    if (outcome !== "success" && outcome !== "success_with_warning") continue;
+    if (ts > bestTs) {
+      bestTs = ts;
+      best = b;
+    }
   }
   return best;
 }
@@ -60,9 +63,9 @@ function latestSuccessEntry(text) {
 function parseCounts(s) {
   if (!s) return null;
   const out = {};
-  const cleaned = s.replace(/\(.*?\)/g, '').trim();
-  for (const pair of cleaned.split(',')) {
-    const [k, v] = pair.split('=').map((x) => x?.trim());
+  const cleaned = s.replace(/\(.*?\)/g, "").trim();
+  for (const pair of cleaned.split(",")) {
+    const [k, v] = pair.split("=").map((x) => x?.trim());
     if (!k || !v) continue;
     const n = Number(v);
     if (!Number.isFinite(n)) continue;
@@ -72,28 +75,30 @@ function parseCounts(s) {
 }
 
 function readCurrentCountsArg() {
-  const cli = process.argv.slice(2).join(' ').trim();
+  const cli = process.argv.slice(2).join(" ").trim();
   if (cli) return parseCounts(cli);
   try {
-    const stdin = readFileSync(0, 'utf8').trim();
+    const stdin = readFileSync(0, "utf8").trim();
     if (stdin) return parseCounts(stdin);
-  } catch { /* no-op */ }
+  } catch {
+    /* no-op */
+  }
   return null;
 }
 
 function fail(code, msg) {
-  process.stdout.write(JSON.stringify({ error: msg }) + '\n');
+  process.stdout.write(JSON.stringify({ error: msg }) + "\n");
   process.exit(code);
 }
 
-if (!existsSync(LOG)) fail(2, 'AGENT-LOG.md not found');
-const logText = readFileSync(LOG, 'utf8');
+if (!existsSync(LOG)) fail(2, "AGENT-LOG.md not found");
+const logText = readFileSync(LOG, "utf8");
 const prevEntry = latestSuccessEntry(logText);
-if (!prevEntry) fail(2, 'no prior success entry in AGENT-LOG');
+if (!prevEntry) fail(2, "no prior success entry in AGENT-LOG");
 
 const prevLine = prevEntry.match(/^- Test counts:\s*(.+)$/m)?.[1];
 const prev = parseCounts(prevLine);
-if (!prev) fail(2, `could not parse prior test counts line: ${prevLine ?? '(missing)'}`);
+if (!prev) fail(2, `could not parse prior test counts line: ${prevLine ?? "(missing)"}`);
 
 const curr = readCurrentCountsArg();
 if (!curr) fail(2, 'current counts missing — pass via argv or stdin (e.g. "core=938, web=551")');
@@ -116,7 +121,5 @@ for (const [k, v] of Object.entries(curr)) {
   if (!(k in prev)) workspaces[k] = { prev: null, curr: v, delta: v };
 }
 
-process.stdout.write(
-  JSON.stringify({ regressed, workspaces, missingInCurrent }) + '\n',
-);
+process.stdout.write(JSON.stringify({ regressed, workspaces, missingInCurrent }) + "\n");
 process.exit(regressed ? 1 : 0);

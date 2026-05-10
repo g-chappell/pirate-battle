@@ -1,17 +1,12 @@
-import {
-  aiPickAction,
-  createRng,
-  DEFAULT_LEVEL,
-  resolveTurn,
-  xpReward,
-} from "@pirate-battle/core";
+import { aiPickAction, createRng, DEFAULT_LEVEL, resolveTurn, xpReward } from "@pirate-battle/core";
 import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 
 import { buildAIOpponentTeam } from "../aiTeam.js";
 import { parseAction, validateAction } from "../battleAction.js";
-import { buildInitialBattleState, teamToSnapshots } from "../crewSnapshot.js";
 import type { BattleStore } from "../battleStore.js";
+import { buildInitialBattleState, teamToSnapshots } from "../crewSnapshot.js";
 import type { CaptainTeam, UserStore, XpAward } from "../userStore.js";
+
 import { getUserIdFromCookie } from "./session.js";
 
 export interface BattlePluginOptions {
@@ -55,11 +50,7 @@ export const battleRoutes: FastifyPluginCallback<BattlePluginOptions> = (
     const playerSnapshots = teamToSnapshots(team);
     const aiSnapshots = teamToSnapshots(buildAIOpponentTeam());
     const seed = seedFactory();
-    const initialState = buildInitialBattleState(
-      playerSnapshots,
-      aiSnapshots,
-      seed,
-    );
+    const initialState = buildInitialBattleState(playerSnapshots, aiSnapshots, seed);
 
     const summary = await battleStore.create({
       ownerUserId: userId,
@@ -70,73 +61,62 @@ export const battleRoutes: FastifyPluginCallback<BattlePluginOptions> = (
     return reply.code(201).send({ id: summary.id, state: summary.state });
   });
 
-  fastify.get<{ Params: { id: string } }>(
-    "/api/battle/:id",
-    async (req, reply) => {
-      const userId = getUserIdFromCookie(req);
-      if (!userId) return reply.code(401).send({ error: "no_session" });
+  fastify.get<{ Params: { id: string } }>("/api/battle/:id", async (req, reply) => {
+    const userId = getUserIdFromCookie(req);
+    if (!userId) return reply.code(401).send({ error: "no_session" });
 
-      const summary = await battleStore.get(req.params.id);
-      if (!summary) return reply.code(404).send({ error: "battle_not_found" });
-      if (summary.ownerUserId !== userId) {
-        return reply.code(403).send({ error: "forbidden" });
-      }
+    const summary = await battleStore.get(req.params.id);
+    if (!summary) return reply.code(404).send({ error: "battle_not_found" });
+    if (summary.ownerUserId !== userId) {
+      return reply.code(403).send({ error: "forbidden" });
+    }
 
-      return reply.send({ id: summary.id, state: summary.state });
-    },
-  );
+    return reply.send({ id: summary.id, state: summary.state });
+  });
 
-  fastify.post<{ Params: { id: string } }>(
-    "/api/battle/:id/action",
-    async (req, reply) => {
-      const userId = getUserIdFromCookie(req);
-      if (!userId) return reply.code(401).send({ error: "no_session" });
+  fastify.post<{ Params: { id: string } }>("/api/battle/:id/action", async (req, reply) => {
+    const userId = getUserIdFromCookie(req);
+    if (!userId) return reply.code(401).send({ error: "no_session" });
 
-      const summary = await battleStore.get(req.params.id);
-      if (!summary) return reply.code(404).send({ error: "battle_not_found" });
-      if (summary.ownerUserId !== userId) {
-        return reply.code(403).send({ error: "forbidden" });
-      }
-      if (summary.state.winner !== null) {
-        return reply.code(409).send({ error: "battle_ended" });
-      }
+    const summary = await battleStore.get(req.params.id);
+    if (!summary) return reply.code(404).send({ error: "battle_not_found" });
+    if (summary.ownerUserId !== userId) {
+      return reply.code(403).send({ error: "forbidden" });
+    }
+    if (summary.state.winner !== null) {
+      return reply.code(409).send({ error: "battle_ended" });
+    }
 
-      const body = (req.body ?? {}) as ActionRequestBody;
-      const parsed = parseAction(body.action);
-      if ("error" in parsed) {
-        return reply.code(400).send({ error: parsed.error });
-      }
+    const body = (req.body ?? {}) as ActionRequestBody;
+    const parsed = parseAction(body.action);
+    if ("error" in parsed) {
+      return reply.code(400).send({ error: parsed.error });
+    }
 
-      const validation = validateAction(parsed, summary.state, "A");
-      if (!validation.ok) {
-        return reply.code(400).send({ error: validation.error });
-      }
+    const validation = validateAction(parsed, summary.state, "A");
+    if (!validation.ok) {
+      return reply.code(400).send({ error: validation.error });
+    }
 
-      const aiAction = aiPickAction(summary.state, "B");
-      const rng = createRng(summary.state.rngState);
-      const newState = resolveTurn(summary.state, parsed, aiAction, rng);
-      const newEvents = newState.log.slice(summary.state.log.length);
+    const aiAction = aiPickAction(summary.state, "B");
+    const rng = createRng(summary.state.rngState);
+    const newState = resolveTurn(summary.state, parsed, aiAction, rng);
+    const newEvents = newState.log.slice(summary.state.log.length);
 
-      const updated = await battleStore.recordTurn(
-        summary.id,
-        newState,
-        newEvents,
-      );
+    const updated = await battleStore.recordTurn(summary.id, newState, newEvents);
 
-      const justEnded =
-        summary.state.winner === null && newState.winner !== null;
-      if (justEnded && summary.captainId) {
-        await grantXpForBattleEnd({
-          userStore,
-          userId,
-          captainId: summary.captainId,
-          playerWon: newState.winner === "A",
-        });
-      }
+    const justEnded = summary.state.winner === null && newState.winner !== null;
+    if (justEnded && summary.captainId) {
+      await grantXpForBattleEnd({
+        userStore,
+        userId,
+        captainId: summary.captainId,
+        playerWon: newState.winner === "A",
+      });
+    }
 
-      return reply.send({ id: updated.id, state: updated.state });
-    },
-  );
+    return reply.send({ id: updated.id, state: updated.state });
+  });
 
   done();
 };
@@ -149,10 +129,7 @@ interface GrantXpInput {
 }
 
 async function grantXpForBattleEnd(input: GrantXpInput): Promise<void> {
-  const team = await input.userStore.getCaptainTeam(
-    input.userId,
-    input.captainId,
-  );
+  const team = await input.userStore.getCaptainTeam(input.userId, input.captainId);
   if (!team) return;
   const awards = computeXpAwards({ team, playerWon: input.playerWon });
   if (awards.length === 0) return;

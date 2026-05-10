@@ -9,13 +9,7 @@ import {
   WINNER_XP_MULTIPLIER,
   XP_LEVEL_CURVE_FACTOR,
 } from "./constants.js";
-import {
-  applyXp,
-  effectiveStat,
-  effectiveStats,
-  xpReward,
-  xpToAdvance,
-} from "./leveling.js";
+import { applyXp, effectiveStat, effectiveStats, xpReward, xpToAdvance } from "./leveling.js";
 
 describe("xpToAdvance", () => {
   it("returns level² × XP_LEVEL_CURVE_FACTOR", () => {

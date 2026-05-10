@@ -8,14 +8,12 @@ import {
 import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 
 import { parseAction, validateAction } from "../battleAction.js";
-import { buildInitialBattleState, teamToSnapshots } from "../crewSnapshot.js";
 import type { BattleStore, BattleSummary } from "../battleStore.js";
-import type {
-  PvpChallengeStore,
-  PvpChallengeAcceptFailure,
-} from "../pvpChallengeStore.js";
+import { buildInitialBattleState, teamToSnapshots } from "../crewSnapshot.js";
+import type { PvpChallengeStore, PvpChallengeAcceptFailure } from "../pvpChallengeStore.js";
 import type { PvpQueueStore } from "../pvpQueueStore.js";
-import type { UserStore } from "../userStore.js";
+import type { CaptainTeam, UserStore } from "../userStore.js";
+
 import { getUserIdFromCookie } from "./session.js";
 
 export const PVP_ACTION_TIMEOUT_MS = 12 * 60 * 60 * 1000;
@@ -65,8 +63,7 @@ function pendingResponse(summary: BattleSummary, side: Side) {
     state: summary.state,
     yourSide: side,
     pendingYou: pendingForSide(summary, side) !== null,
-    pendingOpponent:
-      (side === "A" ? summary.pendingActionB : summary.pendingActionA) !== null,
+    pendingOpponent: (side === "A" ? summary.pendingActionB : summary.pendingActionA) !== null,
     pendingSubmitAt: summary.pendingSubmitAt,
   };
 }
@@ -118,10 +115,7 @@ export const pvpRoutes: FastifyPluginCallback<PvpPluginOptions> = (
       if (typeof body.captainId !== "string" || body.captainId.length === 0) {
         return reply.code(400).send({ error: "invalid_captain_id" });
       }
-      const accepterTeam = await userStore.getCaptainTeam(
-        userId,
-        body.captainId,
-      );
+      const accepterTeam = await userStore.getCaptainTeam(userId, body.captainId);
       if (!accepterTeam) {
         return reply.code(404).send({ error: "captain_not_found" });
       }
@@ -157,15 +151,9 @@ export const pvpRoutes: FastifyPluginCallback<PvpPluginOptions> = (
         teamB: accepterTeam,
       });
 
-      const accept = await challengeStore.markAccepted(
-        challenge.token,
-        userId,
-        battle.id,
-      );
+      const accept = await challengeStore.markAccepted(challenge.token, userId, battle.id);
       if (!accept.ok) {
-        return reply
-          .code(acceptFailureStatus[accept.reason])
-          .send({ error: accept.reason });
+        return reply.code(acceptFailureStatus[accept.reason]).send({ error: accept.reason });
       }
 
       return reply.code(201).send({
@@ -176,80 +164,69 @@ export const pvpRoutes: FastifyPluginCallback<PvpPluginOptions> = (
     },
   );
 
-  fastify.get<{ Params: { id: string } }>(
-    "/api/pvp/battle/:id",
-    async (req, reply) => {
-      const userId = getUserIdFromCookie(req);
-      if (!userId) return reply.code(401).send({ error: "no_session" });
+  fastify.get<{ Params: { id: string } }>("/api/pvp/battle/:id", async (req, reply) => {
+    const userId = getUserIdFromCookie(req);
+    if (!userId) return reply.code(401).send({ error: "no_session" });
 
-      const summary = await battleStore.get(req.params.id);
-      if (!summary) return reply.code(404).send({ error: "battle_not_found" });
-      const side = getSide(summary, userId);
-      if (!side) return reply.code(403).send({ error: "forbidden" });
-      if (summary.mode !== "PVP") {
-        return reply.code(400).send({ error: "not_pvp" });
-      }
+    const summary = await battleStore.get(req.params.id);
+    if (!summary) return reply.code(404).send({ error: "battle_not_found" });
+    const side = getSide(summary, userId);
+    if (!side) return reply.code(403).send({ error: "forbidden" });
+    if (summary.mode !== "PVP") {
+      return reply.code(400).send({ error: "not_pvp" });
+    }
 
-      const resolved = await maybeTimeoutResolve({
-        battleStore,
-        summary,
-        nowFn,
-      });
-      return reply.send(pendingResponse(resolved, side));
-    },
-  );
+    const resolved = await maybeTimeoutResolve({
+      battleStore,
+      summary,
+      nowFn,
+    });
+    return reply.send(pendingResponse(resolved, side));
+  });
 
-  fastify.post<{ Params: { id: string } }>(
-    "/api/pvp/battle/:id/action",
-    async (req, reply) => {
-      const userId = getUserIdFromCookie(req);
-      if (!userId) return reply.code(401).send({ error: "no_session" });
+  fastify.post<{ Params: { id: string } }>("/api/pvp/battle/:id/action", async (req, reply) => {
+    const userId = getUserIdFromCookie(req);
+    if (!userId) return reply.code(401).send({ error: "no_session" });
 
-      let summary = await battleStore.get(req.params.id);
-      if (!summary) return reply.code(404).send({ error: "battle_not_found" });
-      const side = getSide(summary, userId);
-      if (!side) return reply.code(403).send({ error: "forbidden" });
-      if (summary.mode !== "PVP") {
-        return reply.code(400).send({ error: "not_pvp" });
-      }
-      summary = await maybeTimeoutResolve({
-        battleStore,
-        summary,
-        nowFn,
-      });
-      if (summary.state.winner !== null) {
-        return reply.code(409).send({ error: "battle_ended" });
-      }
+    let summary = await battleStore.get(req.params.id);
+    if (!summary) return reply.code(404).send({ error: "battle_not_found" });
+    const side = getSide(summary, userId);
+    if (!side) return reply.code(403).send({ error: "forbidden" });
+    if (summary.mode !== "PVP") {
+      return reply.code(400).send({ error: "not_pvp" });
+    }
+    summary = await maybeTimeoutResolve({
+      battleStore,
+      summary,
+      nowFn,
+    });
+    if (summary.state.winner !== null) {
+      return reply.code(409).send({ error: "battle_ended" });
+    }
 
-      const body = (req.body ?? {}) as ActionRequestBody;
-      const parsed = parseAction(body.action);
-      if ("error" in parsed) {
-        return reply.code(400).send({ error: parsed.error });
-      }
-      const validation = validateAction(parsed, summary.state, side);
-      if (!validation.ok) {
-        return reply.code(400).send({ error: validation.error });
-      }
+    const body = (req.body ?? {}) as ActionRequestBody;
+    const parsed = parseAction(body.action);
+    if ("error" in parsed) {
+      return reply.code(400).send({ error: parsed.error });
+    }
+    const validation = validateAction(parsed, summary.state, side);
+    if (!validation.ok) {
+      return reply.code(400).send({ error: validation.error });
+    }
 
-      const submitAt = summary.pendingSubmitAt ?? nowFn();
-      summary = await battleStore.setPendingAction(
-        summary.id,
-        side,
-        parsed,
-        submitAt,
-      );
+    const submitAt = summary.pendingSubmitAt ?? nowFn();
+    summary = await battleStore.setPendingAction(summary.id, side, parsed, submitAt);
 
-      summary = await maybeResolve({ battleStore, summary, nowFn });
-      const status =
-        summary.pendingActionA === null && summary.pendingActionB === null
-          ? "resolved"
-          : "waiting_opponent";
-      return reply.send({
-        ...pendingResponse(summary, side),
-        status,
-      });
-    },
-  );
+    summary = await maybeResolve({ battleStore, summary, nowFn });
+    const status =
+      summary.pendingActionA === null && summary.pendingActionB === null
+        ? "resolved"
+        : "waiting_opponent";
+    return reply.send({
+      ...pendingResponse(summary, side),
+      status,
+    });
+  });
 
   fastify.post("/api/pvp/queue", async (req, reply) => {
     const userId = getUserIdFromCookie(req);
@@ -273,10 +250,7 @@ export const pvpRoutes: FastifyPluginCallback<PvpPluginOptions> = (
 
     const opponent = await queueStore.findOldestUnmatchedOther(userId);
     if (opponent) {
-      const opponentTeam = await userStore.getCaptainTeam(
-        opponent.userId,
-        opponent.captainId,
-      );
+      const opponentTeam = await userStore.getCaptainTeam(opponent.userId, opponent.captainId);
       if (!opponentTeam) {
         await queueStore.remove(opponent.userId);
         const enq = await queueStore.enqueue(userId, body.captainId);
@@ -335,8 +309,8 @@ interface CreatePvpBattleArgs {
   seedFactory: () => number;
   participantAId: string;
   participantBId: string;
-  teamA: import("../userStore.js").CaptainTeam;
-  teamB: import("../userStore.js").CaptainTeam;
+  teamA: CaptainTeam;
+  teamB: CaptainTeam;
 }
 
 async function createPvpBattle(args: CreatePvpBattleArgs) {
@@ -364,33 +338,19 @@ async function maybeResolve(args: MaybeResolveArgs): Promise<BattleSummary> {
   if (summary.pendingActionA === null || summary.pendingActionB === null) {
     return summary;
   }
-  return runResolve(
-    battleStore,
-    summary,
-    summary.pendingActionA,
-    summary.pendingActionB,
-  );
+  return runResolve(battleStore, summary, summary.pendingActionA, summary.pendingActionB);
 }
 
-async function maybeTimeoutResolve(
-  args: MaybeResolveArgs,
-): Promise<BattleSummary> {
+async function maybeTimeoutResolve(args: MaybeResolveArgs): Promise<BattleSummary> {
   const { battleStore, summary, nowFn } = args;
   if (summary.state.winner !== null) return summary;
   if (!summary.pendingSubmitAt) return summary;
   if (nowFn() - summary.pendingSubmitAt < PVP_ACTION_TIMEOUT_MS) return summary;
   if (summary.pendingActionA && summary.pendingActionB) {
-    return runResolve(
-      battleStore,
-      summary,
-      summary.pendingActionA,
-      summary.pendingActionB,
-    );
+    return runResolve(battleStore, summary, summary.pendingActionA, summary.pendingActionB);
   }
-  const actionA: Action =
-    summary.pendingActionA ?? ({ type: "forfeit" } as Action);
-  const actionB: Action =
-    summary.pendingActionB ?? ({ type: "forfeit" } as Action);
+  const actionA: Action = summary.pendingActionA ?? ({ type: "forfeit" } as Action);
+  const actionB: Action = summary.pendingActionB ?? ({ type: "forfeit" } as Action);
   return runResolve(battleStore, summary, actionA, actionB);
 }
 
@@ -401,12 +361,7 @@ async function runResolve(
   actionB: Action,
 ): Promise<BattleSummary> {
   const rng = createRng(summary.state.rngState);
-  const newState: BattleState = resolveTurn(
-    summary.state,
-    actionA,
-    actionB,
-    rng,
-  );
+  const newState: BattleState = resolveTurn(summary.state, actionA, actionB, rng);
   const newEvents = newState.log.slice(summary.state.log.length);
   return battleStore.recordTurn(summary.id, newState, newEvents);
 }

@@ -1,8 +1,6 @@
 import type { BattleEvent, Side } from "@pirate-battle/core";
 
-export type AnimationTrigger =
-  | { kind: "hit"; side: Side }
-  | { kind: "faint"; side: Side };
+export type AnimationTrigger = { kind: "hit"; side: Side } | { kind: "faint"; side: Side };
 
 export const HIT_FLASH_TINT = 0xff3030;
 export const HIT_FLASH_DURATION_MS = 120;

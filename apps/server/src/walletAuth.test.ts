@@ -21,9 +21,7 @@ function buildSignedFixture(payload: Uint8Array): SignedFixture {
   const stakeAddr = addr.to_bech32();
 
   const protectedHeaders = cms.HeaderMap.new();
-  protectedHeaders.set_algorithm_id(
-    cms.Label.from_algorithm_id(cms.AlgorithmId.EdDSA),
-  );
+  protectedHeaders.set_algorithm_id(cms.Label.from_algorithm_id(cms.AlgorithmId.EdDSA));
   protectedHeaders.set_header(
     cms.Label.new_text("address"),
     cms.CBORValue.new_bytes(addr.to_bytes()),
@@ -74,9 +72,7 @@ describe("CardanoWalletAuthVerifier", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(Buffer.from(result.payload).toString("utf8")).toBe(
-        "nonce-deadbeef",
-      );
+      expect(Buffer.from(result.payload).toString("utf8")).toBe("nonce-deadbeef");
     }
   });
 

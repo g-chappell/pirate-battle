@@ -161,10 +161,7 @@ export class PrismaBattleStore implements BattleStore {
     action: Action | null,
     submittedAt: number | null,
   ): Promise<BattleSummary> {
-    const value =
-      action === null
-        ? Prisma.JsonNull
-        : (action as unknown as Prisma.InputJsonValue);
+    const value = action === null ? Prisma.JsonNull : (action as unknown as Prisma.InputJsonValue);
     const data: Prisma.BattleUpdateInput = {
       pendingSubmitAt: submittedAt ? new Date(submittedAt) : null,
     };

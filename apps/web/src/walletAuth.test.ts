@@ -29,9 +29,7 @@ function makeDeps(overrides: Partial<SignInDeps> = {}): {
     submitted: [] as WalletAuthRequest[],
   };
   const deps: SignInDeps = {
-    requestNonce:
-      overrides.requestNonce ??
-      (async () => ({ nonce: HEX_NONCE, expiresAt: 1 })),
+    requestNonce: overrides.requestNonce ?? (async () => ({ nonce: HEX_NONCE, expiresAt: 1 })),
     signData:
       overrides.signData ??
       (async (payloadHex) => {
@@ -56,9 +54,7 @@ describe("buildLoginMessage", () => {
   });
 
   it("starts with a human-readable purpose statement", () => {
-    expect(
-      buildLoginMessage(HEX_NONCE).startsWith("Pirate-Battle sign-in."),
-    ).toBe(true);
+    expect(buildLoginMessage(HEX_NONCE).startsWith("Pirate-Battle sign-in.")).toBe(true);
   });
 });
 
@@ -96,47 +92,37 @@ describe("utf8ToHex", () => {
 
 describe("classifyWalletError", () => {
   it("maps CIP-30 code -3 to user_cancelled", () => {
-    expect(classifyWalletError({ code: -3, info: "user declined" }).kind).toBe(
-      "user_cancelled",
-    );
+    expect(classifyWalletError({ code: -3, info: "user declined" }).kind).toBe("user_cancelled");
   });
 
   it("maps a 'declined' message to user_cancelled", () => {
-    expect(classifyWalletError(new Error("user declined")).kind).toBe(
-      "user_cancelled",
-    );
+    expect(classifyWalletError(new Error("user declined")).kind).toBe("user_cancelled");
   });
 
   it("falls back to signature_failed for other wallet errors", () => {
-    expect(classifyWalletError(new Error("something broke")).kind).toBe(
-      "signature_failed",
-    );
+    expect(classifyWalletError(new Error("something broke")).kind).toBe("signature_failed");
   });
 });
 
 describe("classifyServerError", () => {
   it("maps address_mismatch to network_mismatch", () => {
-    expect(
-      classifyServerError(new ApiError("x", 401, "address_mismatch")).kind,
-    ).toBe("network_mismatch");
+    expect(classifyServerError(new ApiError("x", 401, "address_mismatch")).kind).toBe(
+      "network_mismatch",
+    );
   });
 
   it("maps invalid_signature to signature_failed", () => {
-    expect(
-      classifyServerError(new ApiError("x", 401, "invalid_signature")).kind,
-    ).toBe("signature_failed");
+    expect(classifyServerError(new ApiError("x", 401, "invalid_signature")).kind).toBe(
+      "signature_failed",
+    );
   });
 
   it("maps nonce_expired to nonce_expired", () => {
-    expect(
-      classifyServerError(new ApiError("x", 401, "nonce_expired")).kind,
-    ).toBe("nonce_expired");
+    expect(classifyServerError(new ApiError("x", 401, "nonce_expired")).kind).toBe("nonce_expired");
   });
 
   it("falls back to signature_failed for unknown 401 codes", () => {
-    expect(classifyServerError(new ApiError("x", 401, null)).kind).toBe(
-      "signature_failed",
-    );
+    expect(classifyServerError(new ApiError("x", 401, null)).kind).toBe("signature_failed");
   });
 });
 

@@ -84,5 +84,6 @@ export const CREWS: readonly CrewTemplate[] = [
   },
 ];
 
-export const CREWS_BY_KEY: Readonly<Record<string, CrewTemplate>> =
-  Object.freeze(Object.fromEntries(CREWS.map((c) => [c.templateKey, c])));
+export const CREWS_BY_KEY: Readonly<Record<string, CrewTemplate>> = Object.freeze(
+  Object.fromEntries(CREWS.map((c) => [c.templateKey, c])),
+);

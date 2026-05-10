@@ -24,49 +24,49 @@
 //   1  task id not present in roadmap
 //   2  bad arguments / io error
 
-import { readFileSync, writeFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const SELF_DIR = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(SELF_DIR, '..');
-const YML = resolve(ROOT, 'roadmap/roadmap.yml');
+const ROOT = resolve(SELF_DIR, "..");
+const YML = resolve(ROOT, "roadmap/roadmap.yml");
 
 export function parseArgs(argv) {
   const args = { taskId: null, mutations: {}, flags: {} };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (!args.taskId && !a.startsWith('-')) {
+    if (!args.taskId && !a.startsWith("-")) {
       args.taskId = a;
       continue;
     }
     switch (a) {
-      case '--status':
+      case "--status":
         args.mutations.status = argv[++i];
         break;
-      case '--increment-attempt-count':
+      case "--increment-attempt-count":
         args.flags.incAttempt = true;
         break;
-      case '--last-attempted-now':
+      case "--last-attempted-now":
         args.flags.stampLastAttempted = true;
         break;
-      case '--pr':
+      case "--pr":
         args.mutations.pr = argv[++i];
         break;
-      case '--completed-now':
+      case "--completed-now":
         args.flags.stampCompleted = true;
         break;
-      case '--print-title':
+      case "--print-title":
         args.flags.printTitle = true;
         break;
-      case '--dry-run':
+      case "--dry-run":
         args.flags.dryRun = true;
         break;
       default:
         throw new Error(`unknown arg: ${a}`);
     }
   }
-  if (!args.taskId) throw new Error('task id required as first positional arg');
+  if (!args.taskId) throw new Error("task id required as first positional arg");
   return args;
 }
 
@@ -89,7 +89,7 @@ export function findTaskBlock(lines, taskId) {
   let end = lines.length;
   for (let i = start + 1; i < lines.length; i++) {
     const line = lines[i];
-    if (line.trim() === '') continue;
+    if (line.trim() === "") continue;
     const indent = line.match(/^( *)/)[1].length;
     if (indent <= baseIndent) {
       end = i;
@@ -112,9 +112,9 @@ function findKeyLine(lines, { start, end, baseIndent }, key) {
 }
 
 function formatYamlString(value) {
-  if (value === null) return 'null';
-  if (typeof value === 'boolean') return String(value);
-  if (typeof value === 'number') return String(value);
+  if (value === null) return "null";
+  if (typeof value === "boolean") return String(value);
+  if (typeof value === "number") return String(value);
   const s = String(value);
   // Unquoted only for simple alphanumeric tokens and URL-ish values that
   // start with a letter. ISO timestamps (start with a digit) get quoted to
@@ -128,43 +128,43 @@ function setKey(lines, block, key, value) {
   if (!hit) {
     throw new Error(`key "${key}" not found in task block starting at line ${block.start + 1}`);
   }
-  lines[hit.idx] = `${' '.repeat(hit.indent)}${key}: ${formatYamlString(value)}`;
+  lines[hit.idx] = `${" ".repeat(hit.indent)}${key}: ${formatYamlString(value)}`;
 }
 
 function bumpAttemptCount(lines, block) {
-  const hit = findKeyLine(lines, block, 'attempt_count');
-  if (!hit) throw new Error('attempt_count not found in task block');
+  const hit = findKeyLine(lines, block, "attempt_count");
+  if (!hit) throw new Error("attempt_count not found in task block");
   const n = Number(hit.value.trim());
   if (!Number.isFinite(n)) {
     throw new Error(`attempt_count not a number: "${hit.value}"`);
   }
-  lines[hit.idx] = `${' '.repeat(hit.indent)}attempt_count: ${n + 1}`;
+  lines[hit.idx] = `${" ".repeat(hit.indent)}attempt_count: ${n + 1}`;
 }
 
 function nowIsoMinute() {
   return new Date()
     .toISOString()
-    .replace(/\.\d{3}Z$/, 'Z')
-    .replace(/:\d{2}Z$/, ':00Z');
+    .replace(/\.\d{3}Z$/, "Z")
+    .replace(/:\d{2}Z$/, ":00Z");
 }
 
 export function applyMutations(text, taskId, { mutations, flags }) {
-  const lines = text.split('\n');
+  const lines = text.split("\n");
   const block = findTaskBlock(lines, taskId);
-  if (!block) return { ok: false, reason: 'task-not-found' };
+  if (!block) return { ok: false, reason: "task-not-found" };
 
   if (flags.printTitle) {
-    const hit = findKeyLine(lines, block, 'title');
-    return { ok: true, title: hit?.value?.trim() ?? '' };
+    const hit = findKeyLine(lines, block, "title");
+    return { ok: true, title: hit?.value?.trim() ?? "" };
   }
 
-  if ('status' in mutations) setKey(lines, block, 'status', mutations.status);
-  if ('pr' in mutations) setKey(lines, block, 'pr', mutations.pr);
+  if ("status" in mutations) setKey(lines, block, "status", mutations.status);
+  if ("pr" in mutations) setKey(lines, block, "pr", mutations.pr);
   if (flags.incAttempt) bumpAttemptCount(lines, block);
-  if (flags.stampLastAttempted) setKey(lines, block, 'last_attempted', nowIsoMinute());
-  if (flags.stampCompleted) setKey(lines, block, 'completed', nowIsoMinute());
+  if (flags.stampLastAttempted) setKey(lines, block, "last_attempted", nowIsoMinute());
+  if (flags.stampCompleted) setKey(lines, block, "completed", nowIsoMinute());
 
-  return { ok: true, text: lines.join('\n') };
+  return { ok: true, text: lines.join("\n") };
 }
 
 function main(argv) {
@@ -177,7 +177,7 @@ function main(argv) {
   }
   let text;
   try {
-    text = readFileSync(YML, 'utf8');
+    text = readFileSync(YML, "utf8");
   } catch (err) {
     process.stderr.write(`roadmap-update-task: cannot read ${YML}: ${err.message}\n`);
     process.exit(2);
@@ -198,5 +198,5 @@ function main(argv) {
   writeFileSync(YML, result.text);
 }
 
-const invokedDirect = resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1] ?? '');
+const invokedDirect = resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1] ?? "");
 if (invokedDirect) main(process.argv.slice(2));

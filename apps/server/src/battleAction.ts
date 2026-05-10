@@ -25,11 +25,7 @@ export function parseAction(raw: unknown): ParseResult {
 
 export type ValidateResult = { ok: true } | { ok: false; error: string };
 
-export function validateAction(
-  action: Action,
-  state: BattleState,
-  side: Side,
-): ValidateResult {
+export function validateAction(action: Action, state: BattleState, side: Side): ValidateResult {
   const pendingSwap = side === "A" ? state.pendingSwapA : state.pendingSwapB;
   const active = side === "A" ? state.activeA : state.activeB;
   const bench = side === "A" ? state.benchA : state.benchB;

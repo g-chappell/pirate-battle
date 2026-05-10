@@ -84,8 +84,7 @@ export function BattleView({
   const bench = benchOptionsFor(battleState, viewer);
   const yourTurn = isViewersTurn(battleState, viewer);
   const logLines = turnLogLines(battleState);
-  const pendingSwap =
-    viewer === "A" ? battleState.pendingSwapA : battleState.pendingSwapB;
+  const pendingSwap = viewer === "A" ? battleState.pendingSwapA : battleState.pendingSwapB;
   const disabled = submitting || !yourTurn;
 
   async function dispatch(action: Action): Promise<void> {
@@ -148,19 +147,12 @@ interface MoveMenuProps {
   onPickMove: (key: string) => void;
 }
 
-function MoveMenu({
-  moves,
-  disabled,
-  pendingSwap,
-  onPickMove,
-}: MoveMenuProps): ReactElement {
+function MoveMenu({ moves, disabled, pendingSwap, onPickMove }: MoveMenuProps): ReactElement {
   return (
     <div data-testid="move-menu" aria-label="Move menu" style={panelStyle}>
       <h3 style={{ margin: "0 0 0.5rem" }}>Moves</h3>
       {pendingSwap ? (
-        <p style={{ margin: 0, color: "#ccc" }}>
-          Active crew fainted — choose a swap below.
-        </p>
+        <p style={{ margin: 0, color: "#ccc" }}>Active crew fainted — choose a swap below.</p>
       ) : moves.length === 0 ? (
         <p style={{ margin: 0, color: "#ccc" }}>No moves available.</p>
       ) : (
@@ -214,11 +206,7 @@ function SwapPanel({
           background: forced ? "#3a2a1f" : "#252540",
         }}
       >
-        {forced
-          ? "Swap required"
-          : expanded
-            ? "Hide bench"
-            : "Swap (show bench)"}
+        {forced ? "Swap required" : expanded ? "Hide bench" : "Swap (show bench)"}
       </button>
       {expanded ? (
         bench.length === 0 ? (
@@ -233,8 +221,7 @@ function SwapPanel({
               onClick={() => onPickSwap(b.index)}
               style={benchButtonStyle}
             >
-              Slot {b.index} — {b.affinity} ·{" "}
-              {b.fainted ? "fainted" : `${b.hp}/${b.maxHp} HP`}
+              Slot {b.index} — {b.affinity} · {b.fainted ? "fainted" : `${b.hp}/${b.maxHp} HP`}
             </button>
           ))
         )

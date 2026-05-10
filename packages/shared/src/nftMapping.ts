@@ -49,10 +49,7 @@ function applyDelta(stats: BaseStats, delta: StatDelta): BaseStats {
   };
 }
 
-export function deriveCrewStats(
-  metadata: NftMetadata,
-  rules: CollectionRules,
-): CrewSnapshot {
+export function deriveCrewStats(metadata: NftMetadata, rules: CollectionRules): CrewSnapshot {
   let stats: BaseStats = { ...rules.baseStats };
   let affinity: Affinity = rules.baseAffinity;
   let moves: readonly MoveDef[] = rules.baseMoves;

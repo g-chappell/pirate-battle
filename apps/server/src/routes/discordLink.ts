@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 
 import type { DiscordLinkTokenStore } from "../discordLinkStore.js";
 import type { UserStore } from "../userStore.js";
+
 import { getUserIdFromCookie } from "./session.js";
 
 export interface DiscordLinkPluginOptions {
@@ -16,9 +17,7 @@ interface ClaimRequestBody {
   discordUserId?: unknown;
 }
 
-export const discordLinkRoutes: FastifyPluginCallback<
-  DiscordLinkPluginOptions
-> = (
+export const discordLinkRoutes: FastifyPluginCallback<DiscordLinkPluginOptions> = (
   fastify: FastifyInstance,
   opts: DiscordLinkPluginOptions,
   done: () => void,
@@ -36,9 +35,7 @@ export const discordLinkRoutes: FastifyPluginCallback<
     }
 
     const record = await tokenStore.issue(userId);
-    return reply
-      .code(201)
-      .send({ token: record.token, expiresAt: record.expiresAt });
+    return reply.code(201).send({ token: record.token, expiresAt: record.expiresAt });
   });
 
   fastify.post("/api/discord/link-claim", async (req, reply) => {
@@ -52,10 +49,7 @@ export const discordLinkRoutes: FastifyPluginCallback<
       return reply.code(401).send({ error: `token_${consumed.reason}` });
     }
 
-    const result = await userStore.setDiscordUserId(
-      consumed.userId,
-      parsed.discordUserId,
-    );
+    const result = await userStore.setDiscordUserId(consumed.userId, parsed.discordUserId);
     if (!result.ok) {
       const status = result.reason === "conflict" ? 409 : 401;
       return reply.code(status).send({ error: result.reason });

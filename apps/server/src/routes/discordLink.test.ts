@@ -4,6 +4,7 @@ import { InMemoryBattleStore } from "../battleStore.js";
 import { InMemoryDiscordLinkTokenStore } from "../discordLinkStore.js";
 import { buildServer } from "../index.js";
 import { InMemoryUserStore } from "../userStore.js";
+
 import { SESSION_COOKIE_NAME } from "./session.js";
 
 interface AppHarness {
@@ -49,10 +50,7 @@ async function makeWalletSession(
   const cookie = extractCookieHeader(session.headers["set-cookie"]);
   if (!cookie) throw new Error("no session cookie");
   const userId = session.json().id as string;
-  const attached = await harness.userStore.attachStakeAddrToUser(
-    userId,
-    stakeAddr,
-  );
+  const attached = await harness.userStore.attachStakeAddrToUser(userId, stakeAddr);
   if (!attached) throw new Error("attach stake addr failed");
   return { cookie, userId };
 }
@@ -258,12 +256,8 @@ describe("POST /api/discord/link-claim — happy path + conflicts", () => {
   it("rejects with 409 when the discordUserId is already linked to another user", async () => {
     const harness = makeApp();
     // pre-link an unrelated user to discord 9999
-    const otherUser =
-      await harness.userStore.createWithStakeAddr("stake_test1other");
-    const preset = await harness.userStore.setDiscordUserId(
-      otherUser.id,
-      "9999",
-    );
+    const otherUser = await harness.userStore.createWithStakeAddr("stake_test1other");
+    const preset = await harness.userStore.setDiscordUserId(otherUser.id, "9999");
     expect(preset.ok).toBe(true);
 
     const { userId } = await makeWalletSession(harness, "stake_test1mine");

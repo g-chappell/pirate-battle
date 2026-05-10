@@ -1,9 +1,4 @@
-import {
-  STATUS_BURN,
-  STATUS_POISON,
-  STATUS_STUN,
-  type MoveDef,
-} from "@pirate-battle/core";
+import { STATUS_BURN, STATUS_POISON, STATUS_STUN, type MoveDef } from "@pirate-battle/core";
 
 export const MOVES: readonly MoveDef[] = [
   {

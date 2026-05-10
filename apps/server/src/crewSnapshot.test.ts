@@ -52,15 +52,11 @@ describe("crewSnapshotFromTemplate", () => {
   });
 
   it("throws on unknown template", () => {
-    expect(() =>
-      crewSnapshotFromTemplate("not_real", ["tide_surge"]),
-    ).toThrow();
+    expect(() => crewSnapshotFromTemplate("not_real", ["tide_surge"])).toThrow();
   });
 
   it("throws on unknown move key", () => {
-    expect(() =>
-      crewSnapshotFromTemplate("tide_brawler", ["not_real_move"]),
-    ).toThrow();
+    expect(() => crewSnapshotFromTemplate("tide_brawler", ["not_real_move"])).toThrow();
   });
 });
 

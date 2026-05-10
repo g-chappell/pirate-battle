@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
 import type { Affinity } from "@pirate-battle/core";
+import { describe, expect, it } from "vitest";
+
 import { MOVES, MOVES_BY_KEY } from "./moves.js";
 
 const AFFINITIES: Affinity[] = ["kraken", "ironclad", "phantom", "bloodborne"];
@@ -23,12 +24,8 @@ describe("MOVES catalogue", () => {
 
   it("mixes damage / status / buff within each affinity", () => {
     for (const affinity of AFFINITIES) {
-      const kinds = new Set(
-        MOVES.filter((m) => m.affinity === affinity).map((m) => m.kind),
-      );
-      expect(kinds.size, `affinity=${affinity} kind variety`).toBeGreaterThan(
-        1,
-      );
+      const kinds = new Set(MOVES.filter((m) => m.affinity === affinity).map((m) => m.kind));
+      expect(kinds.size, `affinity=${affinity} kind variety`).toBeGreaterThan(1);
     }
   });
 

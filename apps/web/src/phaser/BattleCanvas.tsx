@@ -1,15 +1,11 @@
+import type { BattleState } from "@pirate-battle/core";
+import Phaser from "phaser";
 import type { ReactElement } from "react";
 import { useEffect, useRef } from "react";
-import Phaser from "phaser";
-import type { BattleState } from "@pirate-battle/core";
 
-import { BootScene } from "./BootScene";
-import {
-  BATTLE_STATE_REGISTRY_KEY,
-  BattleScene,
-  RECENT_EVENTS_REGISTRY_KEY,
-} from "./BattleScene";
 import { newEventsSlice } from "./animations";
+import { BATTLE_STATE_REGISTRY_KEY, BattleScene, RECENT_EVENTS_REGISTRY_KEY } from "./BattleScene";
+import { BootScene } from "./BootScene";
 
 export interface BattleCanvasProps {
   battleState: BattleState;
@@ -56,11 +52,5 @@ export function BattleCanvas({
     };
   }, [battleState, width, height]);
 
-  return (
-    <div
-      ref={containerRef}
-      data-testid="battle-canvas"
-      style={{ width, height }}
-    />
-  );
+  return <div ref={containerRef} data-testid="battle-canvas" style={{ width, height }} />;
 }

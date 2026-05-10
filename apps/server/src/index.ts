@@ -1,6 +1,7 @@
 import fastifyCookie from "@fastify/cookie";
 import Fastify, { type FastifyInstance } from "fastify";
 
+import { InMemoryBattleStore, PrismaBattleStore, type BattleStore } from "./battleStore.js";
 import {
   BlockfrostHttpClient,
   BlockfrostNftService,
@@ -13,26 +14,14 @@ import {
   type CollectionStore,
 } from "./cardano/collectionStore.js";
 import { PrismaNftSnapshotStore } from "./cardano/nftSnapshotStore.js";
-import {
-  InMemoryBattleStore,
-  PrismaBattleStore,
-  type BattleStore,
-} from "./battleStore.js";
-import {
-  InMemoryDiscordLinkTokenStore,
-  type DiscordLinkTokenStore,
-} from "./discordLinkStore.js";
+import { InMemoryDiscordLinkTokenStore, type DiscordLinkTokenStore } from "./discordLinkStore.js";
 import { InMemoryNonceStore, type NonceStore } from "./nonceStore.js";
 import {
   InMemoryPvpChallengeStore,
   PrismaPvpChallengeStore,
   type PvpChallengeStore,
 } from "./pvpChallengeStore.js";
-import {
-  InMemoryPvpQueueStore,
-  PrismaPvpQueueStore,
-  type PvpQueueStore,
-} from "./pvpQueueStore.js";
+import { InMemoryPvpQueueStore, PrismaPvpQueueStore, type PvpQueueStore } from "./pvpQueueStore.js";
 import { RosterDerivationService } from "./rosterDerivation.js";
 import { authRoutes } from "./routes/auth.js";
 import { battleRoutes } from "./routes/battle.js";
@@ -41,15 +30,8 @@ import { discordLinkRoutes } from "./routes/discordLink.js";
 import { pvpRoutes } from "./routes/pvp.js";
 import { rosterRoutes } from "./routes/roster.js";
 import { sessionRoutes } from "./routes/session.js";
-import {
-  InMemoryUserStore,
-  PrismaUserStore,
-  type UserStore,
-} from "./userStore.js";
-import {
-  CardanoWalletAuthVerifier,
-  type WalletAuthVerifier,
-} from "./walletAuth.js";
+import { InMemoryUserStore, PrismaUserStore, type UserStore } from "./userStore.js";
+import { CardanoWalletAuthVerifier, type WalletAuthVerifier } from "./walletAuth.js";
 
 export interface BuildServerOptions {
   sessionSecret: string;
@@ -93,8 +75,7 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
   });
   app.register(discordLinkRoutes, {
     userStore: opts.userStore,
-    tokenStore:
-      opts.discordLinkTokenStore ?? new InMemoryDiscordLinkTokenStore(),
+    tokenStore: opts.discordLinkTokenStore ?? new InMemoryDiscordLinkTokenStore(),
   });
   app.register(pvpRoutes, {
     userStore: opts.userStore,

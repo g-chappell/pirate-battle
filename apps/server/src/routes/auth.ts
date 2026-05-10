@@ -3,6 +3,7 @@ import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 import type { NonceStore } from "../nonceStore.js";
 import type { UserStore, UserSummary } from "../userStore.js";
 import type { WalletAuthVerifier } from "../walletAuth.js";
+
 import { SESSION_COOKIE_NAME, getUserIdFromCookie } from "./session.js";
 
 export interface AuthPluginOptions {
@@ -59,11 +60,7 @@ export const authRoutes: FastifyPluginCallback<AuthPluginOptions> = (
     }
 
     const cookieUserId = getUserIdFromCookie(req);
-    const target = await resolveAuthTarget(
-      userStore,
-      cookieUserId,
-      parsed.stakeAddr,
-    );
+    const target = await resolveAuthTarget(userStore, cookieUserId, parsed.stakeAddr);
     if (!target) {
       return reply.code(500).send({ error: "auth_target_unresolvable" });
     }
@@ -89,16 +86,10 @@ function parseWalletBody(raw: unknown): ParsedWalletBody | { error: string } {
   if (typeof body.stakeAddr !== "string" || body.stakeAddr.length === 0) {
     return { error: "invalid_stake_addr" };
   }
-  if (
-    typeof body.payloadHex !== "string" ||
-    !/^[0-9a-f]*$/i.test(body.payloadHex)
-  ) {
+  if (typeof body.payloadHex !== "string" || !/^[0-9a-f]*$/i.test(body.payloadHex)) {
     return { error: "invalid_payload_hex" };
   }
-  if (
-    typeof body.signature !== "string" ||
-    !/^[0-9a-f]+$/i.test(body.signature)
-  ) {
+  if (typeof body.signature !== "string" || !/^[0-9a-f]+$/i.test(body.signature)) {
     return { error: "invalid_signature" };
   }
   if (typeof body.key !== "string" || !/^[0-9a-f]+$/i.test(body.key)) {
@@ -126,16 +117,11 @@ async function resolveAuthTarget(
   stakeAddr: string,
 ): Promise<UserSummary | null> {
   const existingByAddr = await userStore.findByStakeAddr(stakeAddr);
-  const cookieUser = cookieUserId
-    ? await userStore.findById(cookieUserId)
-    : null;
+  const cookieUser = cookieUserId ? await userStore.findById(cookieUserId) : null;
 
   if (cookieUser && cookieUser.stakeAddr === null) {
     if (existingByAddr) {
-      return userStore.mergeAnonymousIntoWallet(
-        cookieUser.id,
-        existingByAddr.id,
-      );
+      return userStore.mergeAnonymousIntoWallet(cookieUser.id, existingByAddr.id);
     }
     return userStore.attachStakeAddrToUser(cookieUser.id, stakeAddr);
   }

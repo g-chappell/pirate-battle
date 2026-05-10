@@ -19,11 +19,7 @@ export interface PvpChallengeIssueInput {
   challengerCaptainId: string;
 }
 
-export type PvpChallengeAcceptFailure =
-  | "unknown"
-  | "expired"
-  | "already_accepted"
-  | "self_accept";
+export type PvpChallengeAcceptFailure = "unknown" | "expired" | "already_accepted" | "self_accept";
 
 export type PvpChallengeAcceptResult =
   | { ok: true; record: PvpChallengeRecord }

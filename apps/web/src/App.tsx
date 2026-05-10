@@ -1,12 +1,7 @@
 import type { ReactElement } from "react";
 import { useEffect, useState } from "react";
 
-import {
-  type CaptainSummary,
-  type UserSummary,
-  createAnonymousSession,
-  getMe,
-} from "./api";
+import { type CaptainSummary, type UserSummary, createAnonymousSession, getMe } from "./api";
 import { TeamBuilder } from "./TeamBuilder";
 import { WalletChooser } from "./WalletChooser";
 
@@ -33,8 +28,7 @@ export function App(): ReactElement {
         setSession({ kind: "ready", user: created });
       } catch (err) {
         if (cancelled) return;
-        const message =
-          err instanceof Error ? err.message : "failed to start session";
+        const message = err instanceof Error ? err.message : "failed to start session";
         setSession({ kind: "error", message });
       }
     })();
@@ -74,10 +68,7 @@ export function App(): ReactElement {
       ) : null}
 
       {session.kind === "ready" ? (
-        <SessionView
-          user={session.user}
-          onCaptainCreated={handleCaptainCreated}
-        />
+        <SessionView user={session.user} onCaptainCreated={handleCaptainCreated} />
       ) : null}
     </main>
   );
@@ -88,10 +79,7 @@ interface SessionViewProps {
   onCaptainCreated: (captain: CaptainSummary) => void;
 }
 
-function SessionView({
-  user,
-  onCaptainCreated,
-}: SessionViewProps): ReactElement {
+function SessionView({ user, onCaptainCreated }: SessionViewProps): ReactElement {
   return (
     <>
       <p style={{ color: "#555" }}>

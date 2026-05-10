@@ -1,8 +1,8 @@
 import type { CrewSnapshot } from "@pirate-battle/core";
 import { deriveCrewStats, type NftMetadata } from "@pirate-battle/shared";
 
-import type { CollectionRecord } from "./cardano/collectionStore.js";
 import type { UserNft } from "./cardano/blockfrost.js";
+import type { CollectionRecord } from "./cardano/collectionStore.js";
 
 export interface DerivedNft {
   policyId: string;
@@ -17,9 +17,7 @@ export class RosterDerivationService {
   private readonly byPolicyId: Map<string, CollectionRecord>;
 
   constructor(records: readonly CollectionRecord[]) {
-    this.byPolicyId = new Map(
-      records.map((r) => [r.policyId.toLowerCase(), r]),
-    );
+    this.byPolicyId = new Map(records.map((r) => [r.policyId.toLowerCase(), r]));
   }
 
   derive(nfts: readonly UserNft[]): DerivedNft[] {

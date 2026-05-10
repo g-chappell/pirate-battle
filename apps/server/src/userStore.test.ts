@@ -63,9 +63,7 @@ describe("InMemoryUserStore applyXpRewards", () => {
   it("persists progress so subsequent reads see the new level/xp", async () => {
     const { store, userId, captainId, team } = await setupCaptainWithCrews();
     const crewId = team.crews[0]!.id!;
-    await store.applyXpRewards([
-      { crewId, xpGain: xpToAdvance(DEFAULT_LEVEL) + 7 },
-    ]);
+    await store.applyXpRewards([{ crewId, xpGain: xpToAdvance(DEFAULT_LEVEL) + 7 }]);
     const refreshed = await store.getCaptainTeam(userId, captainId);
     const updated = refreshed!.crews.find((c) => c.id === crewId)!;
     expect(updated.level).toBe(DEFAULT_LEVEL + 1);
@@ -74,9 +72,7 @@ describe("InMemoryUserStore applyXpRewards", () => {
 
   it("ignores awards for unknown crew ids", async () => {
     const { store } = await setupCaptainWithCrews();
-    const result = await store.applyXpRewards([
-      { crewId: "does_not_exist", xpGain: 100 },
-    ]);
+    const result = await store.applyXpRewards([{ crewId: "does_not_exist", xpGain: 100 }]);
     expect(result).toEqual([]);
   });
 

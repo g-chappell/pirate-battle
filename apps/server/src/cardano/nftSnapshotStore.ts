@@ -31,10 +31,7 @@ export class PrismaNftSnapshotStore implements NftSnapshotStore {
     };
   }
 
-  async saveSnapshot(
-    userId: string,
-    nfts: UserNft[],
-  ): Promise<NftSnapshotRecord> {
+  async saveSnapshot(userId: string, nfts: UserNft[]): Promise<NftSnapshotRecord> {
     const row = await this.prisma.nftSnapshot.create({
       data: {
         userId,
@@ -74,10 +71,7 @@ export class InMemoryNftSnapshotStore implements NftSnapshotStore {
     return latest;
   }
 
-  async saveSnapshot(
-    userId: string,
-    nfts: UserNft[],
-  ): Promise<NftSnapshotRecord> {
+  async saveSnapshot(userId: string, nfts: UserNft[]): Promise<NftSnapshotRecord> {
     const record: NftSnapshotRecord = {
       id: `mem_snapshot_${this.nextId++}`,
       userId,

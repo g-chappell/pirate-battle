@@ -1,16 +1,7 @@
+import type { BattleEvent, BattleState, CrewSnapshot, Side } from "@pirate-battle/core";
 import Phaser from "phaser";
-import type {
-  BattleEvent,
-  BattleState,
-  CrewSnapshot,
-  Side,
-} from "@pirate-battle/core";
 
-import {
-  PLACEHOLDER_SPRITE_SIZE,
-  computeHpBarWidth,
-  textureKeyForAffinity,
-} from "./affinity";
+import { PLACEHOLDER_SPRITE_SIZE, computeHpBarWidth, textureKeyForAffinity } from "./affinity";
 import {
   type AnimationTrigger,
   FAINT_FADE_ALPHA,
@@ -47,9 +38,7 @@ export class BattleScene extends Phaser.Scene {
 
   create(): void {
     this.crewSprites = {};
-    const battleState = this.registry.get(BATTLE_STATE_REGISTRY_KEY) as
-      | BattleState
-      | undefined;
+    const battleState = this.registry.get(BATTLE_STATE_REGISTRY_KEY) as BattleState | undefined;
     if (!battleState) {
       this.add.text(16, 16, "Awaiting battle state…", {
         color: "#ffffff",
@@ -71,9 +60,7 @@ export class BattleScene extends Phaser.Scene {
       fontSize: "14px",
     });
 
-    const recent = this.registry.get(RECENT_EVENTS_REGISTRY_KEY) as
-      | BattleEvent[]
-      | undefined;
+    const recent = this.registry.get(RECENT_EVENTS_REGISTRY_KEY) as BattleEvent[] | undefined;
     if (recent && recent.length > 0) {
       this.applyTriggers(triggersFromEvents(recent));
     }
@@ -119,27 +106,17 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
-  private drawCrew(
-    label: Side,
-    crew: CrewSnapshot,
-    x: number,
-    y: number,
-  ): void {
+  private drawCrew(label: Side, crew: CrewSnapshot, x: number, y: number): void {
     const sprite = this.add.image(x, y, textureKeyForAffinity(crew.affinity));
     this.crewSprites[label] = { sprite, baseX: x };
     const barX = x - HP_BAR_WIDTH / 2;
     const barY = y - PLACEHOLDER_SPRITE_SIZE / 2 - HP_BAR_HEIGHT - 18;
-    this.add
-      .rectangle(barX, barY, HP_BAR_WIDTH, HP_BAR_HEIGHT, HP_BAR_BG_COLOR)
-      .setOrigin(0, 0);
+    this.add.rectangle(barX, barY, HP_BAR_WIDTH, HP_BAR_HEIGHT, HP_BAR_BG_COLOR).setOrigin(0, 0);
     const filled = computeHpBarWidth(crew.hp, crew.maxHp, HP_BAR_WIDTH);
     if (filled > 0) {
       const ratio = crew.hp / crew.maxHp;
-      const color =
-        ratio <= HP_BAR_LOW_THRESHOLD ? HP_BAR_LOW_COLOR : HP_BAR_FILL_COLOR;
-      this.add
-        .rectangle(barX, barY, filled, HP_BAR_HEIGHT, color)
-        .setOrigin(0, 0);
+      const color = ratio <= HP_BAR_LOW_THRESHOLD ? HP_BAR_LOW_COLOR : HP_BAR_FILL_COLOR;
+      this.add.rectangle(barX, barY, filled, HP_BAR_HEIGHT, color).setOrigin(0, 0);
     }
     this.add
       .text(barX, barY - 16, `${label}: ${crew.hp}/${crew.maxHp} HP`, {

@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
 import type { Affinity } from "@pirate-battle/core";
+import { describe, expect, it } from "vitest";
+
 import { CREWS, CREWS_BY_KEY } from "./crews.js";
 import { MOVES_BY_KEY } from "./moves.js";
 
@@ -30,17 +31,14 @@ describe("CREWS catalogue", () => {
       for (const k of c.moveKeys) {
         const m = MOVES_BY_KEY[k];
         expect(m, `crew=${c.templateKey} move=${k}`).toBeDefined();
-        expect(m!.affinity, `crew=${c.templateKey} move=${k} affinity`).toBe(
-          c.affinity,
-        );
+        expect(m!.affinity, `crew=${c.templateKey} move=${k} affinity`).toBe(c.affinity);
       }
     }
   });
 
   it("base stats total ~250 (within ±5)", () => {
     for (const c of CREWS) {
-      const total =
-        c.baseStats.hp + c.baseStats.atk + c.baseStats.def + c.baseStats.spd;
+      const total = c.baseStats.hp + c.baseStats.atk + c.baseStats.def + c.baseStats.spd;
       expect(total, `crew=${c.templateKey}`).toBeGreaterThanOrEqual(245);
       expect(total, `crew=${c.templateKey}`).toBeLessThanOrEqual(255);
     }
@@ -50,10 +48,7 @@ describe("CREWS catalogue", () => {
     for (const c of CREWS) {
       for (const stat of ["hp", "atk", "def", "spd"] as const) {
         const value = c.baseStats[stat];
-        expect(
-          Number.isInteger(value),
-          `crew=${c.templateKey} stat=${stat}`,
-        ).toBe(true);
+        expect(Number.isInteger(value), `crew=${c.templateKey} stat=${stat}`).toBe(true);
         expect(value, `crew=${c.templateKey} stat=${stat}`).toBeGreaterThan(0);
       }
     }
@@ -63,20 +58,12 @@ describe("CREWS catalogue", () => {
     for (const affinity of AFFINITIES) {
       const crews = CREWS.filter((c) => c.affinity === affinity);
       const spreads = crews.map((c) => {
-        const stats = [
-          c.baseStats.hp,
-          c.baseStats.atk,
-          c.baseStats.def,
-          c.baseStats.spd,
-        ];
+        const stats = [c.baseStats.hp, c.baseStats.atk, c.baseStats.def, c.baseStats.spd];
         return Math.max(...stats) - Math.min(...stats);
       });
       const minSpread = Math.min(...spreads);
       const maxSpread = Math.max(...spreads);
-      expect(
-        maxSpread - minSpread,
-        `affinity=${affinity} spread variety`,
-      ).toBeGreaterThan(20);
+      expect(maxSpread - minSpread, `affinity=${affinity} spread variety`).toBeGreaterThan(20);
     }
   });
 

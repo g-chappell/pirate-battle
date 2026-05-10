@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import type { BattleEvent } from "@pirate-battle/core";
+import { describe, expect, it } from "vitest";
 
 import {
   FAINT_FADE_ALPHA,
