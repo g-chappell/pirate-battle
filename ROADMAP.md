@@ -9,9 +9,9 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 22 (47%)
+- **Done:** 23 (49%)
 - **Ready:** 20
-- **In progress:** 1
+- **In progress:** 0
 - **Blocked:** 4
 
 ---
@@ -453,7 +453,7 @@ engine; no new authority anywhere.
     > mobile) via custom scheme; document fallback in docs/MOBILE.md.
 
 - **STORY-18** — Async PvP: challenge-by-link + match queue + persistence
-  - :large_orange_diamond: **TASK-044** — Server: PvP challenge create/accept + match queue  `high` `large` _(apps/server)_  
+  - :white_check_mark: **TASK-044** — Server: PvP challenge create/accept + match queue  `high` `large` _(apps/server)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/35)  
     _depends on: TASK-020_
     > POST /api/pvp/challenge creates a Challenge row (tokenized
     > link, 24h expiry). Anyone with the link who is signed in
