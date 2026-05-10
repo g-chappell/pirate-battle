@@ -427,7 +427,7 @@ gaps.
 - Files changed: roadmap/roadmap.yml, ROADMAP.md (status flips only — code already on main from PR #31)
 - Regression alert: false
 - Notes: cascade-rollforward cycle. PR #31 originally rolled back due to missing prod migrations; PR #37 wired `prisma migrate deploy` into deploy.sh, so this re-deploy validates the fix end-to-end. No code changes this cycle.
-- Deploy: pending (filled in Step 14)
+- Deploy: success (rolling redeploy via patched deploy.sh — `prisma migrate deploy` ran, no pending migrations, /health 200 on attempt 2; cascade unblock confirmed end-to-end)
 - Lessons learned: the 6 cascade-root tasks (TASK-005, -019, -027, -029, -036, -044) had their PRs already merged but were re-flipped to `ready` by PR #37 to force fresh deploys via the patched pipeline. Each rollforward cycle is essentially a no-op PR plus a deploy gate.
 
 ---
