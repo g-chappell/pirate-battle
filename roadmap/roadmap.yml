@@ -868,7 +868,7 @@ epics:
             attempt_count: 0
           - id: TASK-036
             title: 'Server: /api/discord/link-token + /api/discord/link-claim'
-            status: ready
+            status: in-progress
             priority: high
             complexity: medium
             workspaces:
@@ -884,8 +884,8 @@ epics:
             pr: https://github.com/g-chappell/pirate-battle/pull/34
             completed: '2026-05-10T04:15:00Z'
             blocked_reason: null
-            last_attempted: '2026-05-10T04:04:00Z'
-            attempt_count: 1
+            last_attempted: '2026-05-10T13:04:00Z'
+            attempt_count: 2
           - id: TASK-037
             title: 'Discord bot: /link command + DM flow → server claim'
             status: ready
