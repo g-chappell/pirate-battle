@@ -330,3 +330,16 @@ gaps.
 
 ---
 
+### Run [2026-05-10 03:24]
+- Task: TASK-029 — Server: XP grant on battle end + level-up curve
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/33
+- Test counts: core=61, content=17, shared=9, web=80, server=105
+- Files changed: packages/core/src/{constants.ts, leveling.ts (new), leveling.test.ts (new), index.ts}, packages/db/prisma/{schema.prisma, migrations/20260510030000_battle_captain/migration.sql (new)}, apps/server/src/{crewSnapshot.ts, crewSnapshot.test.ts, userStore.ts, userStore.test.ts (new), battleStore.ts, battleStore.test.ts, routes/battle.ts, routes/battle.test.ts}
+- Regression alert: false
+- Review proposed: TBD (Step 15)
+- Deploy: TBD (Step 12)
+- Lessons learned: Engine's CrewSnapshot now reflects Crew.level + attrs end-to-end via a new packages/core/leveling module (effectiveStats: linear +5%/level capped at 1.5× base, kept inside the engine so renderers stay derivative). Battle row gained captainId so the action route can resolve the player's persisted Crew rows when winner flips and award per-crew XP via userStore.applyXpRewards (winner ×1.5, loser ×1.0, scaled by opponent level / DEFAULT_LEVEL). Note: cycle ran knowing the prior TASK-027 prod-DB block is still unresolved — this PR adds yet another unapplied migration; deploy is expected to roll back again until prod runs `prisma migrate deploy`.
+
+---
+
