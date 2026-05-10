@@ -9,10 +9,10 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 23 (49%)
+- **Done:** 22 (47%)
 - **Ready:** 24
 - **In progress:** 0
-- **Blocked:** 0
+- **Blocked:** 1
 
 ---
 
@@ -283,7 +283,8 @@ Free starter remains usable; NFT crews add to the available roster.
     > this to populate the chooser.
 
 - **STORY-10** — Trait → stat derivation pipeline + admin tooling
-  - :white_check_mark: **TASK-027** — Trait→stat derivation: deterministic mapper + collection registry  `high` `large` _(apps/server, packages/db, packages/shared)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/31)  
+  - :no_entry: **TASK-027** — Trait→stat derivation: deterministic mapper + collection registry  `high` `large` _(apps/server, packages/db, packages/shared)_  
+    _blocked: deploy failed health check — prod DB has no tables (migrations never applied to pirate_battle); TASK-027's boot-time Collection.listAll() exposed the latent issue. Rolled back to previous image. Fix needs a one-time `prisma migrate deploy` against prod DB (or wire it into deploy.sh) before this code can ship._  
     _depends on: TASK-026_
     > packages/shared/src/nftMapping.ts: pure function
     > deriveCrewStats(metadata, collectionRules) → CrewSnapshot.

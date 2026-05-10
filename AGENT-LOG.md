@@ -312,8 +312,9 @@ gaps.
 - Test counts: core=42, content=17, web=80, server=92, shared=9
 - Files changed: packages/db/prisma/schema.prisma, packages/db/prisma/migrations/20260510010000_collection/migration.sql, packages/shared/src/nftMapping.ts, packages/shared/src/nftMapping.test.ts, packages/shared/src/index.ts, packages/shared/package.json, packages/shared/vitest.config.ts, apps/server/src/cardano/collectionStore.ts, apps/server/src/rosterDerivation.ts, apps/server/src/routes/roster.ts, apps/server/src/routes/roster.test.ts, apps/server/src/index.ts
 - Regression alert: false
-- Deploy: pending
-- Lessons learned: packages/shared previously had no tests — added vitest dep + test script + workspace-local vitest.config.ts in the same PR per CLAUDE.md "Adding tests to a previously-untested workspace" guidance.
+- Deploy: rolled_back (health check timeout 90s → automatic rollback to previous image succeeded; rolled-back app verified healthy on /health)
+- Deploy details: prod DB pirate_battle has no tables — Prisma migrations were never applied. Previous deploys "succeeded" only because no boot-time DB query existed; TASK-027's `await collectionStore.listAll()` at startup is the first code that actually hits the DB before /health responds, so it surfaced the latent gap. TASK-027 marked blocked. Fix: run `prisma migrate deploy` against the prod DB (or add a migrate step to deploy.sh / Dockerfile) before unblocking.
+- Lessons learned: packages/shared previously had no tests — added vitest dep + test script + workspace-local vitest.config.ts in the same PR per CLAUDE.md "Adding tests to a previously-untested workspace" guidance. Bigger lesson: prod DB has never been migrated; a follow-up infra task is needed before any DB-touching task at startup can ship.
 
 ---
 

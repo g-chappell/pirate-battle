@@ -609,7 +609,7 @@ epics:
         tasks:
           - id: TASK-027
             title: "Trait→stat derivation: deterministic mapper + collection registry"
-            status: done
+            status: blocked
             priority: high
             complexity: large
             workspaces: ["apps/server", "packages/db", "packages/shared"]
@@ -624,7 +624,7 @@ epics:
             depends_on: ["TASK-026"]
             pr: https://github.com/g-chappell/pirate-battle/pull/31
             completed: '2026-05-10T01:14:00Z'
-            blocked_reason: null
+            blocked_reason: "deploy failed health check — prod DB has no tables (migrations never applied to pirate_battle); TASK-027's boot-time Collection.listAll() exposed the latent issue. Rolled back to previous image. Fix needs a one-time `prisma migrate deploy` against prod DB (or wire it into deploy.sh) before this code can ship."
             last_attempted: '2026-05-10T01:01:00Z'
             attempt_count: 1
 
