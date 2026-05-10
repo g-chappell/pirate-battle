@@ -10,6 +10,7 @@
 #   2  container start failed
 #   3  health check failed AND rollback failed (critical)
 #   4  health check failed, rollback succeeded (app on previous image)
+#   5  prisma migrate deploy failed (db unchanged, app not recreated)
 
 set -euo pipefail
 
@@ -47,6 +48,18 @@ fi
 # --- Build ---
 echo "==> Building ${SLUG}:latest"
 $COMPOSE build --no-cache app || { echo "build failed" >&2; exit 1; }
+
+# --- Apply DB migrations (against the freshly built image) ---
+# Runs `prisma migrate deploy` in a one-shot container off the new image
+# BEFORE swapping the live app. Migrations are additive (Prisma's
+# expand-contract pattern) so the old container can still serve while
+# the new schema lands; if migrate fails we exit before any swap, leaving
+# the previous image serving with the previous schema.
+# `compose run` honours the app service's `depends_on: db: service_healthy`,
+# so db is started + waited on automatically.
+echo "==> Applying Prisma migrations"
+$COMPOSE run --rm app npx prisma migrate deploy --schema /app/packages/db/prisma/schema.prisma \
+  || { echo "migration failed" >&2; exit 5; }
 
 # --- Start / reload ---
 echo "==> Deploying (strategy: $STRATEGY)"

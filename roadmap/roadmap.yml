@@ -110,7 +110,7 @@ epics:
             attempt_count: 1
           - id: TASK-005
             title: Scaffold apps/discord stub + apps/mobile placeholder
-            status: blocked
+            status: ready
             priority: med
             complexity: small
             workspaces:
@@ -126,7 +126,7 @@ epics:
               - TASK-002
             pr: https://github.com/g-chappell/pirate-battle/pull/32
             completed: '2026-05-10T02:10:00Z'
-            blocked_reason: deploy failed health check
+            blocked_reason: null
             last_attempted: '2026-05-10T02:06:00Z'
             attempt_count: 1
           - id: TASK-006
@@ -453,7 +453,7 @@ epics:
             attempt_count: 1
           - id: TASK-019
             title: 'Web: turn animation placeholders (sprite shake + flash)'
-            status: blocked
+            status: ready
             priority: med
             complexity: small
             workspaces:
@@ -468,9 +468,7 @@ epics:
               - TASK-018
             pr: https://github.com/g-chappell/pirate-battle/pull/36
             completed: '2026-05-10T06:11:00Z'
-            blocked_reason: >-
-              deploy failed health check (rollback succeeded; recurring across TASK-019/044/036 —
-              investigate deploy infra)
+            blocked_reason: null
             last_attempted: '2026-05-10T06:04:00Z'
             attempt_count: 1
       - id: STORY-07
@@ -650,7 +648,7 @@ epics:
         tasks:
           - id: TASK-027
             title: 'Trait→stat derivation: deterministic mapper + collection registry'
-            status: blocked
+            status: ready
             priority: high
             complexity: large
             workspaces:
@@ -669,11 +667,7 @@ epics:
               - TASK-026
             pr: https://github.com/g-chappell/pirate-battle/pull/31
             completed: '2026-05-10T01:14:00Z'
-            blocked_reason: >-
-              deploy failed health check — prod DB has no tables (migrations never applied to
-              pirate_battle); TASK-027's boot-time Collection.listAll() exposed the latent issue.
-              Rolled back to previous image. Fix needs a one-time `prisma migrate deploy` against
-              prod DB (or wire it into deploy.sh) before this code can ship.
+            blocked_reason: null
             last_attempted: '2026-05-10T01:01:00Z'
             attempt_count: 1
           - id: TASK-028
@@ -710,7 +704,7 @@ epics:
         tasks:
           - id: TASK-029
             title: 'Server: XP grant on battle end + level-up curve'
-            status: blocked
+            status: ready
             priority: high
             complexity: medium
             workspaces:
@@ -727,11 +721,7 @@ epics:
               - TASK-007
             pr: https://github.com/g-chappell/pirate-battle/pull/33
             completed: '2026-05-10T03:23:00Z'
-            blocked_reason: >-
-              deploy failed health check — same prod-DB block as TASK-027/TASK-005 (boot-time
-              `collectionStore.listAll()` against an unmigrated prod DB). Code itself merged cleanly
-              (PR #33) and is correct in tests; rolled back to previous image. Unblocks once `prisma
-              migrate deploy` runs against the prod DB.
+            blocked_reason: null
             last_attempted: '2026-05-10T03:04:00Z'
             attempt_count: 1
           - id: TASK-030
@@ -878,7 +868,7 @@ epics:
             attempt_count: 0
           - id: TASK-036
             title: 'Server: /api/discord/link-token + /api/discord/link-claim'
-            status: blocked
+            status: ready
             priority: high
             complexity: medium
             workspaces:
@@ -893,11 +883,7 @@ epics:
               - TASK-023
             pr: https://github.com/g-chappell/pirate-battle/pull/34
             completed: '2026-05-10T04:15:00Z'
-            blocked_reason: >-
-              deploy failed health check — same prod-DB block as TASK-027/TASK-005/TASK-029
-              (boot-time `collectionStore.listAll()` against an unmigrated prod DB). Code itself
-              merged cleanly (PR #34) and is correct in tests; rolled back to previous image.
-              Unblocks once `prisma migrate deploy` runs against the prod DB.
+            blocked_reason: null
             last_attempted: '2026-05-10T04:04:00Z'
             attempt_count: 1
           - id: TASK-037
@@ -1077,7 +1063,7 @@ epics:
         tasks:
           - id: TASK-044
             title: 'Server: PvP challenge create/accept + match queue'
-            status: blocked
+            status: ready
             priority: high
             complexity: large
             workspaces:
@@ -1095,11 +1081,7 @@ epics:
               - TASK-020
             pr: https://github.com/g-chappell/pirate-battle/pull/35
             completed: '2026-05-10T05:21:00Z'
-            blocked_reason: >-
-              deploy failed health check — same prod-DB-migration gap as TASK-027/029/036; new PvP
-              migration (and any boot path that touches Battle/Pvp tables) can't initialise on the
-              live DB. Code merged to main and tests green; needs `prisma migrate deploy` against
-              prod (or wired into deploy.sh) before this can ship.
+            blocked_reason: null
             last_attempted: '2026-05-10T05:04:00Z'
             attempt_count: 1
           - id: TASK-045
