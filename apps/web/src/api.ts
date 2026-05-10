@@ -112,6 +112,22 @@ export async function submitBattleAction(
   });
 }
 
+export interface FinishedBattleRow {
+  id: string;
+  mode: string;
+  userSide: Side;
+  winner: Side;
+  turn: number;
+  startedAt: number;
+  endedAt: number;
+}
+
+export async function listBattleHistory(limit = 10): Promise<{ battles: FinishedBattleRow[] }> {
+  return request<{ battles: FinishedBattleRow[] }>(
+    `/api/battle/history?limit=${encodeURIComponent(String(limit))}`,
+  );
+}
+
 export interface PvpChallengeIssued {
   token: string;
   expiresAt: number;

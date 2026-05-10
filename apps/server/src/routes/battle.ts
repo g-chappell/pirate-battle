@@ -23,6 +23,13 @@ interface ActionRequestBody {
   action?: unknown;
 }
 
+interface HistoryQuery {
+  limit?: string;
+}
+
+const HISTORY_DEFAULT_LIMIT = 10;
+const HISTORY_MAX_LIMIT = 50;
+
 function defaultSeedFactory(): number {
   return Math.floor(Math.random() * 0x100000000) >>> 0;
 }
@@ -59,6 +66,23 @@ export const battleRoutes: FastifyPluginCallback<BattlePluginOptions> = (
     });
 
     return reply.code(201).send({ id: summary.id, state: summary.state });
+  });
+
+  fastify.get<{ Querystring: HistoryQuery }>("/api/battle/history", async (req, reply) => {
+    const userId = getUserIdFromCookie(req);
+    if (!userId) return reply.code(401).send({ error: "no_session" });
+
+    let limit = HISTORY_DEFAULT_LIMIT;
+    if (typeof req.query.limit === "string" && req.query.limit !== "") {
+      const parsed = Number.parseInt(req.query.limit, 10);
+      if (!Number.isFinite(parsed) || parsed < 1) {
+        return reply.code(400).send({ error: "invalid_limit" });
+      }
+      limit = Math.min(parsed, HISTORY_MAX_LIMIT);
+    }
+
+    const battles = await battleStore.listFinishedForUser(userId, limit);
+    return reply.send({ battles });
   });
 
   fastify.get<{ Params: { id: string } }>("/api/battle/:id", async (req, reply) => {

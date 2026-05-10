@@ -2,6 +2,7 @@ import type { Action, BattleState } from "@pirate-battle/core";
 import type { CSSProperties, ReactElement } from "react";
 import { useState } from "react";
 
+import { BattleResultModal } from "./BattleResultModal";
 import {
   type BenchOption,
   type MoveOption,
@@ -22,6 +23,8 @@ export interface BattleViewProps {
   battleState: BattleState;
   viewer?: ViewerSide;
   onSubmit: (action: Action) => Promise<void> | void;
+  onBattleAgain?: () => void;
+  onViewHistory?: () => void;
   submitting?: boolean;
   error?: string | null;
 }
@@ -76,6 +79,8 @@ export function BattleView({
   battleState,
   viewer = "A",
   onSubmit,
+  onBattleAgain,
+  onViewHistory,
   submitting = false,
   error = null,
 }: BattleViewProps): ReactElement {
@@ -103,7 +108,15 @@ export function BattleView({
         Battle (turn {battleState.turn})
       </h2>
       <div style={layoutStyle}>
-        <BattleCanvas battleState={battleState} />
+        <div style={{ position: "relative" }}>
+          <BattleCanvas battleState={battleState} />
+          <BattleResultModal
+            battleState={battleState}
+            viewer={viewer}
+            onBattleAgain={onBattleAgain}
+            onViewHistory={onViewHistory}
+          />
+        </div>
         <div style={sideColumnStyle}>
           <MoveMenu
             moves={moves}

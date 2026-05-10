@@ -1,4 +1,4 @@
-import type { Action, BattleEvent, BattleState } from "@pirate-battle/core";
+import type { Action, BattleEvent, BattleState, Side } from "@pirate-battle/core";
 import { BattleMode, Prisma, type PrismaClient } from "@pirate-battle/db";
 
 export interface BattleSummary {
@@ -12,6 +12,16 @@ export interface BattleSummary {
   pendingActionA: Action | null;
   pendingActionB: Action | null;
   pendingSubmitAt: number | null;
+}
+
+export interface FinishedBattleRow {
+  id: string;
+  mode: BattleMode;
+  userSide: Side;
+  winner: Side;
+  turn: number;
+  startedAt: number;
+  endedAt: number;
 }
 
 export interface CreateBattleInput {
@@ -45,6 +55,7 @@ export interface BattleStore {
   ): Promise<BattleSummary>;
   clearPendingActions(battleId: string): Promise<BattleSummary>;
   listInProgressPvpForUser(userId: string): Promise<BattleSummary[]>;
+  listFinishedForUser(userId: string, limit: number): Promise<FinishedBattleRow[]>;
 }
 
 function seedToBuffer(seed: number): Uint8Array<ArrayBuffer> {
@@ -198,6 +209,33 @@ export class PrismaBattleStore implements BattleStore {
     });
     return rows.filter((r) => r.resultJson !== null).map(toSummary);
   }
+
+  async listFinishedForUser(userId: string, limit: number): Promise<FinishedBattleRow[]> {
+    const rows = await this.prisma.battle.findMany({
+      where: {
+        endedAt: { not: null },
+        OR: [{ participantAId: userId }, { participantBId: userId }],
+      },
+      orderBy: { endedAt: "desc" },
+      take: limit,
+    });
+    const out: FinishedBattleRow[] = [];
+    for (const row of rows) {
+      if (row.resultJson === null || row.endedAt === null) continue;
+      const state = row.resultJson as unknown as BattleState;
+      if (state.winner === null) continue;
+      out.push({
+        id: row.id,
+        mode: row.mode,
+        userSide: row.participantAId === userId ? "A" : "B",
+        winner: state.winner,
+        turn: state.turn,
+        startedAt: row.startedAt.getTime(),
+        endedAt: row.endedAt.getTime(),
+      });
+    }
+    return out;
+  }
 }
 
 interface InMemoryBattleRow {
@@ -212,6 +250,8 @@ interface InMemoryBattleRow {
   pendingActionA: Action | null;
   pendingActionB: Action | null;
   pendingSubmitAt: number | null;
+  startedAt: number;
+  endedAt: number | null;
 }
 
 function rowToSummary(row: InMemoryBattleRow): BattleSummary {
@@ -232,6 +272,11 @@ function rowToSummary(row: InMemoryBattleRow): BattleSummary {
 export class InMemoryBattleStore implements BattleStore {
   private readonly battles = new Map<string, InMemoryBattleRow>();
   private nextId = 1;
+  private nowMs: () => number;
+
+  constructor(opts: { now?: () => number } = {}) {
+    this.nowMs = opts.now ?? (() => Date.now());
+  }
 
   async create(input: CreateBattleInput): Promise<BattleSummary> {
     const id = `mem_battle_${this.nextId++}`;
@@ -247,6 +292,8 @@ export class InMemoryBattleStore implements BattleStore {
       pendingActionA: null,
       pendingActionB: null,
       pendingSubmitAt: null,
+      startedAt: this.nowMs(),
+      endedAt: null,
     };
     this.battles.set(id, row);
     return rowToSummary(row);
@@ -266,6 +313,8 @@ export class InMemoryBattleStore implements BattleStore {
       pendingActionA: null,
       pendingActionB: null,
       pendingSubmitAt: null,
+      startedAt: this.nowMs(),
+      endedAt: null,
     };
     this.battles.set(id, row);
     return rowToSummary(row);
@@ -289,6 +338,9 @@ export class InMemoryBattleStore implements BattleStore {
     row.pendingActionA = null;
     row.pendingActionB = null;
     row.pendingSubmitAt = null;
+    if (newState.winner !== null && row.endedAt === null) {
+      row.endedAt = this.nowMs();
+    }
     return rowToSummary(row);
   }
 
@@ -324,6 +376,26 @@ export class InMemoryBattleStore implements BattleStore {
       out.push(rowToSummary(row));
     }
     return out;
+  }
+
+  async listFinishedForUser(userId: string, limit: number): Promise<FinishedBattleRow[]> {
+    const matches: FinishedBattleRow[] = [];
+    for (const row of this.battles.values()) {
+      if (row.endedAt === null) continue;
+      if (row.state.winner === null) continue;
+      if (row.ownerUserId !== userId && row.participantBId !== userId) continue;
+      matches.push({
+        id: row.id,
+        mode: row.mode,
+        userSide: row.ownerUserId === userId ? "A" : "B",
+        winner: row.state.winner,
+        turn: row.state.turn,
+        startedAt: row.startedAt,
+        endedAt: row.endedAt,
+      });
+    }
+    matches.sort((a, b) => b.endedAt - a.endedAt);
+    return matches.slice(0, limit);
   }
 
   getEvents(battleId: string): readonly BattleEvent[] {
