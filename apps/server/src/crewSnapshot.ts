@@ -1,16 +1,23 @@
 import { CREWS_BY_KEY, MOVES_BY_KEY } from "@pirate-battle/content";
 import {
   DEFAULT_LEVEL,
+  effectiveStats,
   type BattleState,
+  type CrewAttrs,
   type CrewSnapshot,
 } from "@pirate-battle/core";
 
 import type { CaptainTeam } from "./userStore.js";
 
+export interface CrewSnapshotInputs {
+  level?: number;
+  attrs?: CrewAttrs | null;
+}
+
 export function crewSnapshotFromTemplate(
   templateKey: string,
   moveKeys: readonly string[],
-  level: number = DEFAULT_LEVEL,
+  inputs: CrewSnapshotInputs = {},
 ): CrewSnapshot {
   const template = CREWS_BY_KEY[templateKey];
   if (!template) {
@@ -21,12 +28,14 @@ export function crewSnapshotFromTemplate(
     if (!move) throw new Error(`unknown move: ${key}`);
     return move;
   });
+  const level = inputs.level ?? DEFAULT_LEVEL;
+  const stats = effectiveStats(template.baseStats, level, inputs.attrs);
   return {
-    hp: template.baseStats.hp,
-    maxHp: template.baseStats.hp,
-    atk: template.baseStats.atk,
-    def: template.baseStats.def,
-    spd: template.baseStats.spd,
+    hp: stats.hp,
+    maxHp: stats.hp,
+    atk: stats.atk,
+    def: stats.def,
+    spd: stats.spd,
     level,
     affinity: template.affinity,
     statuses: [],
@@ -39,7 +48,10 @@ export function teamToSnapshots(team: CaptainTeam): CrewSnapshot[] {
     throw new Error(`team ${team.id} has no crews`);
   }
   return team.crews.map((c) =>
-    crewSnapshotFromTemplate(c.templateKey, c.moveKeys),
+    crewSnapshotFromTemplate(c.templateKey, c.moveKeys, {
+      level: c.level,
+      attrs: c.attrs,
+    }),
   );
 }
 

@@ -1,7 +1,9 @@
 import {
   aiPickAction,
   createRng,
+  DEFAULT_LEVEL,
   resolveTurn,
+  xpReward,
   type Action,
   type BattleState,
 } from "@pirate-battle/core";
@@ -10,7 +12,7 @@ import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 import { buildAIOpponentTeam } from "../aiTeam.js";
 import { buildInitialBattleState, teamToSnapshots } from "../crewSnapshot.js";
 import type { BattleStore } from "../battleStore.js";
-import type { UserStore } from "../userStore.js";
+import type { CaptainTeam, UserStore, XpAward } from "../userStore.js";
 import { getUserIdFromCookie } from "./session.js";
 
 export interface BattlePluginOptions {
@@ -104,6 +106,7 @@ export const battleRoutes: FastifyPluginCallback<BattlePluginOptions> = (
 
     const summary = await battleStore.create({
       ownerUserId: userId,
+      captainId: team.id,
       state: initialState,
     });
 
@@ -163,9 +166,57 @@ export const battleRoutes: FastifyPluginCallback<BattlePluginOptions> = (
         newEvents,
       );
 
+      const justEnded =
+        summary.state.winner === null && newState.winner !== null;
+      if (justEnded && summary.captainId) {
+        await grantXpForBattleEnd({
+          userStore,
+          userId,
+          captainId: summary.captainId,
+          playerWon: newState.winner === "A",
+        });
+      }
+
       return reply.send({ id: updated.id, state: updated.state });
     },
   );
 
   done();
 };
+
+interface GrantXpInput {
+  userStore: UserStore;
+  userId: string;
+  captainId: string;
+  playerWon: boolean;
+}
+
+async function grantXpForBattleEnd(input: GrantXpInput): Promise<void> {
+  const team = await input.userStore.getCaptainTeam(
+    input.userId,
+    input.captainId,
+  );
+  if (!team) return;
+  const awards = computeXpAwards({ team, playerWon: input.playerWon });
+  if (awards.length === 0) return;
+  await input.userStore.applyXpRewards(awards);
+}
+
+interface ComputeAwardsInput {
+  team: CaptainTeam;
+  playerWon: boolean;
+  opponentLevel?: number;
+}
+
+export function computeXpAwards(input: ComputeAwardsInput): XpAward[] {
+  const opponentLevel = input.opponentLevel ?? DEFAULT_LEVEL;
+  const xpGain = xpReward({ won: input.playerWon, opponentLevel });
+  if (xpGain <= 0) return [];
+  const awards: XpAward[] = [];
+  for (const crew of input.team.crews) {
+    if (typeof crew.id === "string") {
+      awards.push({ crewId: crew.id, xpGain });
+    }
+  }
+  return awards;
+}

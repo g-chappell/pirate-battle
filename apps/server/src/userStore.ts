@@ -1,3 +1,4 @@
+import { applyXp, DEFAULT_LEVEL, type CrewAttrs } from "@pirate-battle/core";
 import type { PrismaClient } from "@pirate-battle/db";
 
 export interface CaptainSummary {
@@ -24,8 +25,12 @@ export interface CreateCaptainInput {
 }
 
 export interface CaptainTeamCrew {
+  id?: string | null;
   templateKey: string;
   moveKeys: string[];
+  level?: number;
+  xp?: number;
+  attrs?: CrewAttrs | null;
 }
 
 export interface CaptainTeam {
@@ -33,6 +38,18 @@ export interface CaptainTeam {
   name: string;
   factionId: string;
   crews: CaptainTeamCrew[];
+}
+
+export interface XpAward {
+  crewId: string;
+  xpGain: number;
+}
+
+export interface CrewProgress {
+  crewId: string;
+  level: number;
+  xp: number;
+  levelsGained: number;
 }
 
 export interface UserStore {
@@ -56,6 +73,20 @@ export interface UserStore {
     userId: string,
     captainId: string,
   ): Promise<CaptainTeam | null>;
+  applyXpRewards(awards: readonly XpAward[]): Promise<CrewProgress[]>;
+}
+
+function parseAttrs(raw: unknown): CrewAttrs | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const obj = raw as Record<string, unknown>;
+  const attrs: CrewAttrs = {};
+  for (const key of ["hp", "atk", "def", "spd"] as const) {
+    const v = obj[key];
+    if (typeof v === "number" && Number.isFinite(v)) {
+      attrs[key] = v;
+    }
+  }
+  return Object.keys(attrs).length > 0 ? attrs : null;
 }
 
 export class PrismaUserStore implements UserStore {
@@ -190,6 +221,7 @@ export class PrismaUserStore implements UserStore {
         crews: {
           create: input.crews.map((crew) => ({
             templateKey: crew.templateKey,
+            level: DEFAULT_LEVEL,
             moves: {
               create: crew.moveKeys.map((moveKey, slot) => ({
                 moveKey,
@@ -223,10 +255,37 @@ export class PrismaUserStore implements UserStore {
       name: captain.name,
       factionId: captain.factionId,
       crews: captain.crews.map((c) => ({
+        id: c.id,
         templateKey: c.templateKey,
         moveKeys: c.moves.map((m) => m.moveKey),
+        level: c.level,
+        xp: c.xp,
+        attrs: parseAttrs(c.attrs),
       })),
     };
+  }
+
+  async applyXpRewards(awards: readonly XpAward[]): Promise<CrewProgress[]> {
+    if (awards.length === 0) return [];
+    return this.prisma.$transaction(async (tx) => {
+      const out: CrewProgress[] = [];
+      for (const award of awards) {
+        const crew = await tx.crew.findUnique({ where: { id: award.crewId } });
+        if (!crew) continue;
+        const result = applyXp(crew.level, crew.xp, award.xpGain);
+        await tx.crew.update({
+          where: { id: award.crewId },
+          data: { level: result.level, xp: result.xp },
+        });
+        out.push({
+          crewId: award.crewId,
+          level: result.level,
+          xp: result.xp,
+          levelsGained: result.levelsGained,
+        });
+      }
+      return out;
+    });
   }
 }
 
@@ -234,6 +293,9 @@ interface InMemoryCrew {
   id: string;
   templateKey: string;
   moveKeys: readonly string[];
+  level: number;
+  xp: number;
+  attrs: CrewAttrs | null;
 }
 
 interface InMemoryCaptain extends CaptainSummary {
@@ -329,6 +391,9 @@ export class InMemoryUserStore implements UserStore {
         id: `mem_crew_${this.nextCrewId++}`,
         templateKey: crew.templateKey,
         moveKeys: [...crew.moveKeys],
+        level: DEFAULT_LEVEL,
+        xp: 0,
+        attrs: null,
       })),
     };
     this.captains.set(captainId, captain);
@@ -351,10 +416,42 @@ export class InMemoryUserStore implements UserStore {
       name: captain.name,
       factionId: captain.factionId,
       crews: captain.crews.map((c) => ({
+        id: c.id,
         templateKey: c.templateKey,
         moveKeys: [...c.moveKeys],
+        level: c.level,
+        xp: c.xp,
+        attrs: c.attrs,
       })),
     };
+  }
+
+  async applyXpRewards(awards: readonly XpAward[]): Promise<CrewProgress[]> {
+    if (awards.length === 0) return [];
+    const out: CrewProgress[] = [];
+    for (const award of awards) {
+      const captain = this.findCaptainByCrewId(award.crewId);
+      if (!captain) continue;
+      const crew = captain.crews.find((c) => c.id === award.crewId);
+      if (!crew) continue;
+      const result = applyXp(crew.level, crew.xp, award.xpGain);
+      crew.level = result.level;
+      crew.xp = result.xp;
+      out.push({
+        crewId: crew.id,
+        level: result.level,
+        xp: result.xp,
+        levelsGained: result.levelsGained,
+      });
+    }
+    return out;
+  }
+
+  private findCaptainByCrewId(crewId: string): InMemoryCaptain | undefined {
+    for (const captain of this.captains.values()) {
+      if (captain.crews.some((c) => c.id === crewId)) return captain;
+    }
+    return undefined;
   }
 
   getCaptain(id: string): InMemoryCaptain | undefined {

@@ -4,11 +4,13 @@ import { BattleMode, type PrismaClient } from "@pirate-battle/db";
 export interface BattleSummary {
   id: string;
   ownerUserId: string;
+  captainId: string | null;
   state: BattleState;
 }
 
 export interface CreateBattleInput {
   ownerUserId: string;
+  captainId: string | null;
   state: BattleState;
 }
 
@@ -38,6 +40,7 @@ export class PrismaBattleStore implements BattleStore {
         mode: BattleMode.PVE,
         participantAId: input.ownerUserId,
         participantBId: null,
+        captainId: input.captainId,
         seed: seedToBuffer(input.state.rngSeed),
         resultJson: input.state as unknown as object,
       },
@@ -45,6 +48,7 @@ export class PrismaBattleStore implements BattleStore {
     return {
       id: battle.id,
       ownerUserId: battle.participantAId,
+      captainId: battle.captainId,
       state: input.state,
     };
   }
@@ -57,6 +61,7 @@ export class PrismaBattleStore implements BattleStore {
     return {
       id: battle.id,
       ownerUserId: battle.participantAId,
+      captainId: battle.captainId,
       state: battle.resultJson as unknown as BattleState,
     };
   }
@@ -92,6 +97,7 @@ export class PrismaBattleStore implements BattleStore {
     return {
       id: battle.id,
       ownerUserId: battle.participantAId,
+      captainId: battle.captainId,
       state: newState,
     };
   }
@@ -100,6 +106,7 @@ export class PrismaBattleStore implements BattleStore {
 interface InMemoryBattleRow {
   id: string;
   ownerUserId: string;
+  captainId: string | null;
   state: BattleState;
   events: BattleEvent[];
 }
@@ -113,11 +120,17 @@ export class InMemoryBattleStore implements BattleStore {
     const row: InMemoryBattleRow = {
       id,
       ownerUserId: input.ownerUserId,
+      captainId: input.captainId,
       state: input.state,
       events: [],
     };
     this.battles.set(id, row);
-    return { id, ownerUserId: row.ownerUserId, state: row.state };
+    return {
+      id,
+      ownerUserId: row.ownerUserId,
+      captainId: row.captainId,
+      state: row.state,
+    };
   }
 
   async get(battleId: string): Promise<BattleSummary | null> {
@@ -126,6 +139,7 @@ export class InMemoryBattleStore implements BattleStore {
     return {
       id: row.id,
       ownerUserId: row.ownerUserId,
+      captainId: row.captainId,
       state: row.state,
     };
   }
@@ -142,6 +156,7 @@ export class InMemoryBattleStore implements BattleStore {
     return {
       id: row.id,
       ownerUserId: row.ownerUserId,
+      captainId: row.captainId,
       state: row.state,
     };
   }
