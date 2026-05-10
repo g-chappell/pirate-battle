@@ -9,8 +9,8 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 22 (47%)
-- **Ready:** 20
+- **Done:** 23 (49%)
+- **Ready:** 19
 - **In progress:** 0
 - **Blocked:** 5
 
@@ -204,7 +204,7 @@ one PvE opponent, sees turn-by-turn animated battle. Validates engine
     > CLAUDE.md "React owns DOM chrome, Phaser owns canvas"), swap
     > button revealing bench. Wire submit → POST /api/battle/<id>/action.
     > Display turn log in a side panel (also React DOM).
-  - :black_circle: **TASK-019** — Web: turn animation placeholders (sprite shake + flash)  `med` `small` _(apps/web)_  
+  - :white_check_mark: **TASK-019** — Web: turn animation placeholders (sprite shake + flash)  `med` `small` _(apps/web)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/36)  
     _depends on: TASK-018_
     > Minimal hit feedback: when an attack lands, flash the target
     > red and add a brief x-offset shake via Phaser tweens. When
