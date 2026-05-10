@@ -471,3 +471,16 @@ gaps.
 
 ---
 
+### Run [2026-05-10 15:05]
+- Task: TASK-005 — Scaffold apps/discord stub + apps/mobile placeholder (cascade re-deploy)
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/42
+- Test counts: core=61, content=17, web=93, server=148, shared=9
+- Files changed: roadmap/roadmap.yml, ROADMAP.md
+- Regression alert: false
+- Review proposed: pending Step 15
+- Deploy: pending
+- Lessons learned: TASK-005 was the last cascade-root task left from the prisma-migrate rollback group (TASK-005/019/027/029/036/044). Rolling it forward unblocks the cascade window.
+
+---
+
