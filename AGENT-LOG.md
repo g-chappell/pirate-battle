@@ -518,7 +518,7 @@ gaps.
 - Files changed: apps/discord/src/{bot,commands,index}.ts, apps/discord/src/commands.test.ts, apps/discord/src/{interactions,interactions.test,link,link.test}.ts (new)
 - Regression alert: false
 - Review proposed: pending (Step 15)
-- Deploy: pending (Step 12)
+- Deploy: success
 - Lessons learned: discord.js v14 InteractionCreate dispatch pairs cleanly with a small InteractionLike interface — the dispatcher (adaptChatInputInteraction) stays trivial, and all handler logic is plain Vitest with mocked fetch + send. Worth reusing for upcoming /battle Discord commands.
 
 ---
