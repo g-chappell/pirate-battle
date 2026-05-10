@@ -292,3 +292,16 @@ gaps.
 
 ---
 
+### Run [2026-05-10 00:08]
+- Task: TASK-026 — Server: GET /api/roster (free starter + NFT crews)
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/30
+- Test counts: core=42, content=17, web=80, server=90
+- Files changed: apps/server/src/index.ts, apps/server/src/routes/roster.ts (new), apps/server/src/routes/roster.test.ts (new)
+- Regression alert: false
+- Review proposed: pending (Step 15)
+- Deploy: pending (Step 12)
+- Lessons learned: GET /api/roster keeps the contract shape stable across the three population paths (anonymous → starter only; wallet without NFT service configured → starter only; wallet + nftService → starter + filtered NFTs) by making nftService an optional BuildServerOptions field. Production wires it only when both BLOCKFROST_PROJECT_ID and NFT_ALLOWLIST_POLICY_IDS are present, so the deploy keeps booting in environments without Cardano config. NFT entries land as raw UserNft (policyId/assetName/unit/quantity) — the trait→stat enrichment is TASK-027's job, so the field is forward-compatible with that pipeline.
+
+---
+
