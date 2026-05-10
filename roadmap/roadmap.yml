@@ -131,7 +131,7 @@ epics:
             attempt_count: 2
           - id: TASK-006
             title: ESLint + Prettier root config (flat config)
-            status: in-progress
+            status: done
             priority: med
             complexity: small
             workspaces:
@@ -144,8 +144,8 @@ epics:
               `npx prettier --check .` both pass on the scaffolded code.
             depends_on:
               - TASK-005
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/43
+            completed: '2026-05-10T16:13:00Z'
             blocked_reason: null
             last_attempted: '2026-05-10T16:04:00Z'
             attempt_count: 1
