@@ -21,4 +21,20 @@ describe("buildCommandsPayload", () => {
     const names = buildCommandsPayload().map((c) => c.name);
     expect(names).toContain("ping");
   });
+
+  it("includes /link and /link-claim commands for the wallet→Discord link flow", () => {
+    const names = buildCommandsPayload().map((c) => c.name);
+    expect(names).toContain("link");
+    expect(names).toContain("link-claim");
+  });
+
+  it("/link-claim has a required string option named token", () => {
+    const claim = buildCommandsPayload().find((c) => c.name === "link-claim");
+    expect(claim).toBeDefined();
+    const options = (claim as { options?: Array<Record<string, unknown>> }).options ?? [];
+    expect(options.length).toBe(1);
+    const tokenOpt = options[0];
+    expect(tokenOpt?.name).toBe("token");
+    expect(tokenOpt?.required).toBe(true);
+  });
 });
