@@ -7,8 +7,16 @@ export interface CollectionRecord {
   rules: CollectionRules;
 }
 
+export type CollectionUpsertChange = "created" | "updated";
+
+export interface CollectionUpsertResult {
+  record: CollectionRecord;
+  change: CollectionUpsertChange;
+}
+
 export interface CollectionStore {
   listAll(): Promise<CollectionRecord[]>;
+  upsertOne(record: CollectionRecord): Promise<CollectionUpsertResult>;
 }
 
 export class PrismaCollectionStore implements CollectionStore {
@@ -24,6 +32,33 @@ export class PrismaCollectionStore implements CollectionStore {
       rules: r.ruleJson as unknown as CollectionRules,
     }));
   }
+
+  async upsertOne(record: CollectionRecord): Promise<CollectionUpsertResult> {
+    const existing = await this.prisma.collection.findUnique({
+      where: { policyId: record.policyId },
+      select: { id: true },
+    });
+    const row = await this.prisma.collection.upsert({
+      where: { policyId: record.policyId },
+      create: {
+        policyId: record.policyId,
+        name: record.name,
+        ruleJson: record.rules as unknown as object,
+      },
+      update: {
+        name: record.name,
+        ruleJson: record.rules as unknown as object,
+      },
+    });
+    return {
+      record: {
+        policyId: row.policyId,
+        name: row.name,
+        rules: row.ruleJson as unknown as CollectionRules,
+      },
+      change: existing ? "updated" : "created",
+    };
+  }
 }
 
 export class InMemoryCollectionStore implements CollectionStore {
@@ -35,5 +70,18 @@ export class InMemoryCollectionStore implements CollectionStore {
 
   async listAll(): Promise<CollectionRecord[]> {
     return this.records.map((r) => ({ ...r }));
+  }
+
+  async upsertOne(record: CollectionRecord): Promise<CollectionUpsertResult> {
+    const idx = this.records.findIndex(
+      (r) => r.policyId.toLowerCase() === record.policyId.toLowerCase(),
+    );
+    const copy: CollectionRecord = { ...record };
+    if (idx >= 0) {
+      this.records[idx] = copy;
+      return { record: { ...copy }, change: "updated" };
+    }
+    this.records.push(copy);
+    return { record: { ...copy }, change: "created" };
   }
 }

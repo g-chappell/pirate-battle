@@ -672,7 +672,7 @@ epics:
             attempt_count: 2
           - id: TASK-028
             title: 'Admin: CLI tool to register a new collection (policyId + ruleJson)'
-            status: ready
+            status: done
             priority: med
             complexity: medium
             workspaces:
@@ -686,11 +686,11 @@ epics:
               docs/ADMIN.md (new file). Bonus: --dry-run.
             depends_on:
               - TASK-027
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/49
+            completed: '2026-05-10T22:20:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-10T22:06:00Z'
+            attempt_count: 1
   - id: EPIC-04
     title: Crew progression, items & battle stats
     description: |
