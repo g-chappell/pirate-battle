@@ -700,3 +700,16 @@ gaps.
 
 ---
 
+### Run [2026-05-11 11:17]
+- Task: TASK-034 — Web: replay viewer (re-render BattleEvents through engine)
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/59
+- Test counts: discord=123, server=296, web=152, content=22, core=74, shared=9
+- Files changed: packages/core/src/{replay.ts, replay.test.ts, index.ts}; apps/web/src/{api.ts, replayView.ts, replayView.test.ts, ReplayPage.tsx, App.tsx, BattleHistoryPage.tsx}
+- Regression alert: false
+- Review proposed: false
+- Deploy: pending
+- Lessons learned: replay derives initial state by reverse-walking switch events on the final state then resetting HP/statuses (initial-state invariant: all crews at maxHp). `applyBattleEvent` mirrors the engine's per-event mutations so the same code path drives live battles and replays.
+
+---
+
