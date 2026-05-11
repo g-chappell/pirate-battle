@@ -614,3 +614,16 @@ gaps.
 
 ---
 
+### Run [2026-05-11 04:04]
+- Task: TASK-032 — Web: inventory UI + apply flow
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/52
+- Test counts: discord=30, server=235, web=146, content=22, core=66, shared=9
+- Files changed: apps/web/src/App.tsx, apps/web/src/api.ts, apps/web/src/InventoryPage.tsx, apps/web/src/inventoryView.ts, apps/web/src/inventoryView.test.ts
+- Regression alert: false
+- Review proposed: TBD (Step 15)
+- Deploy: pending (Step 12)
+- Lessons learned: Resumed a mid-cycle dirty tree where Step 6 had already claimed the branch and ~80% of Step 7 implementation was on disk uncommitted. Behaviour matched the existing view-derivation split (inventoryView.ts ↔ InventoryPage.tsx) — no scaffolding work needed, just a verification pass + commit.
+
+---
+
