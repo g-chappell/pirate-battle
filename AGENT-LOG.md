@@ -660,7 +660,7 @@ gaps.
 - Files changed: apps/discord/src/commands.ts, apps/discord/src/embeds.ts, apps/discord/src/gameCommands.ts, apps/discord/src/gameCommands.test.ts, apps/discord/src/interactions.ts, apps/discord/src/serverClient.ts, apps/server/src/battleStore.ts, apps/server/src/routes/battle.ts, apps/server/src/routes/discordCommands.ts, apps/server/src/routes/discordCommands.test.ts, apps/server/src/pveTurn.ts
 - Regression alert: false
 - Review proposed: pending
-- Deploy: pending
+- Deploy: success
 - Lessons learned: Extracted PvE turn loop (parse → validate → AI pick → resolveTurn → recordTurn → XP/drops) into apps/server/src/pveTurn.ts so the cookie-auth route and the new Discord-auth route share one source. The bot stays REST-y (GET active battle → translate human input → POST canonical Action) so future autocomplete on /move and /switch will be a UI-only addition.
 
 ---
