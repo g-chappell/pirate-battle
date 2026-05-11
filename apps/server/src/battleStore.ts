@@ -14,6 +14,17 @@ export interface BattleSummary {
   pendingActionA: Action | null;
   pendingActionB: Action | null;
   pendingSubmitAt: number | null;
+  discordChannelId: string | null;
+  discordMessageId: string | null;
+  discordGuildId: string | null;
+  discordMessageSentAt: number | null;
+}
+
+export interface SetDiscordMessageInput {
+  channelId: string;
+  messageId: string;
+  sentAtMs: number;
+  guildId: string | null;
 }
 
 export interface FinishedBattleRow {
@@ -60,6 +71,9 @@ export interface BattleStore {
   findActivePveForUser(userId: string): Promise<BattleSummary | null>;
   listFinishedForUser(userId: string, limit: number): Promise<FinishedBattleRow[]>;
   getFinishedStatsForUser(userId: string): Promise<FinishedBattleStats[]>;
+  setDiscordMessage(battleId: string, input: SetDiscordMessageInput): Promise<BattleSummary>;
+  clearDiscordMessage(battleId: string): Promise<BattleSummary>;
+  listInProgressWithDiscordMessage(): Promise<BattleSummary[]>;
 }
 
 function seedToBuffer(seed: number): Uint8Array<ArrayBuffer> {
@@ -80,6 +94,10 @@ interface PrismaBattleRow {
   pendingActionA: unknown;
   pendingActionB: unknown;
   pendingSubmitAt: Date | null;
+  discordChannelId: string | null;
+  discordMessageId: string | null;
+  discordGuildId: string | null;
+  discordMessageSentAt: Date | null;
 }
 
 function toSummary(row: PrismaBattleRow): BattleSummary {
@@ -94,6 +112,10 @@ function toSummary(row: PrismaBattleRow): BattleSummary {
     pendingActionA: (row.pendingActionA as Action | null) ?? null,
     pendingActionB: (row.pendingActionB as Action | null) ?? null,
     pendingSubmitAt: row.pendingSubmitAt ? row.pendingSubmitAt.getTime() : null,
+    discordChannelId: row.discordChannelId,
+    discordMessageId: row.discordMessageId,
+    discordGuildId: row.discordGuildId,
+    discordMessageSentAt: row.discordMessageSentAt ? row.discordMessageSentAt.getTime() : null,
   };
 }
 
@@ -274,6 +296,43 @@ export class PrismaBattleStore implements BattleStore {
     }
     return out;
   }
+
+  async setDiscordMessage(battleId: string, input: SetDiscordMessageInput): Promise<BattleSummary> {
+    const updated = await this.prisma.battle.update({
+      where: { id: battleId },
+      data: {
+        discordChannelId: input.channelId,
+        discordMessageId: input.messageId,
+        discordGuildId: input.guildId,
+        discordMessageSentAt: new Date(input.sentAtMs),
+      },
+    });
+    return toSummary(updated);
+  }
+
+  async clearDiscordMessage(battleId: string): Promise<BattleSummary> {
+    const updated = await this.prisma.battle.update({
+      where: { id: battleId },
+      data: {
+        discordChannelId: null,
+        discordMessageId: null,
+        discordGuildId: null,
+        discordMessageSentAt: null,
+      },
+    });
+    return toSummary(updated);
+  }
+
+  async listInProgressWithDiscordMessage(): Promise<BattleSummary[]> {
+    const rows = await this.prisma.battle.findMany({
+      where: {
+        endedAt: null,
+        discordMessageId: { not: null },
+      },
+      orderBy: { startedAt: "asc" },
+    });
+    return rows.filter((r) => r.resultJson !== null).map(toSummary);
+  }
 }
 
 interface InMemoryBattleRow {
@@ -290,6 +349,10 @@ interface InMemoryBattleRow {
   pendingSubmitAt: number | null;
   startedAt: number;
   endedAt: number | null;
+  discordChannelId: string | null;
+  discordMessageId: string | null;
+  discordGuildId: string | null;
+  discordMessageSentAt: number | null;
 }
 
 function rowToSummary(row: InMemoryBattleRow): BattleSummary {
@@ -304,6 +367,10 @@ function rowToSummary(row: InMemoryBattleRow): BattleSummary {
     pendingActionA: row.pendingActionA,
     pendingActionB: row.pendingActionB,
     pendingSubmitAt: row.pendingSubmitAt,
+    discordChannelId: row.discordChannelId,
+    discordMessageId: row.discordMessageId,
+    discordGuildId: row.discordGuildId,
+    discordMessageSentAt: row.discordMessageSentAt,
   };
 }
 
@@ -332,6 +399,10 @@ export class InMemoryBattleStore implements BattleStore {
       pendingSubmitAt: null,
       startedAt: this.nowMs(),
       endedAt: null,
+      discordChannelId: null,
+      discordMessageId: null,
+      discordGuildId: null,
+      discordMessageSentAt: null,
     };
     this.battles.set(id, row);
     return rowToSummary(row);
@@ -353,6 +424,10 @@ export class InMemoryBattleStore implements BattleStore {
       pendingSubmitAt: null,
       startedAt: this.nowMs(),
       endedAt: null,
+      discordChannelId: null,
+      discordMessageId: null,
+      discordGuildId: null,
+      discordMessageSentAt: null,
     };
     this.battles.set(id, row);
     return rowToSummary(row);
@@ -468,5 +543,36 @@ export class InMemoryBattleStore implements BattleStore {
     const row = this.battles.get(battleId);
     if (!row) return [];
     return row.events;
+  }
+
+  async setDiscordMessage(battleId: string, input: SetDiscordMessageInput): Promise<BattleSummary> {
+    const row = this.battles.get(battleId);
+    if (!row) throw new Error(`battle ${battleId} not found`);
+    row.discordChannelId = input.channelId;
+    row.discordMessageId = input.messageId;
+    row.discordGuildId = input.guildId;
+    row.discordMessageSentAt = input.sentAtMs;
+    return rowToSummary(row);
+  }
+
+  async clearDiscordMessage(battleId: string): Promise<BattleSummary> {
+    const row = this.battles.get(battleId);
+    if (!row) throw new Error(`battle ${battleId} not found`);
+    row.discordChannelId = null;
+    row.discordMessageId = null;
+    row.discordGuildId = null;
+    row.discordMessageSentAt = null;
+    return rowToSummary(row);
+  }
+
+  async listInProgressWithDiscordMessage(): Promise<BattleSummary[]> {
+    const matches: InMemoryBattleRow[] = [];
+    for (const row of this.battles.values()) {
+      if (row.endedAt !== null) continue;
+      if (row.discordMessageId === null) continue;
+      matches.push(row);
+    }
+    matches.sort((a, b) => a.startedAt - b.startedAt);
+    return matches.map(rowToSummary);
   }
 }

@@ -567,3 +567,277 @@ describe("POST /api/discord/battle/action", () => {
     await h.app.close();
   });
 });
+
+describe("POST /api/discord/battle/:id/message", () => {
+  it("rejects when discordUserId, channelId, messageId, or sentAtMs are missing/invalid", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const { captainId } = await seedLinkedUser(h, "55512");
+    const started = await startBattleFor(h, "55512", captainId);
+
+    // missing discord user
+    let res = await h.app.inject({
+      method: "POST",
+      url: `/api/discord/battle/${started.id}/message`,
+      payload: {
+        channelId: "100",
+        messageId: "200",
+        sentAtMs: 1_700_000_000_000,
+      },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: "invalid_discord_user_id" });
+
+    // invalid channel id
+    res = await h.app.inject({
+      method: "POST",
+      url: `/api/discord/battle/${started.id}/message`,
+      payload: {
+        discordUserId: "55512",
+        channelId: "not-snowflake",
+        messageId: "200",
+        sentAtMs: 1_700_000_000_000,
+      },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: "invalid_channel_id" });
+
+    // invalid message id
+    res = await h.app.inject({
+      method: "POST",
+      url: `/api/discord/battle/${started.id}/message`,
+      payload: {
+        discordUserId: "55512",
+        channelId: "100",
+        messageId: "abc",
+        sentAtMs: 1_700_000_000_000,
+      },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: "invalid_message_id" });
+
+    // invalid sentAtMs
+    res = await h.app.inject({
+      method: "POST",
+      url: `/api/discord/battle/${started.id}/message`,
+      payload: {
+        discordUserId: "55512",
+        channelId: "100",
+        messageId: "200",
+        sentAtMs: -1,
+      },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: "invalid_sent_at" });
+
+    await h.app.close();
+  });
+
+  it("returns 404 when discord user is not linked", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const res = await h.app.inject({
+      method: "POST",
+      url: "/api/discord/battle/anything/message",
+      payload: {
+        discordUserId: "55512",
+        channelId: "100",
+        messageId: "200",
+        sentAtMs: 1_700_000_000_000,
+      },
+    });
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({ error: "not_linked" });
+    await h.app.close();
+  });
+
+  it("returns 404 battle_not_found for an unknown battle id", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    await seedLinkedUser(h, "55512");
+    const res = await h.app.inject({
+      method: "POST",
+      url: "/api/discord/battle/no-such-battle/message",
+      payload: {
+        discordUserId: "55512",
+        channelId: "100",
+        messageId: "200",
+        sentAtMs: 1_700_000_000_000,
+      },
+    });
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({ error: "battle_not_found" });
+    await h.app.close();
+  });
+
+  it("returns 403 forbidden when the battle belongs to another user", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const owner = await seedLinkedUser(h, "55512");
+    const intruder = await seedLinkedUser(h, "77777");
+    void intruder;
+    const started = await startBattleFor(h, "55512", owner.captainId);
+    const res = await h.app.inject({
+      method: "POST",
+      url: `/api/discord/battle/${started.id}/message`,
+      payload: {
+        discordUserId: "77777",
+        channelId: "100",
+        messageId: "200",
+        sentAtMs: 1_700_000_000_000,
+      },
+    });
+    expect(res.statusCode).toBe(403);
+    expect(res.json()).toEqual({ error: "forbidden" });
+    await h.app.close();
+  });
+
+  it("persists channel/message/guild ids and sentAt; subsequent in-progress list contains it", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const { captainId } = await seedLinkedUser(h, "55512");
+    const started = await startBattleFor(h, "55512", captainId);
+    const sentAtMs = 1_700_000_000_000;
+    const setRes = await h.app.inject({
+      method: "POST",
+      url: `/api/discord/battle/${started.id}/message`,
+      payload: {
+        discordUserId: "55512",
+        channelId: "100",
+        messageId: "200",
+        guildId: "300",
+        sentAtMs,
+      },
+    });
+    expect(setRes.statusCode).toBe(200);
+    const setBody = setRes.json();
+    expect(setBody).toMatchObject({
+      ok: true,
+      id: started.id,
+      discordChannelId: "100",
+      discordMessageId: "200",
+      discordGuildId: "300",
+      discordMessageSentAt: sentAtMs,
+    });
+
+    const list = await h.app.inject({
+      method: "GET",
+      url: "/api/discord/battles/in-progress",
+    });
+    expect(list.statusCode).toBe(200);
+    expect(list.json()).toEqual({
+      battles: [
+        {
+          battleId: started.id,
+          channelId: "100",
+          messageId: "200",
+          guildId: "300",
+          sentAtMs,
+          discordUserId: "55512",
+        },
+      ],
+    });
+
+    await h.app.close();
+  });
+
+  it("accepts null guildId (DM channel) and stores it as null", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const { captainId } = await seedLinkedUser(h, "55512");
+    const started = await startBattleFor(h, "55512", captainId);
+    const res = await h.app.inject({
+      method: "POST",
+      url: `/api/discord/battle/${started.id}/message`,
+      payload: {
+        discordUserId: "55512",
+        channelId: "100",
+        messageId: "200",
+        guildId: null,
+        sentAtMs: 1_700_000_000_000,
+      },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().discordGuildId).toBeNull();
+    await h.app.close();
+  });
+});
+
+describe("DELETE /api/discord/battle/:id/message", () => {
+  it("clears tracking and removes the battle from the in-progress list", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const { captainId } = await seedLinkedUser(h, "55512");
+    const started = await startBattleFor(h, "55512", captainId);
+    await h.app.inject({
+      method: "POST",
+      url: `/api/discord/battle/${started.id}/message`,
+      payload: {
+        discordUserId: "55512",
+        channelId: "100",
+        messageId: "200",
+        sentAtMs: 1_700_000_000_000,
+      },
+    });
+    const del = await h.app.inject({
+      method: "DELETE",
+      url: `/api/discord/battle/${started.id}/message`,
+      payload: { discordUserId: "55512" },
+    });
+    expect(del.statusCode).toBe(200);
+    expect(del.json()).toEqual({ ok: true, id: started.id });
+
+    const list = await h.app.inject({
+      method: "GET",
+      url: "/api/discord/battles/in-progress",
+    });
+    expect(list.json()).toEqual({ battles: [] });
+    await h.app.close();
+  });
+});
+
+describe("GET /api/discord/battles/in-progress", () => {
+  it("returns empty array when no battles have discord messages", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const { captainId } = await seedLinkedUser(h, "55512");
+    await startBattleFor(h, "55512", captainId);
+    const res = await h.app.inject({
+      method: "GET",
+      url: "/api/discord/battles/in-progress",
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ battles: [] });
+    await h.app.close();
+  });
+
+  it("excludes battles whose endedAt is set, even if they still have message tracking", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const { captainId } = await seedLinkedUser(h, "55512");
+    const started = await startBattleFor(h, "55512", captainId);
+    await h.app.inject({
+      method: "POST",
+      url: `/api/discord/battle/${started.id}/message`,
+      payload: {
+        discordUserId: "55512",
+        channelId: "100",
+        messageId: "200",
+        sentAtMs: 1_700_000_000_000,
+      },
+    });
+    // forfeit ends the battle
+    await h.app.inject({
+      method: "POST",
+      url: "/api/discord/battle/action",
+      payload: { discordUserId: "55512", action: { type: "forfeit" } },
+    });
+    const res = await h.app.inject({
+      method: "GET",
+      url: "/api/discord/battles/in-progress",
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ battles: [] });
+    await h.app.close();
+  });
+});
