@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { type CaptainSummary, type UserSummary, createAnonymousSession, getMe } from "./api";
 import { BattleHistoryPage } from "./BattleHistoryPage";
 import { CaptainCrewsView } from "./CaptainCrewsView";
+import { InventoryPage } from "./InventoryPage";
 import { PvpBattlePage } from "./PvpBattlePage";
 import { PvpPage } from "./PvpPage";
 import { readChallengeFromUrl } from "./pvpView";
@@ -88,7 +89,9 @@ type View =
   | { kind: "captains" }
   | { kind: "pvp" }
   | { kind: "pvpBattle"; battleId: string }
-  | { kind: "history" };
+  | { kind: "history" }
+  | { kind: "inventory" }
+  | { kind: "inventoryCaptain"; captain: CaptainSummary };
 
 function initialView(captainCount: number): View {
   if (typeof window !== "undefined" && readChallengeFromUrl(window.location.search)) {
@@ -115,6 +118,12 @@ function SessionView({ user, onCaptainCreated }: SessionViewProps): ReactElement
         >
           PvP
         </NavButton>
+        <NavButton
+          active={view.kind === "inventory" || view.kind === "inventoryCaptain"}
+          onClick={() => setView({ kind: "inventory" })}
+        >
+          Inventory
+        </NavButton>
         <NavButton active={view.kind === "history"} onClick={() => setView({ kind: "history" })}>
           History
         </NavButton>
@@ -140,6 +149,15 @@ function SessionView({ user, onCaptainCreated }: SessionViewProps): ReactElement
         />
       ) : null}
       {view.kind === "history" ? <BattleHistoryPage /> : null}
+      {view.kind === "inventory" ? (
+        <InventoryPage
+          captains={user.captains}
+          onOpenCaptain={(captain) => setView({ kind: "inventoryCaptain", captain })}
+        />
+      ) : null}
+      {view.kind === "inventoryCaptain" ? (
+        <CaptainCrewsView captain={view.captain} onBack={() => setView({ kind: "inventory" })} />
+      ) : null}
     </>
   );
 }
