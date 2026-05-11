@@ -913,7 +913,7 @@ epics:
         tasks:
           - id: TASK-038
             title: 'Discord: /team + /battle + /stats slash commands'
-            status: in-progress
+            status: done
             priority: high
             complexity: medium
             workspaces:
@@ -928,8 +928,8 @@ epics:
             depends_on:
               - TASK-037
               - TASK-033
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/54
+            completed: '2026-05-11T06:26:00Z'
             blocked_reason: null
             last_attempted: '2026-05-11T06:04:00Z'
             attempt_count: 1
