@@ -793,7 +793,7 @@ epics:
         tasks:
           - id: TASK-033
             title: 'Server: aggregate per-crew W/L, K/D + GET /api/stats'
-            status: ready
+            status: in-progress
             priority: med
             complexity: medium
             workspaces:
@@ -808,8 +808,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-11T05:06:00Z'
+            attempt_count: 1
           - id: TASK-034
             title: 'Web: replay viewer (re-render BattleEvents through engine)'
             status: ready
