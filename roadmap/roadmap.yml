@@ -772,7 +772,7 @@ epics:
             attempt_count: 1
           - id: TASK-032
             title: 'Web: inventory UI + apply flow'
-            status: ready
+            status: in-progress
             priority: med
             complexity: small
             workspaces:
@@ -786,8 +786,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-11T03:01:00Z'
+            attempt_count: 1
       - id: STORY-13
         title: Battle stats + replay viewer
         tasks:
