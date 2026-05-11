@@ -1,4 +1,4 @@
-import type { BattleState } from "@pirate-battle/core";
+import type { Action, BattleState } from "@pirate-battle/core";
 
 export interface CaptainSummary {
   id: string;
@@ -38,6 +38,16 @@ export interface BattleResponse {
   id: string;
   state: BattleState;
   captainName: string;
+}
+
+export interface ActiveBattleResponse {
+  id: string;
+  state: BattleState;
+}
+
+export interface ActionResponse {
+  id: string;
+  state: BattleState;
 }
 
 export interface StatsResponse {
@@ -84,6 +94,27 @@ export async function startBattle(
 ): Promise<ApiResult<BattleResponse>> {
   const url = new URL("/api/discord/battle", env.serverUrl);
   return request<BattleResponse>(env.fetchImpl ?? fetch, url.toString(), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(args),
+  });
+}
+
+export async function fetchActiveBattle(
+  env: ApiCallEnv,
+  discordUserId: string,
+): Promise<ApiResult<ActiveBattleResponse>> {
+  const url = new URL("/api/discord/battle/active", env.serverUrl);
+  url.searchParams.set("discordUserId", discordUserId);
+  return request<ActiveBattleResponse>(env.fetchImpl ?? fetch, url.toString(), { method: "GET" });
+}
+
+export async function submitBattleAction(
+  env: ApiCallEnv,
+  args: { discordUserId: string; action: Action },
+): Promise<ApiResult<ActionResponse>> {
+  const url = new URL("/api/discord/battle/action", env.serverUrl);
+  return request<ActionResponse>(env.fetchImpl ?? fetch, url.toString(), {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(args),

@@ -1,6 +1,14 @@
+import type { BattleState, CrewSnapshot, MoveDef } from "@pirate-battle/core";
 import { describe, expect, it, vi } from "vitest";
 
-import { handleBattleCommand, handleStatsCommand, handleTeamCommand } from "./gameCommands.js";
+import {
+  handleBattleCommand,
+  handleForfeitCommand,
+  handleMoveCommand,
+  handleStatsCommand,
+  handleSwitchCommand,
+  handleTeamCommand,
+} from "./gameCommands.js";
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -176,6 +184,176 @@ describe("handleBattleCommand", () => {
       discordUserId: "9999",
       captainId: "cap-1",
       opponent: "ai",
+    });
+  });
+});
+
+const TIDE_SURGE: MoveDef = {
+  key: "tide_surge",
+  name: "Tide Surge",
+  affinity: "kraken",
+  basePower: 40,
+  accuracy: 100,
+  kind: "damage",
+};
+
+function makeCrew(templateKey: string, moves: MoveDef[] = [TIDE_SURGE]): CrewSnapshot {
+  return {
+    templateKey,
+    hp: 100,
+    maxHp: 100,
+    atk: 50,
+    def: 50,
+    spd: 50,
+    level: 5,
+    affinity: "kraken",
+    statuses: [],
+    moves,
+  };
+}
+
+function makeBattleState(opts?: { bench?: CrewSnapshot[] }): BattleState {
+  return {
+    turn: 0,
+    activeA: makeCrew("tide_brawler"),
+    activeB: makeCrew("deep_warden"),
+    benchA: opts?.bench ?? [makeCrew("cannon_master")],
+    benchB: [],
+    log: [],
+    rngSeed: 1,
+    rngState: 1,
+    pendingSwapA: false,
+    pendingSwapB: false,
+    winner: null,
+  };
+}
+
+function meResponseWithCaptain() {
+  return {
+    user: {
+      id: "u-1",
+      stakeAddr: "stake1",
+      captains: [{ id: "cap-1", name: "Bonny", factionId: "kraken" }],
+    },
+  };
+}
+
+describe("handleMoveCommand", () => {
+  it("returns no_active_battle hint when the user has no in-progress battle", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, meResponseWithCaptain()));
+    fetchImpl.mockResolvedValueOnce(jsonResponse(404, { error: "no_active_battle" }));
+    const result = await handleMoveCommand({ ...ENV, fetchImpl }, "9999", "tide_surge");
+    expect(result.content).toMatch(/don't have a battle in progress/i);
+  });
+
+  it("returns an unknown-move hint when the move isn't on the active crew", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, meResponseWithCaptain()));
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, { id: "b-1", state: makeBattleState() }));
+    const result = await handleMoveCommand({ ...ENV, fetchImpl }, "9999", "fireball");
+    expect(result.content).toMatch(/Couldn't find a move/);
+    expect(result.content).toMatch(/Available moves:/);
+  });
+
+  it("submits a canonical move action on a key match and renders a turn embed", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, meResponseWithCaptain()));
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, { id: "b-1", state: makeBattleState() }));
+    const newState: BattleState = { ...makeBattleState(), turn: 1 };
+    newState.log.push({
+      kind: "move",
+      side: "A",
+      moveKey: "tide_surge",
+      damage: 12,
+      targetHpAfter: 88,
+      crit: false,
+      effective: 1,
+    });
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, { id: "b-1", state: newState }));
+    const result = await handleMoveCommand({ ...ENV, fetchImpl }, "9999", "tide_surge");
+    expect(result.embeds?.[0]?.title).toContain("Turn 1");
+    const submitInit = fetchImpl.mock.calls[2]?.[1] as RequestInit;
+    expect(JSON.parse(submitInit.body as string)).toEqual({
+      discordUserId: "9999",
+      action: { type: "move", moveKey: "tide_surge" },
+    });
+  });
+
+  it("translates a human-readable move name to its key", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, meResponseWithCaptain()));
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, { id: "b-1", state: makeBattleState() }));
+    fetchImpl.mockResolvedValueOnce(
+      jsonResponse(200, { id: "b-1", state: { ...makeBattleState(), turn: 1 } }),
+    );
+    await handleMoveCommand({ ...ENV, fetchImpl }, "9999", "Tide Surge");
+    const submitInit = fetchImpl.mock.calls[2]?.[1] as RequestInit;
+    expect(JSON.parse(submitInit.body as string).action.moveKey).toBe("tide_surge");
+  });
+});
+
+describe("handleSwitchCommand", () => {
+  it("returns no_active_battle hint when there's no battle", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, meResponseWithCaptain()));
+    fetchImpl.mockResolvedValueOnce(jsonResponse(404, { error: "no_active_battle" }));
+    const result = await handleSwitchCommand({ ...ENV, fetchImpl }, "9999", "cannon_master");
+    expect(result.content).toMatch(/don't have a battle in progress/i);
+  });
+
+  it("returns an unknown-crew hint when the bench doesn't contain the named crew", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, meResponseWithCaptain()));
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, { id: "b-1", state: makeBattleState() }));
+    const result = await handleSwitchCommand({ ...ENV, fetchImpl }, "9999", "made_up_crew");
+    expect(result.content).toMatch(/Couldn't find a benched crew/);
+    expect(result.content).toMatch(/Bench:/);
+  });
+
+  it("submits a switch action with the matching bench index", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, meResponseWithCaptain()));
+    const state = makeBattleState({
+      bench: [makeCrew("cannon_master"), makeCrew("bulwark_guard")],
+    });
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, { id: "b-1", state }));
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, { id: "b-1", state: { ...state, turn: 1 } }));
+    const result = await handleSwitchCommand({ ...ENV, fetchImpl }, "9999", "bulwark_guard");
+    expect(result.embeds?.[0]?.title).toContain("Turn 1");
+    const submitInit = fetchImpl.mock.calls[2]?.[1] as RequestInit;
+    expect(JSON.parse(submitInit.body as string)).toEqual({
+      discordUserId: "9999",
+      action: { type: "switch", targetIndex: 1 },
+    });
+  });
+});
+
+describe("handleForfeitCommand", () => {
+  it("returns no_active_battle hint when there's no battle", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, meResponseWithCaptain()));
+    fetchImpl.mockResolvedValueOnce(jsonResponse(404, { error: "no_active_battle" }));
+    const result = await handleForfeitCommand({ ...ENV, fetchImpl }, "9999");
+    expect(result.content).toMatch(/don't have a battle in progress/i);
+  });
+
+  it("submits a forfeit action and renders the defeat embed", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, meResponseWithCaptain()));
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, { id: "b-1", state: makeBattleState() }));
+    fetchImpl.mockResolvedValueOnce(
+      jsonResponse(200, {
+        id: "b-1",
+        state: { ...makeBattleState(), winner: "B" satisfies "B" },
+      }),
+    );
+    const result = await handleForfeitCommand({ ...ENV, fetchImpl }, "9999");
+    expect(result.embeds?.[0]?.title).toMatch(/Defeat/);
+    const submitInit = fetchImpl.mock.calls[2]?.[1] as RequestInit;
+    expect(JSON.parse(submitInit.body as string)).toEqual({
+      discordUserId: "9999",
+      action: { type: "forfeit" },
     });
   });
 });

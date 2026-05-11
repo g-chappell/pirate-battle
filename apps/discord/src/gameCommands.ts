@@ -1,16 +1,22 @@
+import { CREWS_BY_KEY, MOVES_BY_KEY } from "@pirate-battle/content";
+import type { Action, BattleState, CrewSnapshot } from "@pirate-battle/core";
 import type { APIEmbed } from "discord.js";
 
 import {
+  buildAvailableActionsHint,
   buildBattleStartEmbed,
+  buildBattleTurnEmbed,
   buildCaptainListEmbed,
   buildStatsEmbed,
   buildTeamEmbed,
 } from "./embeds.js";
 import {
+  fetchActiveBattle,
   fetchMe,
   fetchStats,
   fetchTeam,
   startBattle,
+  submitBattleAction,
   type ApiCallEnv,
   type ApiResult,
 } from "./serverClient.js";
@@ -30,6 +36,16 @@ const ERROR_MESSAGES: Record<string, string> = {
   invalid_discord_user_id: "Couldn't read your Discord user id. Try again, or contact an admin.",
   invalid_captain_id: "Captain id was missing or invalid.",
   invalid_target_discord_user_id: "That user mention isn't a valid Discord user.",
+  no_active_battle: "You don't have a battle in progress. Run `/battle opponent:ai` to start one.",
+  battle_ended: "That battle has already ended. Start a new one with `/battle opponent:ai`.",
+  swap_required: "Your active crew has fainted — you must `/switch` before any other action.",
+  unknown_move: "Your active crew doesn't know that move.",
+  switch_out_of_range: "That bench slot doesn't exist.",
+  switch_to_fainted: "That crew has fainted and can't be switched in.",
+  invalid_action: "Invalid action.",
+  invalid_action_type: "Invalid action type.",
+  invalid_move_key: "Move name was missing or invalid.",
+  invalid_target_index: "Bench index was missing or invalid.",
   network_error: SERVER_DOWN_MESSAGE,
   unknown_error: UNKNOWN_ERROR_MESSAGE,
 };
@@ -99,6 +115,124 @@ export async function handleBattleCommand(
       }),
     ],
   };
+}
+
+function findMoveKey(active: CrewSnapshot, input: string): string | null {
+  const normalised = input.trim().toLowerCase();
+  if (normalised.length === 0) return null;
+  const byKey = active.moves.find((m) => m.key.toLowerCase() === normalised);
+  if (byKey) return byKey.key;
+  const byName = active.moves.find((m) => m.name.toLowerCase() === normalised);
+  if (byName) return byName.key;
+  const globalByName = Object.values(MOVES_BY_KEY).find((m) => m.name.toLowerCase() === normalised);
+  if (globalByName && active.moves.some((m) => m.key === globalByName.key)) {
+    return globalByName.key;
+  }
+  return null;
+}
+
+function findBenchIndex(state: BattleState, input: string): number | null {
+  const normalised = input.trim().toLowerCase();
+  if (normalised.length === 0) return null;
+  const matchIndex = state.benchA.findIndex((c) => {
+    if (c.templateKey.toLowerCase() === normalised) return true;
+    const def = CREWS_BY_KEY[c.templateKey];
+    if (def && def.name.toLowerCase() === normalised) return true;
+    return false;
+  });
+  return matchIndex >= 0 ? matchIndex : null;
+}
+
+type LoadedBattle =
+  | { ok: true; battle: { id: string; state: BattleState }; captainName: string }
+  | { ok: false; result: CommandResult };
+
+async function loadActiveBattle(env: ApiCallEnv, discordUserId: string): Promise<LoadedBattle> {
+  const me = await fetchMe(env, discordUserId);
+  if (!me.ok) return { ok: false, result: asError(me) };
+  const captainName = me.data.user.captains[0]?.name ?? "Captain";
+  const active = await fetchActiveBattle(env, discordUserId);
+  if (!active.ok) {
+    if (active.reason === "no_active_battle") {
+      return { ok: false, result: { content: friendly("no_active_battle") } };
+    }
+    return { ok: false, result: asError(active) };
+  }
+  return { ok: true, battle: active.data, captainName };
+}
+
+async function submitAndRender(
+  env: ApiCallEnv,
+  discordUserId: string,
+  captainName: string,
+  beforeLogLen: number,
+  action: Action,
+): Promise<CommandResult> {
+  const result = await submitBattleAction(env, { discordUserId, action });
+  if (!result.ok) return asError(result);
+  const recentEvents = result.data.state.log.slice(beforeLogLen);
+  return {
+    embeds: [
+      buildBattleTurnEmbed({
+        captainName,
+        state: result.data.state,
+        battleId: result.data.id,
+        recentEvents,
+      }),
+    ],
+  };
+}
+
+export async function handleMoveCommand(
+  env: ApiCallEnv,
+  discordUserId: string,
+  rawMoveName: string,
+): Promise<CommandResult> {
+  const loaded = await loadActiveBattle(env, discordUserId);
+  if (!loaded.ok) return loaded.result;
+  const { battle, captainName } = loaded;
+  const moveKey = findMoveKey(battle.state.activeA, rawMoveName);
+  if (!moveKey) {
+    return {
+      content: `Couldn't find a move named \`${rawMoveName}\` on your active crew.\n${buildAvailableActionsHint(battle.state)}`,
+    };
+  }
+  return submitAndRender(env, discordUserId, captainName, battle.state.log.length, {
+    type: "move",
+    moveKey,
+  });
+}
+
+export async function handleSwitchCommand(
+  env: ApiCallEnv,
+  discordUserId: string,
+  rawCrewName: string,
+): Promise<CommandResult> {
+  const loaded = await loadActiveBattle(env, discordUserId);
+  if (!loaded.ok) return loaded.result;
+  const { battle, captainName } = loaded;
+  const targetIndex = findBenchIndex(battle.state, rawCrewName);
+  if (targetIndex === null) {
+    return {
+      content: `Couldn't find a benched crew named \`${rawCrewName}\`.\n${buildAvailableActionsHint(battle.state)}`,
+    };
+  }
+  return submitAndRender(env, discordUserId, captainName, battle.state.log.length, {
+    type: "switch",
+    targetIndex,
+  });
+}
+
+export async function handleForfeitCommand(
+  env: ApiCallEnv,
+  discordUserId: string,
+): Promise<CommandResult> {
+  const loaded = await loadActiveBattle(env, discordUserId);
+  if (!loaded.ok) return loaded.result;
+  const { battle, captainName } = loaded;
+  return submitAndRender(env, discordUserId, captainName, battle.state.log.length, {
+    type: "forfeit",
+  });
 }
 
 export async function handleStatsCommand(

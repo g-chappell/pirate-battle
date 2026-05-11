@@ -1,14 +1,14 @@
-import { aiPickAction, createRng, DEFAULT_LEVEL, resolveTurn, xpReward } from "@pirate-battle/core";
 import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 
 import { buildAIOpponentTeam } from "../aiTeam.js";
-import { parseAction, validateAction } from "../battleAction.js";
 import type { BattleStore } from "../battleStore.js";
 import { buildInitialBattleState, teamToSnapshots } from "../crewSnapshot.js";
-import { DROP_TABLES, difficultyForOpponentLevel, rollDrops } from "../itemDrops.js";
-import type { CaptainTeam, UserStore, XpAward } from "../userStore.js";
+import { applyAuthorizedPveTurn } from "../pveTurn.js";
+import type { UserStore } from "../userStore.js";
 
 import { getUserIdFromCookie } from "./session.js";
+
+export { computeXpAwards, grantDropsForBattleWin } from "../pveTurn.js";
 
 export interface BattlePluginOptions {
   userStore: UserStore;
@@ -108,98 +108,19 @@ export const battleRoutes: FastifyPluginCallback<BattlePluginOptions> = (
     if (summary.ownerUserId !== userId) {
       return reply.code(403).send({ error: "forbidden" });
     }
-    if (summary.state.winner !== null) {
-      return reply.code(409).send({ error: "battle_ended" });
-    }
 
     const body = (req.body ?? {}) as ActionRequestBody;
-    const parsed = parseAction(body.action);
-    if ("error" in parsed) {
-      return reply.code(400).send({ error: parsed.error });
+    const result = await applyAuthorizedPveTurn({
+      userStore,
+      battleStore,
+      summary,
+      rawAction: body.action,
+    });
+    if (!result.ok) {
+      return reply.code(result.code).send({ error: result.error });
     }
-
-    const validation = validateAction(parsed, summary.state, "A");
-    if (!validation.ok) {
-      return reply.code(400).send({ error: validation.error });
-    }
-
-    const aiAction = aiPickAction(summary.state, "B");
-    const rng = createRng(summary.state.rngState);
-    const newState = resolveTurn(summary.state, parsed, aiAction, rng);
-    const newEvents = newState.log.slice(summary.state.log.length);
-
-    const updated = await battleStore.recordTurn(summary.id, newState, newEvents);
-
-    const justEnded = summary.state.winner === null && newState.winner !== null;
-    if (justEnded && summary.captainId) {
-      await grantXpForBattleEnd({
-        userStore,
-        userId,
-        captainId: summary.captainId,
-        playerWon: newState.winner === "A",
-      });
-      if (newState.winner === "A") {
-        await grantDropsForBattleWin({
-          userStore,
-          userId,
-          opponentLevel: DEFAULT_LEVEL,
-          rngSeed: newState.rngState,
-        });
-      }
-    }
-
-    return reply.send({ id: updated.id, state: updated.state });
+    return reply.send({ id: result.summary.id, state: result.summary.state });
   });
 
   done();
 };
-
-interface GrantDropsInput {
-  userStore: UserStore;
-  userId: string;
-  opponentLevel: number;
-  rngSeed: number;
-}
-
-export async function grantDropsForBattleWin(input: GrantDropsInput): Promise<string[]> {
-  const table = DROP_TABLES[difficultyForOpponentLevel(input.opponentLevel)];
-  const drops = rollDrops(table, createRng(input.rngSeed));
-  for (const templateKey of drops) {
-    await input.userStore.grantItems(input.userId, templateKey, 1);
-  }
-  return drops;
-}
-
-interface GrantXpInput {
-  userStore: UserStore;
-  userId: string;
-  captainId: string;
-  playerWon: boolean;
-}
-
-async function grantXpForBattleEnd(input: GrantXpInput): Promise<void> {
-  const team = await input.userStore.getCaptainTeam(input.userId, input.captainId);
-  if (!team) return;
-  const awards = computeXpAwards({ team, playerWon: input.playerWon });
-  if (awards.length === 0) return;
-  await input.userStore.applyXpRewards(awards);
-}
-
-interface ComputeAwardsInput {
-  team: CaptainTeam;
-  playerWon: boolean;
-  opponentLevel?: number;
-}
-
-export function computeXpAwards(input: ComputeAwardsInput): XpAward[] {
-  const opponentLevel = input.opponentLevel ?? DEFAULT_LEVEL;
-  const xpGain = xpReward({ won: input.playerWon, opponentLevel });
-  if (xpGain <= 0) return [];
-  const awards: XpAward[] = [];
-  for (const crew of input.team.crews) {
-    if (typeof crew.id === "string") {
-      awards.push({ crewId: crew.id, xpGain });
-    }
-  }
-  return awards;
-}

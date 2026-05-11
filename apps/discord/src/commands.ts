@@ -35,6 +35,22 @@ export const commandDefinitions: SlashCommandBuilder[] = [
         .setDescription("Another linked Discord user (defaults to yourself)")
         .setRequired(false),
     ) as SlashCommandBuilder,
+  new SlashCommandBuilder()
+    .setName("move")
+    .setDescription("Use a move with your active crew in your current battle")
+    .addStringOption((opt) =>
+      opt.setName("name").setDescription("Move name or key (e.g. tide_surge)").setRequired(true),
+    ) as SlashCommandBuilder,
+  new SlashCommandBuilder()
+    .setName("switch")
+    .setDescription("Swap your active crew for a benched one in your current battle")
+    .addStringOption((opt) =>
+      opt
+        .setName("crew")
+        .setDescription("Crew name or template key (e.g. tide_brawler)")
+        .setRequired(true),
+    ) as SlashCommandBuilder,
+  new SlashCommandBuilder().setName("forfeit").setDescription("Concede your current battle"),
 ];
 
 export function buildCommandsPayload(): RESTPostAPIApplicationCommandsJSONBody[] {
