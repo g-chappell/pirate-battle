@@ -27,6 +27,7 @@ import { authRoutes } from "./routes/auth.js";
 import { battleRoutes } from "./routes/battle.js";
 import { captainRoutes } from "./routes/captain.js";
 import { crewRoutes } from "./routes/crew.js";
+import { discordCommandRoutes } from "./routes/discordCommands.js";
 import { discordLinkRoutes } from "./routes/discordLink.js";
 import { inventoryRoutes } from "./routes/inventory.js";
 import { pvpRoutes } from "./routes/pvp.js";
@@ -81,6 +82,11 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
   app.register(discordLinkRoutes, {
     userStore: opts.userStore,
     tokenStore: opts.discordLinkTokenStore ?? new InMemoryDiscordLinkTokenStore(),
+  });
+  app.register(discordCommandRoutes, {
+    userStore: opts.userStore,
+    battleStore: opts.battleStore,
+    seedFactory: opts.seedFactory,
   });
   app.register(pvpRoutes, {
     userStore: opts.userStore,

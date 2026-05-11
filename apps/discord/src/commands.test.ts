@@ -37,4 +37,26 @@ describe("buildCommandsPayload", () => {
     expect(tokenOpt?.name).toBe("token");
     expect(tokenOpt?.required).toBe(true);
   });
+
+  it("includes /team /battle /stats game commands", () => {
+    const names = buildCommandsPayload().map((c) => c.name);
+    expect(names).toEqual(expect.arrayContaining(["team", "battle", "stats"]));
+  });
+
+  it("/battle has a required opponent option", () => {
+    const battle = buildCommandsPayload().find((c) => c.name === "battle");
+    expect(battle).toBeDefined();
+    const options = (battle as { options?: Array<Record<string, unknown>> }).options ?? [];
+    const opt = options.find((o) => o.name === "opponent");
+    expect(opt?.required).toBe(true);
+  });
+
+  it("/stats has an optional user option", () => {
+    const stats = buildCommandsPayload().find((c) => c.name === "stats");
+    expect(stats).toBeDefined();
+    const options = (stats as { options?: Array<Record<string, unknown>> }).options ?? [];
+    const opt = options.find((o) => o.name === "user");
+    expect(opt).toBeDefined();
+    expect(opt?.required).toBe(false);
+  });
 });

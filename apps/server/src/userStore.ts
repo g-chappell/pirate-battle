@@ -92,6 +92,7 @@ export interface UserStore {
   createAnonymous(): Promise<UserSummary>;
   findById(id: string): Promise<UserSummary | null>;
   findByStakeAddr(stakeAddr: string): Promise<UserSummary | null>;
+  findByDiscordUserId(discordUserId: string): Promise<UserSummary | null>;
   createWithStakeAddr(stakeAddr: string): Promise<UserSummary>;
   attachStakeAddrToUser(userId: string, stakeAddr: string): Promise<UserSummary | null>;
   mergeAnonymousIntoWallet(anonUserId: string, walletUserId: string): Promise<UserSummary | null>;
@@ -157,6 +158,24 @@ export class PrismaUserStore implements UserStore {
   async findByStakeAddr(stakeAddr: string): Promise<UserSummary | null> {
     const user = await this.prisma.user.findUnique({
       where: { stakeAddr },
+      include: {
+        captains: {
+          select: { id: true, name: true, factionId: true },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+    });
+    if (!user) return null;
+    return {
+      id: user.id,
+      stakeAddr: user.stakeAddr,
+      captains: user.captains,
+    };
+  }
+
+  async findByDiscordUserId(discordUserId: string): Promise<UserSummary | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { discordUserId },
       include: {
         captains: {
           select: { id: true, name: true, factionId: true },
@@ -495,6 +514,12 @@ export class InMemoryUserStore implements UserStore {
       if (user.stakeAddr === stakeAddr) return user;
     }
     return null;
+  }
+
+  async findByDiscordUserId(discordUserId: string): Promise<UserSummary | null> {
+    const userId = this.discordUserIds.get(discordUserId);
+    if (!userId) return null;
+    return this.users.get(userId) ?? null;
   }
 
   async createWithStakeAddr(stakeAddr: string): Promise<UserSummary> {
