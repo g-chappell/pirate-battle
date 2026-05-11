@@ -640,3 +640,15 @@ gaps.
 
 ---
 
+### Run [2026-05-11 06:26]
+- Task: TASK-038 — Discord: /team + /battle + /stats slash commands
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/54
+- Test counts: core=66, content=22, web=146, server=266, shared=9, discord=71
+- Files changed: apps/server/src/userStore.ts, apps/server/src/index.ts, apps/server/src/routes/discordCommands.ts, apps/server/src/routes/discordCommands.test.ts, apps/discord/src/commands.ts, apps/discord/src/commands.test.ts, apps/discord/src/interactions.ts, apps/discord/src/interactions.test.ts, apps/discord/src/serverClient.ts, apps/discord/src/serverClient.test.ts, apps/discord/src/embeds.ts, apps/discord/src/embeds.test.ts, apps/discord/src/gameCommands.ts, apps/discord/src/gameCommands.test.ts
+- Regression alert: false
+- Deploy: awaiting
+- Lessons learned: Discord-friendly endpoints duplicate cookie-authed routes by switching the auth axis to discordUserId; cleaner than threading session-cookie generation through the bot.
+
+---
+
