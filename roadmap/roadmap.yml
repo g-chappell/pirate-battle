@@ -959,7 +959,7 @@ epics:
         tasks:
           - id: TASK-040
             title: Embed renderer (HP bars, move announcement, type-effectiveness)
-            status: ready
+            status: in-progress
             priority: high
             complexity: medium
             workspaces:
@@ -975,8 +975,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-11T08:07:00Z'
+            attempt_count: 1
           - id: TASK-041
             title: Async match state machine (Battle messageId, edit lifecycle)
             status: ready
