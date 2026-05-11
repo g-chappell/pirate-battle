@@ -132,6 +132,24 @@ export async function getCaptainTeam(captainId: string): Promise<CaptainTeamApi>
   return request<CaptainTeamApi>(`/api/captain/${encodeURIComponent(captainId)}/team`);
 }
 
+export async function getInventory(): Promise<{ inventory: InventoryEntryApi[] }> {
+  return request<{ inventory: InventoryEntryApi[] }>("/api/inventory");
+}
+
+export interface ApplyItemApiResponse {
+  templateKey: string;
+  applied: boolean;
+  remaining: number;
+}
+
+export async function applyItem(templateKey: string): Promise<ApplyItemApiResponse> {
+  return request<ApplyItemApiResponse>("/api/item/apply", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ templateKey }),
+  });
+}
+
 export async function trainCrew(
   captainId: string,
   crewId: string,
