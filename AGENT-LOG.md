@@ -627,3 +627,16 @@ gaps.
 
 ---
 
+### Run [2026-05-11 05:23]
+- Task: TASK-033 — Server: aggregate per-crew W/L, K/D + GET /api/stats
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/53
+- Test counts: discord=30, server=250, web=146, content=22, core=66, shared=9
+- Files changed: apps/server/src/{statsAggregator,statsAggregator.test,routes/stats,routes/stats.test,battleStore,battleStore.test,userStore,crewSnapshot,index}.ts, packages/core/src/{types,engine.test,determinism.test,resolveMove.test,aiPickAction.test}.ts, packages/shared/src/{nftMapping,nftMapping.test}.ts, apps/web/src/{battleView.test,battleSummary.test}.ts
+- Regression alert: false
+- Review proposed: TBD (Step 15)
+- Deploy: TBD (Step 12)
+- Lessons learned: Per-crew K/D from final-state + faint events is honest about what the schema supports. Adding templateKey to CrewSnapshot (additive, propagates via engine spreads) was the lightest viable enabler — only test-fixture churn, no engine logic touched, no migration. Determinism tests still byte-equal since log events never embed snapshots.
+
+---
+
