@@ -176,6 +176,15 @@ export async function submitBattleAction(
   });
 }
 
+export interface BattleResponse {
+  id: string;
+  state: BattleState;
+}
+
+export async function getBattle(battleId: string): Promise<BattleResponse> {
+  return request<BattleResponse>(`/api/battle/${encodeURIComponent(battleId)}`);
+}
+
 export interface FinishedBattleRow {
   id: string;
   mode: string;

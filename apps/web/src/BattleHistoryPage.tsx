@@ -53,6 +53,7 @@ function toListItem(row: FinishedBattleRow): FinishedBattleListItem {
 
 interface BattleHistoryPageProps {
   limit?: number;
+  onOpenReplay?: (battleId: string) => void;
 }
 
 type LoadState =
@@ -60,7 +61,10 @@ type LoadState =
   | { kind: "ready"; battles: FinishedBattleRow[] }
   | { kind: "error"; message: string };
 
-export function BattleHistoryPage({ limit = 10 }: BattleHistoryPageProps): ReactElement {
+export function BattleHistoryPage({
+  limit = 10,
+  onOpenReplay,
+}: BattleHistoryPageProps): ReactElement {
   const [state, setState] = useState<LoadState>({ kind: "loading" });
 
   useEffect(() => {
@@ -102,6 +106,7 @@ export function BattleHistoryPage({ limit = 10 }: BattleHistoryPageProps): React
               <th style={headerStyle}>Result</th>
               <th style={headerStyle}>Turns</th>
               <th style={headerStyle}>Ended (UTC)</th>
+              {onOpenReplay ? <th style={headerStyle}>Replay</th> : null}
             </tr>
           </thead>
           <tbody>
@@ -116,6 +121,25 @@ export function BattleHistoryPage({ limit = 10 }: BattleHistoryPageProps): React
                   </td>
                   <td style={cellStyle}>{b.turn}</td>
                   <td style={cellStyle}>{formatHistoryTimestamp(b.endedAt)}</td>
+                  {onOpenReplay ? (
+                    <td style={cellStyle}>
+                      <button
+                        type="button"
+                        data-testid={`replay-${b.id}`}
+                        onClick={() => onOpenReplay(b.id)}
+                        style={{
+                          padding: "0.25rem 0.6rem",
+                          background: "#252540",
+                          color: "#fff",
+                          border: "1px solid #555",
+                          borderRadius: "0.3rem",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Replay
+                      </button>
+                    </td>
+                  ) : null}
                 </tr>
               );
             })}
