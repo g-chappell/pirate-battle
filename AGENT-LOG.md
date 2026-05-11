@@ -708,7 +708,7 @@ gaps.
 - Files changed: packages/core/src/{replay.ts, replay.test.ts, index.ts}; apps/web/src/{api.ts, replayView.ts, replayView.test.ts, ReplayPage.tsx, App.tsx, BattleHistoryPage.tsx}
 - Regression alert: false
 - Review proposed: false
-- Deploy: pending
+- Deploy: success
 - Lessons learned: replay derives initial state by reverse-walking switch events on the final state then resetting HP/statuses (initial-state invariant: all crews at maxHp). `applyBattleEvent` mirrors the engine's per-event mutations so the same code path drives live battles and replays.
 
 ---
