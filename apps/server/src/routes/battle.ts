@@ -5,6 +5,7 @@ import { buildAIOpponentTeam } from "../aiTeam.js";
 import { parseAction, validateAction } from "../battleAction.js";
 import type { BattleStore } from "../battleStore.js";
 import { buildInitialBattleState, teamToSnapshots } from "../crewSnapshot.js";
+import { DROP_TABLES, difficultyForOpponentLevel, rollDrops } from "../itemDrops.js";
 import type { CaptainTeam, UserStore, XpAward } from "../userStore.js";
 
 import { getUserIdFromCookie } from "./session.js";
@@ -137,6 +138,14 @@ export const battleRoutes: FastifyPluginCallback<BattlePluginOptions> = (
         captainId: summary.captainId,
         playerWon: newState.winner === "A",
       });
+      if (newState.winner === "A") {
+        await grantDropsForBattleWin({
+          userStore,
+          userId,
+          opponentLevel: DEFAULT_LEVEL,
+          rngSeed: newState.rngState,
+        });
+      }
     }
 
     return reply.send({ id: updated.id, state: updated.state });
@@ -144,6 +153,22 @@ export const battleRoutes: FastifyPluginCallback<BattlePluginOptions> = (
 
   done();
 };
+
+interface GrantDropsInput {
+  userStore: UserStore;
+  userId: string;
+  opponentLevel: number;
+  rngSeed: number;
+}
+
+export async function grantDropsForBattleWin(input: GrantDropsInput): Promise<string[]> {
+  const table = DROP_TABLES[difficultyForOpponentLevel(input.opponentLevel)];
+  const drops = rollDrops(table, createRng(input.rngSeed));
+  for (const templateKey of drops) {
+    await input.userStore.grantItems(input.userId, templateKey, 1);
+  }
+  return drops;
+}
 
 interface GrantXpInput {
   userStore: UserStore;

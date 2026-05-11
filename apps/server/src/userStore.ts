@@ -67,6 +67,10 @@ export interface InventoryEntry {
   qty: number;
 }
 
+export type ConsumeItemResult =
+  | { ok: true; remaining: number }
+  | { ok: false; reason: "not_found" | "insufficient_qty" };
+
 export type TrainCrewResult =
   | {
       ok: true;
@@ -91,6 +95,7 @@ export interface UserStore {
   setDiscordUserId(userId: string, discordUserId: string): Promise<SetDiscordUserIdResult>;
   getInventory(userId: string): Promise<InventoryEntry[]>;
   grantItems(userId: string, templateKey: string, qty: number): Promise<InventoryEntry | null>;
+  consumeItem(userId: string, templateKey: string, qty: number): Promise<ConsumeItemResult>;
   trainCrewAttribute(input: TrainCrewInput): Promise<TrainCrewResult>;
 }
 
@@ -341,6 +346,23 @@ export class PrismaUserStore implements UserStore {
       select: { templateKey: true, qty: true },
     });
     return updated;
+  }
+
+  async consumeItem(userId: string, templateKey: string, qty: number): Promise<ConsumeItemResult> {
+    if (!Number.isInteger(qty) || qty <= 0) return { ok: false, reason: "insufficient_qty" };
+    return this.prisma.$transaction(async (tx) => {
+      const existing = await tx.item.findUnique({
+        where: { ownerUserId_templateKey: { ownerUserId: userId, templateKey } },
+      });
+      if (!existing) return { ok: false, reason: "not_found" };
+      if (existing.qty < qty) return { ok: false, reason: "insufficient_qty" };
+      const updated = await tx.item.update({
+        where: { ownerUserId_templateKey: { ownerUserId: userId, templateKey } },
+        data: { qty: { decrement: qty } },
+        select: { qty: true },
+      });
+      return { ok: true, remaining: updated.qty };
+    });
   }
 
   async trainCrewAttribute(input: TrainCrewInput): Promise<TrainCrewResult> {
@@ -625,6 +647,17 @@ export class InMemoryUserStore implements UserStore {
     const next = (inv.get(templateKey) ?? 0) + qty;
     inv.set(templateKey, next);
     return { templateKey, qty: next };
+  }
+
+  async consumeItem(userId: string, templateKey: string, qty: number): Promise<ConsumeItemResult> {
+    if (!Number.isInteger(qty) || qty <= 0) return { ok: false, reason: "insufficient_qty" };
+    const inv = this.inventories.get(userId);
+    const current = inv?.get(templateKey) ?? 0;
+    if (!inv || current === 0) return { ok: false, reason: "not_found" };
+    if (current < qty) return { ok: false, reason: "insufficient_qty" };
+    const remaining = current - qty;
+    inv.set(templateKey, remaining);
+    return { ok: true, remaining };
   }
 
   async trainCrewAttribute(input: TrainCrewInput): Promise<TrainCrewResult> {

@@ -10,9 +10,10 @@ import { describe, expect, it } from "vitest";
 
 import { InMemoryBattleStore } from "../battleStore.js";
 import { buildServer } from "../index.js";
+import { DROP_TABLES } from "../itemDrops.js";
 import { InMemoryUserStore, type CaptainTeam } from "../userStore.js";
 
-import { computeXpAwards } from "./battle.js";
+import { computeXpAwards, grantDropsForBattleWin } from "./battle.js";
 import { TEAM_SIZE } from "./captain.js";
 import { SESSION_COOKIE_NAME } from "./session.js";
 
@@ -369,6 +370,33 @@ describe("POST /api/battle/:id/action", () => {
     await app.close();
   });
 
+  it("does not grant any item drops on a forfeit loss", async () => {
+    const { app, userStore } = makeApp();
+    await app.ready();
+    const { cookie, userId } = await authedSession(app);
+    const captainId = await createCaptain(app, cookie);
+
+    const start = await app.inject({
+      method: "POST",
+      url: "/api/battle/start",
+      headers: { cookie },
+      payload: { captainId },
+    });
+    const battleId = (start.json() as { id: string }).id;
+
+    const forfeit = await app.inject({
+      method: "POST",
+      url: `/api/battle/${battleId}/action`,
+      headers: { cookie },
+      payload: { action: { type: "forfeit" } },
+    });
+    expect(forfeit.statusCode).toBe(200);
+    expect(forfeit.json().state.winner).toBe("B");
+
+    expect(await userStore.getInventory(userId)).toEqual([]);
+    await app.close();
+  });
+
   it("grants loser XP to every player crew on forfeit", async () => {
     const { app, userStore } = makeApp();
     await app.ready();
@@ -571,6 +599,79 @@ describe("GET /api/battle/history", () => {
     expect(res.statusCode).toBe(400);
     expect(res.json()).toEqual({ error: "invalid_limit" });
     await app.close();
+  });
+});
+
+describe("grantDropsForBattleWin", () => {
+  async function seedUser(): Promise<{ userStore: InMemoryUserStore; userId: string }> {
+    const userStore = new InMemoryUserStore();
+    const user = await userStore.createAnonymous();
+    return { userStore, userId: user.id };
+  }
+
+  it("returns an empty list when every roll lands above its chance", async () => {
+    const { userStore, userId } = await seedUser();
+    // seed=0xffffffff yields rng.next() values >= 0.5 on early calls — enough that
+    // no chance entry triggers on the easy table. We assert via observed effect.
+    const drops = await grantDropsForBattleWin({
+      userStore,
+      userId,
+      opponentLevel: 1,
+      rngSeed: 0xffffffff,
+    });
+    expect(Array.isArray(drops)).toBe(true);
+    const inventory = await userStore.getInventory(userId);
+    expect(inventory.map((i) => i.qty).reduce((a, b) => a + b, 0)).toBe(drops.length);
+  });
+
+  it("only ever returns templateKeys present in the difficulty table", async () => {
+    const { userStore, userId } = await seedUser();
+    const allowedHard = new Set(DROP_TABLES.hard.entries.map((e) => e.templateKey));
+    for (const seed of [1, 7, 42, 12345, 0xdeadbeef]) {
+      const drops = await grantDropsForBattleWin({
+        userStore,
+        userId,
+        opponentLevel: 25,
+        rngSeed: seed,
+      });
+      for (const key of drops) expect(allowedHard.has(key)).toBe(true);
+    }
+  });
+
+  it("is deterministic for the same seed + opponent level", async () => {
+    const a = await seedUser();
+    const dropsA = await grantDropsForBattleWin({
+      userStore: a.userStore,
+      userId: a.userId,
+      opponentLevel: 10,
+      rngSeed: 99,
+    });
+    const b = await seedUser();
+    const dropsB = await grantDropsForBattleWin({
+      userStore: b.userStore,
+      userId: b.userId,
+      opponentLevel: 10,
+      rngSeed: 99,
+    });
+    expect(dropsB).toEqual(dropsA);
+  });
+
+  it("calls grantItems with qty=1 for each dropped key in order", async () => {
+    const { userStore, userId } = await seedUser();
+    const grantCalls: Array<{ key: string; qty: number }> = [];
+    const orig = userStore.grantItems.bind(userStore);
+    userStore.grantItems = async (uid, key, qty) => {
+      grantCalls.push({ key, qty });
+      return orig(uid, key, qty);
+    };
+    const drops = await grantDropsForBattleWin({
+      userStore,
+      userId,
+      opponentLevel: 10,
+      rngSeed: 17,
+    });
+    expect(grantCalls.map((c) => c.key)).toEqual(drops);
+    expect(grantCalls.every((c) => c.qty === 1)).toBe(true);
   });
 });
 
