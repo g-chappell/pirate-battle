@@ -35,10 +35,12 @@ import { crewRoutes } from "./routes/crew.js";
 import { discordCommandRoutes } from "./routes/discordCommands.js";
 import { discordLinkRoutes } from "./routes/discordLink.js";
 import { inventoryRoutes } from "./routes/inventory.js";
+import { leaderboardRoutes } from "./routes/leaderboard.js";
 import { pvpRoutes } from "./routes/pvp.js";
 import { rosterRoutes } from "./routes/roster.js";
 import { sessionRoutes } from "./routes/session.js";
 import { statsRoutes } from "./routes/stats.js";
+import { InMemorySeasonStore, PrismaSeasonStore, type SeasonStore } from "./seasonStore.js";
 import { InMemoryUserStore, PrismaUserStore, type UserStore } from "./userStore.js";
 import { CardanoWalletAuthVerifier, type WalletAuthVerifier } from "./walletAuth.js";
 
@@ -50,6 +52,7 @@ export interface BuildServerOptions {
   discordLinkTokenStore?: DiscordLinkTokenStore;
   pvpChallengeStore?: PvpChallengeStore;
   pvpQueueStore?: PvpQueueStore;
+  seasonStore?: SeasonStore;
   walletAuthVerifier?: WalletAuthVerifier;
   nftService?: BlockfrostNftService;
   derivationService?: RosterDerivationService;
@@ -99,6 +102,7 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
     battleStore: opts.battleStore,
     challengeStore: opts.pvpChallengeStore ?? new InMemoryPvpChallengeStore(),
     queueStore: opts.pvpQueueStore ?? new InMemoryPvpQueueStore(),
+    seasonStore: opts.seasonStore,
     seedFactory: opts.seedFactory,
     nowFn: opts.nowFn,
   });
@@ -107,6 +111,9 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
     battleStore: opts.battleStore,
     nowFn: opts.nowFn,
   });
+  if (opts.seasonStore) {
+    app.register(leaderboardRoutes, { seasonStore: opts.seasonStore });
+  }
 
   if (opts.webDistPath) {
     app.register(fastifyStatic, {
@@ -145,6 +152,8 @@ export {
   PrismaPvpChallengeStore,
   InMemoryPvpQueueStore,
   PrismaPvpQueueStore,
+  InMemorySeasonStore,
+  PrismaSeasonStore,
   InMemoryCollectionStore,
   PrismaCollectionStore,
   CardanoWalletAuthVerifier,
@@ -157,6 +166,7 @@ export type {
   DiscordLinkTokenStore,
   PvpChallengeStore,
   PvpQueueStore,
+  SeasonStore,
   WalletAuthVerifier,
   CollectionStore,
 };
@@ -185,6 +195,7 @@ if (isMain) {
   const battleStore = new PrismaBattleStore(prismaClient);
   const pvpChallengeStore = new PrismaPvpChallengeStore(prismaClient);
   const pvpQueueStore = new PrismaPvpQueueStore(prismaClient);
+  const seasonStore = new PrismaSeasonStore(prismaClient);
 
   const blockfrostProjectId = process.env.BLOCKFROST_PROJECT_ID;
   const allowlist = loadAllowlistFromEnv(process.env);
@@ -213,6 +224,7 @@ if (isMain) {
     derivationService,
     pvpChallengeStore,
     pvpQueueStore,
+    seasonStore,
     webDistPath,
   });
   if (webDistPath) {

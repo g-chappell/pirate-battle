@@ -22,13 +22,14 @@ model User {
   discordUserId String?  @unique
   createdAt     DateTime @default(now())
 
-  captains       Captain[]
-  items          Item[]
-  battlesAsA     Battle[]  @relation("BattleParticipantA")
-  battlesAsB     Battle[]  @relation("BattleParticipantB")
-  nftSnapshots   NftSnapshot[]
-  pvpChallenges  PvpChallenge[]
-  pvpQueueEntry  PvpQueueEntry?
+  captains      Captain[]
+  items         Item[]
+  battlesAsA    Battle[]       @relation("BattleParticipantA")
+  battlesAsB    Battle[]       @relation("BattleParticipantB")
+  nftSnapshots  NftSnapshot[]
+  pvpChallenges PvpChallenge[]
+  pvpQueueEntry PvpQueueEntry?
+  pvpRatings    PvpRating[]
 }
 
 model NftSnapshot {
@@ -145,14 +146,14 @@ model BattleEvent {
 }
 
 model PvpChallenge {
-  id                String    @id @default(cuid())
-  token             String    @unique
-  challengerUserId  String
+  id                  String    @id @default(cuid())
+  token               String    @unique
+  challengerUserId    String
   challengerCaptainId String
-  expiresAt         DateTime
-  acceptedBattleId  String?
-  acceptedAt        DateTime?
-  createdAt         DateTime  @default(now())
+  expiresAt           DateTime
+  acceptedBattleId    String?
+  acceptedAt          DateTime?
+  createdAt           DateTime  @default(now())
 
   challenger User @relation(fields: [challengerUserId], references: [id], onDelete: Cascade)
 
@@ -161,13 +162,41 @@ model PvpChallenge {
 }
 
 model PvpQueueEntry {
-  id               String   @id @default(cuid())
-  userId           String   @unique
-  captainId        String
-  matchedBattleId  String?
-  joinedAt         DateTime @default(now())
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  captainId       String
+  matchedBattleId String?
+  joinedAt        DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([joinedAt])
+}
+
+model Season {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  startsAt  DateTime
+  endsAt    DateTime
+  createdAt DateTime @default(now())
+
+  ratings PvpRating[]
+
+  @@index([startsAt, endsAt])
+}
+
+model PvpRating {
+  id        String   @id @default(cuid())
+  userId    String
+  seasonId  String
+  elo       Int      @default(1000)
+  wins      Int      @default(0)
+  losses    Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, seasonId])
+  @@index([seasonId, elo])
 }

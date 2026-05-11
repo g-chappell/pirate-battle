@@ -12,6 +12,7 @@ import type { BattleStore, BattleSummary } from "../battleStore.js";
 import { buildInitialBattleState, teamToSnapshots } from "../crewSnapshot.js";
 import type { PvpChallengeStore, PvpChallengeAcceptFailure } from "../pvpChallengeStore.js";
 import type { PvpQueueStore } from "../pvpQueueStore.js";
+import type { SeasonStore } from "../seasonStore.js";
 import type { CaptainTeam, UserStore } from "../userStore.js";
 
 import { getUserIdFromCookie } from "./session.js";
@@ -23,6 +24,7 @@ export interface PvpPluginOptions {
   battleStore: BattleStore;
   challengeStore: PvpChallengeStore;
   queueStore: PvpQueueStore;
+  seasonStore?: SeasonStore;
   seedFactory?: () => number;
   nowFn?: () => number;
 }
@@ -80,7 +82,7 @@ export const pvpRoutes: FastifyPluginCallback<PvpPluginOptions> = (
   opts: PvpPluginOptions,
   done: () => void,
 ): void => {
-  const { userStore, battleStore, challengeStore, queueStore } = opts;
+  const { userStore, battleStore, challengeStore, queueStore, seasonStore } = opts;
   const seedFactory = opts.seedFactory ?? defaultSeedFactory;
   const nowFn = opts.nowFn ?? Date.now;
 
@@ -191,6 +193,7 @@ export const pvpRoutes: FastifyPluginCallback<PvpPluginOptions> = (
     const resolved = await maybeTimeoutResolve({
       battleStore,
       summary,
+      seasonStore,
       nowFn,
     });
     return reply.send(pendingResponse(resolved, side));
@@ -210,6 +213,7 @@ export const pvpRoutes: FastifyPluginCallback<PvpPluginOptions> = (
     summary = await maybeTimeoutResolve({
       battleStore,
       summary,
+      seasonStore,
       nowFn,
     });
     if (summary.state.winner !== null) {
@@ -229,7 +233,7 @@ export const pvpRoutes: FastifyPluginCallback<PvpPluginOptions> = (
     const submitAt = summary.pendingSubmitAt ?? nowFn();
     summary = await battleStore.setPendingAction(summary.id, side, parsed, submitAt);
 
-    summary = await maybeResolve({ battleStore, summary, nowFn });
+    summary = await maybeResolve({ battleStore, summary, seasonStore, nowFn });
     const status =
       summary.pendingActionA === null && summary.pendingActionB === null
         ? "resolved"
@@ -342,38 +346,79 @@ async function createPvpBattle(args: CreatePvpBattleArgs) {
 interface MaybeResolveArgs {
   battleStore: BattleStore;
   summary: BattleSummary;
+  seasonStore: SeasonStore | undefined;
   nowFn: () => number;
 }
 
 async function maybeResolve(args: MaybeResolveArgs): Promise<BattleSummary> {
-  const { battleStore, summary } = args;
+  const { battleStore, summary, seasonStore, nowFn } = args;
   if (summary.pendingActionA === null || summary.pendingActionB === null) {
     return summary;
   }
-  return runResolve(battleStore, summary, summary.pendingActionA, summary.pendingActionB);
+  return runResolve({
+    battleStore,
+    summary,
+    actionA: summary.pendingActionA,
+    actionB: summary.pendingActionB,
+    seasonStore,
+    nowFn,
+  });
 }
 
 async function maybeTimeoutResolve(args: MaybeResolveArgs): Promise<BattleSummary> {
-  const { battleStore, summary, nowFn } = args;
+  const { battleStore, summary, seasonStore, nowFn } = args;
   if (summary.state.winner !== null) return summary;
   if (!summary.pendingSubmitAt) return summary;
   if (nowFn() - summary.pendingSubmitAt < PVP_ACTION_TIMEOUT_MS) return summary;
-  if (summary.pendingActionA && summary.pendingActionB) {
-    return runResolve(battleStore, summary, summary.pendingActionA, summary.pendingActionB);
-  }
   const actionA: Action = summary.pendingActionA ?? ({ type: "forfeit" } as Action);
   const actionB: Action = summary.pendingActionB ?? ({ type: "forfeit" } as Action);
-  return runResolve(battleStore, summary, actionA, actionB);
+  return runResolve({ battleStore, summary, actionA, actionB, seasonStore, nowFn });
 }
 
-async function runResolve(
-  battleStore: BattleStore,
-  summary: BattleSummary,
-  actionA: Action,
-  actionB: Action,
-): Promise<BattleSummary> {
+interface RunResolveArgs {
+  battleStore: BattleStore;
+  summary: BattleSummary;
+  actionA: Action;
+  actionB: Action;
+  seasonStore: SeasonStore | undefined;
+  nowFn: () => number;
+}
+
+async function runResolve(args: RunResolveArgs): Promise<BattleSummary> {
+  const { battleStore, summary, actionA, actionB, seasonStore, nowFn } = args;
+  const wasOpen = summary.state.winner === null;
   const rng = createRng(summary.state.rngState);
   const newState: BattleState = resolveTurn(summary.state, actionA, actionB, rng);
   const newEvents = newState.log.slice(summary.state.log.length);
-  return battleStore.recordTurn(summary.id, newState, newEvents);
+  const after = await battleStore.recordTurn(summary.id, newState, newEvents);
+  if (wasOpen && after.state.winner !== null && seasonStore && after.participantBId) {
+    await applyPvpEloUpdate({
+      seasonStore,
+      summary: after,
+      nowFn,
+    });
+  }
+  return after;
+}
+
+interface ApplyPvpEloArgs {
+  seasonStore: SeasonStore;
+  summary: BattleSummary;
+  nowFn: () => number;
+}
+
+async function applyPvpEloUpdate(args: ApplyPvpEloArgs): Promise<void> {
+  const { seasonStore, summary, nowFn } = args;
+  const winnerSide = summary.state.winner;
+  if (winnerSide === null) return;
+  if (summary.participantBId === null) return;
+  const season = await seasonStore.findCurrent(nowFn());
+  if (!season) return;
+  const winnerUserId = winnerSide === "A" ? summary.ownerUserId : summary.participantBId;
+  const loserUserId = winnerSide === "A" ? summary.participantBId : summary.ownerUserId;
+  await seasonStore.applyMatchResult({
+    seasonId: season.id,
+    winnerUserId,
+    loserUserId,
+  });
 }
