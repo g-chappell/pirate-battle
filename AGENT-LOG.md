@@ -609,7 +609,7 @@ gaps.
 - Files changed: packages/content/src/{items,items.test,index}.ts; apps/server/src/{itemDrops,itemDrops.test,userStore,userStore.test,index}.ts; apps/server/src/routes/{inventory,inventory.test,battle,battle.test}.ts
 - Regression alert: false
 - Review proposed: (filled in Step 15)
-- Deploy: (filled in Step 14)
+- Deploy: success
 - Lessons learned: Branch + Step-6 status flip + a partial Step-7 implementation tree were already in place from a prior interrupted cycle (TASK-031 was started but the cycle was killed before commit). Recovery path: read every dirty file, verify it compiled and tested cleanly without modification, ran prettier (all unchanged), committed as a single feat commit, and proceeded normally from Step 9. The Step-2 dirty-tree guard would have skipped this run if applied literally — adding "if dirty tree but on a TASK-* branch with the matching status=in-progress, treat as resumable" is a candidate refinement.
 
 ---
