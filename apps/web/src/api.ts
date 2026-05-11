@@ -289,3 +289,47 @@ export async function joinPvpQueue(captainId: string): Promise<PvpQueueJoinResul
 export async function getPvpQueueStatus(): Promise<PvpQueueStatus> {
   return request<PvpQueueStatus>("/api/pvp/queue/status");
 }
+
+export interface LeaderboardSeason {
+  id: string;
+  name: string;
+  startsAt: number;
+  endsAt: number;
+}
+
+export interface LeaderboardEntry {
+  userId: string;
+  elo: number;
+  wins: number;
+  losses: number;
+  rank: number;
+}
+
+export interface LeaderboardResponse {
+  season: LeaderboardSeason;
+  entries: LeaderboardEntry[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export async function getCurrentSeason(): Promise<LeaderboardSeason | null> {
+  try {
+    return await request<LeaderboardSeason>("/api/seasons/current");
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
+  }
+}
+
+export async function listLeaderboard(
+  seasonId: string,
+  opts: { limit?: number; offset?: number } = {},
+): Promise<LeaderboardResponse> {
+  const params = new URLSearchParams();
+  if (opts.limit !== undefined) params.set("limit", String(opts.limit));
+  if (opts.offset !== undefined) params.set("offset", String(opts.offset));
+  const qs = params.toString();
+  const url = `/api/leaderboard/${encodeURIComponent(seasonId)}${qs ? `?${qs}` : ""}`;
+  return request<LeaderboardResponse>(url);
+}

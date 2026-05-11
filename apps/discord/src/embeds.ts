@@ -2,7 +2,12 @@ import { CREWS_BY_KEY, MOVES_BY_KEY } from "@pirate-battle/content";
 import type { Affinity, BattleEvent, BattleState, CrewSnapshot, Side } from "@pirate-battle/core";
 import { type APIEmbed, EmbedBuilder } from "discord.js";
 
-import type { CaptainSummary, CaptainTeam, StatsResponse } from "./serverClient.js";
+import type {
+  CaptainSummary,
+  CaptainTeam,
+  LeaderboardResponse,
+  StatsResponse,
+} from "./serverClient.js";
 
 const EMBED_COLOR = 0x0a4f6e;
 
@@ -306,6 +311,35 @@ export function renderBattleEmbed(state: BattleState): EmbedBuilder {
       { name: "Opponent active", value: renderActiveCrewLine(state.activeB) },
       { name: "Move log", value: renderMoveLog(state) },
     );
+}
+
+function shortUserId(userId: string): string {
+  if (userId.length <= 12) return userId;
+  return `${userId.slice(0, 10)}…`;
+}
+
+const LEADERBOARD_TOP_N = 10;
+
+export function buildLeaderboardEmbed(response: LeaderboardResponse): APIEmbed {
+  const top = response.entries.slice(0, LEADERBOARD_TOP_N);
+  const title = `🏆 Leaderboard — ${response.season.name}`;
+  if (top.length === 0) {
+    return {
+      title,
+      description: "No captains ranked yet — be the first to win a match.",
+      color: EMBED_COLOR,
+    };
+  }
+  const lines = top.map(
+    (entry) =>
+      `**${entry.rank}.** \`${shortUserId(entry.userId)}\` — ${entry.elo} ELO (${entry.wins}W / ${entry.losses}L)`,
+  );
+  return {
+    title,
+    description: lines.join("\n"),
+    color: EMBED_COLOR,
+    footer: { text: `Top ${top.length} of ${response.total}` },
+  };
 }
 
 export function buildStatsEmbed(stats: StatsResponse, opts: { isSelf: boolean }): APIEmbed {

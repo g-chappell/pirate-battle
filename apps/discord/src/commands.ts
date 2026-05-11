@@ -51,6 +51,15 @@ export const commandDefinitions: SlashCommandBuilder[] = [
         .setRequired(true),
     ) as SlashCommandBuilder,
   new SlashCommandBuilder().setName("forfeit").setDescription("Concede your current battle"),
+  new SlashCommandBuilder()
+    .setName("leaderboard")
+    .setDescription("Show the top 10 captains by ELO for a season (current season by default)")
+    .addStringOption((opt) =>
+      opt
+        .setName("season")
+        .setDescription("Season id (defaults to the current season)")
+        .setRequired(false),
+    ) as SlashCommandBuilder,
 ];
 
 export function buildCommandsPayload(): RESTPostAPIApplicationCommandsJSONBody[] {

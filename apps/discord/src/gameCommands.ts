@@ -7,11 +7,14 @@ import {
   buildBattleStartEmbed,
   buildBattleTurnEmbed,
   buildCaptainListEmbed,
+  buildLeaderboardEmbed,
   buildStatsEmbed,
   buildTeamEmbed,
 } from "./embeds.js";
 import {
   fetchActiveBattle,
+  fetchCurrentSeason,
+  fetchLeaderboard,
   fetchMe,
   fetchStats,
   fetchTeam,
@@ -46,6 +49,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   invalid_action_type: "Invalid action type.",
   invalid_move_key: "Move name was missing or invalid.",
   invalid_target_index: "Bench index was missing or invalid.",
+  no_active_season: "No season is active right now — check back soon.",
+  season_not_found: "Couldn't find a season with that id.",
   network_error: SERVER_DOWN_MESSAGE,
   unknown_error: UNKNOWN_ERROR_MESSAGE,
 };
@@ -248,6 +253,29 @@ export async function handleForfeitCommand(
   return submitAndRender(env, discordUserId, captainName, battle.state.log.length, {
     type: "forfeit",
   });
+}
+
+const LEADERBOARD_PAGE_SIZE = 10;
+
+export async function handleLeaderboardCommand(
+  env: ApiCallEnv,
+  seasonInput: string | null,
+): Promise<CommandResult> {
+  const trimmed = seasonInput?.trim() ?? "";
+  let seasonId: string;
+  if (trimmed.length > 0) {
+    seasonId = trimmed;
+  } else {
+    const current = await fetchCurrentSeason(env);
+    if (!current.ok) return asError(current);
+    seasonId = current.data.id;
+  }
+  const leaderboard = await fetchLeaderboard(env, seasonId, {
+    limit: LEADERBOARD_PAGE_SIZE,
+    offset: 0,
+  });
+  if (!leaderboard.ok) return asError(leaderboard);
+  return { embeds: [buildLeaderboardEmbed(leaderboard.data)] };
 }
 
 export async function handleStatsCommand(

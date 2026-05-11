@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   handleBattleCommand,
   handleForfeitCommand,
+  handleLeaderboardCommand,
   handleMoveCommand,
   handleStatsCommand,
   handleSwitchCommand,
@@ -355,6 +356,106 @@ describe("handleForfeitCommand", () => {
       discordUserId: "9999",
       action: { type: "forfeit" },
     });
+  });
+});
+
+describe("handleLeaderboardCommand", () => {
+  const SEASON = {
+    id: "season_1",
+    name: "Founding Tides",
+    startsAt: 1_700_000_000_000,
+    endsAt: 1_702_000_000_000,
+  };
+
+  function leaderboardBody(
+    over: Partial<{
+      entries: Array<{ userId: string; elo: number; wins: number; losses: number; rank: number }>;
+      total: number;
+    }> = {},
+  ) {
+    return {
+      season: SEASON,
+      entries: over.entries ?? [
+        { userId: "user_alpha_long_id", elo: 1234, wins: 5, losses: 1, rank: 1 },
+        { userId: "user_b", elo: 1100, wins: 2, losses: 3, rank: 2 },
+      ],
+      total: over.total ?? 2,
+      limit: 10,
+      offset: 0,
+    };
+  }
+
+  it("fetches the current season then the leaderboard when no season id is supplied", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, SEASON));
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, leaderboardBody()));
+    const result = await handleLeaderboardCommand({ ...ENV, fetchImpl }, null);
+    expect(result.embeds?.[0]?.title).toContain("Founding Tides");
+    const seasonUrl = fetchImpl.mock.calls[0]?.[0] as string;
+    expect(seasonUrl).toBe("https://api.example/api/seasons/current");
+    const leaderboardUrl = fetchImpl.mock.calls[1]?.[0] as string;
+    expect(leaderboardUrl).toContain("/api/leaderboard/season_1");
+    expect(leaderboardUrl).toContain("limit=10");
+    expect(leaderboardUrl).toContain("offset=0");
+  });
+
+  it("uses the supplied season id directly when provided", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, leaderboardBody()));
+    await handleLeaderboardCommand({ ...ENV, fetchImpl }, "explicit_season");
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    const url = fetchImpl.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/leaderboard/explicit_season");
+  });
+
+  it("returns a friendly message when no active season is found", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(404, { error: "no_active_season" }));
+    const result = await handleLeaderboardCommand({ ...ENV, fetchImpl }, null);
+    expect(result.content).toMatch(/No season is active/);
+    expect(result.embeds).toBeUndefined();
+  });
+
+  it("returns a friendly message when an explicit season id is unknown", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(404, { error: "season_not_found" }));
+    const result = await handleLeaderboardCommand({ ...ENV, fetchImpl }, "bogus");
+    expect(result.content).toMatch(/Couldn't find a season/);
+  });
+
+  it("includes rank, elo, and shortened user id in the embed body", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, leaderboardBody()));
+    const result = await handleLeaderboardCommand({ ...ENV, fetchImpl }, "season_1");
+    const description = result.embeds?.[0]?.description ?? "";
+    expect(description).toMatch(/^\*\*1\.\*\*/);
+    expect(description).toContain("1234 ELO");
+    expect(description).toContain("user_alpha");
+    expect(description).not.toContain("user_alpha_long_id");
+  });
+
+  it("shows an empty-state description when the season has no ranked captains", async () => {
+    const fetchImpl = vi.fn();
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, leaderboardBody({ entries: [], total: 0 })));
+    const result = await handleLeaderboardCommand({ ...ENV, fetchImpl }, "season_1");
+    expect(result.embeds?.[0]?.description).toMatch(/No captains ranked yet/);
+  });
+
+  it("caps the embed at 10 entries even if the server returns more", async () => {
+    const fetchImpl = vi.fn();
+    const entries = Array.from({ length: 25 }, (_, i) => ({
+      userId: `user_${i}`,
+      elo: 1500 - i,
+      wins: i,
+      losses: 0,
+      rank: i + 1,
+    }));
+    fetchImpl.mockResolvedValueOnce(jsonResponse(200, leaderboardBody({ entries, total: 25 })));
+    const result = await handleLeaderboardCommand({ ...ENV, fetchImpl }, "season_1");
+    const description = result.embeds?.[0]?.description ?? "";
+    expect(description).toContain("**10.**");
+    expect(description).not.toContain("**11.**");
+    expect(result.embeds?.[0]?.footer?.text).toBe("Top 10 of 25");
   });
 });
 

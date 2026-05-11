@@ -61,6 +61,29 @@ export interface StatsResponse {
   discordUserId: string;
 }
 
+export interface SeasonResponse {
+  id: string;
+  name: string;
+  startsAt: number;
+  endsAt: number;
+}
+
+export interface LeaderboardEntry {
+  userId: string;
+  elo: number;
+  wins: number;
+  losses: number;
+  rank: number;
+}
+
+export interface LeaderboardResponse {
+  season: SeasonResponse;
+  entries: LeaderboardEntry[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; reason: string };
 
 export interface ApiCallEnv {
@@ -195,6 +218,22 @@ export async function fetchStats(
     url.searchParams.set("targetDiscordUserId", targetDiscordUserId);
   }
   return request<StatsResponse>(env.fetchImpl ?? fetch, url.toString(), { method: "GET" });
+}
+
+export async function fetchCurrentSeason(env: ApiCallEnv): Promise<ApiResult<SeasonResponse>> {
+  const url = new URL("/api/seasons/current", env.serverUrl);
+  return request<SeasonResponse>(env.fetchImpl ?? fetch, url.toString(), { method: "GET" });
+}
+
+export async function fetchLeaderboard(
+  env: ApiCallEnv,
+  seasonId: string,
+  opts: { limit?: number; offset?: number } = {},
+): Promise<ApiResult<LeaderboardResponse>> {
+  const url = new URL(`/api/leaderboard/${encodeURIComponent(seasonId)}`, env.serverUrl);
+  if (opts.limit !== undefined) url.searchParams.set("limit", String(opts.limit));
+  if (opts.offset !== undefined) url.searchParams.set("offset", String(opts.offset));
+  return request<LeaderboardResponse>(env.fetchImpl ?? fetch, url.toString(), { method: "GET" });
 }
 
 async function request<T>(
