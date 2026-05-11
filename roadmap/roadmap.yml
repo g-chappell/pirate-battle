@@ -1142,7 +1142,7 @@ epics:
             attempt_count: 1
           - id: TASK-047
             title: 'Web + Discord: leaderboard views'
-            status: in-progress
+            status: done
             priority: med
             complexity: small
             workspaces:
@@ -1154,8 +1154,8 @@ epics:
               GET /api/leaderboard/:seasonId.
             depends_on:
               - TASK-046
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/61
+            completed: '2026-05-11T13:17:00Z'
             blocked_reason: null
             last_attempted: '2026-05-11T13:04:00Z'
             attempt_count: 1
