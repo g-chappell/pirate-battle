@@ -979,7 +979,7 @@ epics:
             attempt_count: 1
           - id: TASK-041
             title: Async match state machine (Battle messageId, edit lifecycle)
-            status: in-progress
+            status: done
             priority: high
             complexity: large
             workspaces:
@@ -997,8 +997,8 @@ epics:
             depends_on:
               - TASK-039
               - TASK-040
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/58
+            completed: '2026-05-11T10:38:00Z'
             blocked_reason: null
             last_attempted: '2026-05-11T10:03:00Z'
             attempt_count: 1
