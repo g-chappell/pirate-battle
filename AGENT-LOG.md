@@ -713,3 +713,15 @@ gaps.
 
 ---
 
+### Run [2026-05-11 12:16]
+- Task: TASK-046 — Server: ELO calc + Season + per-season leaderboard endpoint
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/60
+- Test counts: core=74, content=22, web=152, server=322, shared=9, discord=123
+- Files changed: apps/server/src/elo.ts, apps/server/src/elo.test.ts, apps/server/src/seasonStore.ts, apps/server/src/seasonStore.test.ts, apps/server/src/routes/leaderboard.ts, apps/server/src/routes/leaderboard.test.ts, apps/server/src/routes/pvp.ts, apps/server/src/routes/pvp.test.ts, apps/server/src/index.ts, apps/server/scripts/open-season.ts, packages/db/prisma/schema.prisma, packages/db/prisma/migrations/20260512000000_pvp_season/migration.sql, scripts/season-cron.sh
+- Regression alert: false
+- Review proposed: false
+- Deploy: pending
+
+---
+
