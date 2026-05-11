@@ -101,6 +101,42 @@ describe("InMemoryUserStore inventory + training", () => {
     expect(await store.grantItems("ghost", TRAINING_CHIP_KEY, 1)).toBeNull();
   });
 
+  it("consumeItem decrements qty and reports remaining", async () => {
+    const { store, userId } = await setupCaptainWithCrews();
+    await store.grantItems(userId, TRAINING_CHIP_KEY, 3);
+    const result = await store.consumeItem(userId, TRAINING_CHIP_KEY, 1);
+    expect(result).toEqual({ ok: true, remaining: 2 });
+    const inv = await store.getInventory(userId);
+    expect(inv).toEqual([{ templateKey: TRAINING_CHIP_KEY, qty: 2 }]);
+  });
+
+  it("consumeItem returns not_found when the user has none of the item", async () => {
+    const { store, userId } = await setupCaptainWithCrews();
+    const result = await store.consumeItem(userId, TRAINING_CHIP_KEY, 1);
+    expect(result).toEqual({ ok: false, reason: "not_found" });
+  });
+
+  it("consumeItem returns insufficient_qty when requesting more than owned", async () => {
+    const { store, userId } = await setupCaptainWithCrews();
+    await store.grantItems(userId, TRAINING_CHIP_KEY, 1);
+    const result = await store.consumeItem(userId, TRAINING_CHIP_KEY, 5);
+    expect(result).toEqual({ ok: false, reason: "insufficient_qty" });
+    const inv = await store.getInventory(userId);
+    expect(inv).toEqual([{ templateKey: TRAINING_CHIP_KEY, qty: 1 }]);
+  });
+
+  it("consumeItem rejects non-positive qty as insufficient_qty", async () => {
+    const { store, userId } = await setupCaptainWithCrews();
+    expect(await store.consumeItem(userId, TRAINING_CHIP_KEY, 0)).toEqual({
+      ok: false,
+      reason: "insufficient_qty",
+    });
+    expect(await store.consumeItem(userId, TRAINING_CHIP_KEY, -1)).toEqual({
+      ok: false,
+      reason: "insufficient_qty",
+    });
+  });
+
   it("trainCrewAttribute increments attrs, decrements chips, returns crew", async () => {
     const { store, userId, captainId, team } = await setupCaptainWithCrews();
     const crewId = team.crews[0]!.id!;
