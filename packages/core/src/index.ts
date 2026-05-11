@@ -10,6 +10,7 @@ export type {
 } from "./types.js";
 export { createRng, type Rng } from "./rng.js";
 export { resolveTurn } from "./engine.js";
+export { applyBattleEvent, deriveInitialState, stateAtCursor } from "./replay.js";
 export { aiPickAction } from "./aiPickAction.js";
 export { computeDamage, rollAccuracy, rollCrit, type DamageResult } from "./resolveMove.js";
 export {

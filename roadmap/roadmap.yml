@@ -812,7 +812,7 @@ epics:
             attempt_count: 1
           - id: TASK-034
             title: 'Web: replay viewer (re-render BattleEvents through engine)'
-            status: ready
+            status: done
             priority: med
             complexity: large
             workspaces:
@@ -827,11 +827,11 @@ epics:
             depends_on:
               - TASK-033
               - TASK-019
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/59
+            completed: '2026-05-11T11:16:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-11T11:02:00Z'
+            attempt_count: 1
   - id: EPIC-05
     title: Discord bot — fully playable battles
     description: |

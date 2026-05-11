@@ -8,6 +8,7 @@ import { InventoryPage } from "./InventoryPage";
 import { PvpBattlePage } from "./PvpBattlePage";
 import { PvpPage } from "./PvpPage";
 import { readChallengeFromUrl } from "./pvpView";
+import { ReplayPage } from "./ReplayPage";
 import { TeamBuilder } from "./TeamBuilder";
 import { WalletChooser } from "./WalletChooser";
 
@@ -90,6 +91,7 @@ type View =
   | { kind: "pvp" }
   | { kind: "pvpBattle"; battleId: string }
   | { kind: "history" }
+  | { kind: "replay"; battleId: string }
   | { kind: "inventory" }
   | { kind: "inventoryCaptain"; captain: CaptainSummary };
 
@@ -148,7 +150,12 @@ function SessionView({ user, onCaptainCreated }: SessionViewProps): ReactElement
           onViewHistory={() => setView({ kind: "history" })}
         />
       ) : null}
-      {view.kind === "history" ? <BattleHistoryPage /> : null}
+      {view.kind === "history" ? (
+        <BattleHistoryPage onOpenReplay={(battleId) => setView({ kind: "replay", battleId })} />
+      ) : null}
+      {view.kind === "replay" ? (
+        <ReplayPage battleId={view.battleId} onBack={() => setView({ kind: "history" })} />
+      ) : null}
       {view.kind === "inventory" ? (
         <InventoryPage
           captains={user.captains}
