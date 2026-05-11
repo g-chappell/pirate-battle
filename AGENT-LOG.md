@@ -696,7 +696,7 @@ gaps.
 - Files changed: packages/db/prisma/schema.prisma + new migration; apps/server/src/{battleStore.ts, routes/discordCommands.ts, userStore.ts}; apps/discord/src/{bot.ts, channelOps.ts, battleMessageState.ts, reconcileBattleMessages.ts, gameCommands.ts, interactions.ts, serverClient.ts} + tests for each
 - Regression alert: false
 - Review proposed: pending Step 15
-- Deploy: pending Step 14
+- Deploy: success (Prisma migration 20260511090000_battle_discord_message applied; healthcheck passed on attempt 2)
 
 ---
 
