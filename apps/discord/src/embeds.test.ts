@@ -1,11 +1,16 @@
-import type { BattleState } from "@pirate-battle/core";
+import type { BattleEvent, BattleState, CrewSnapshot, MoveDef } from "@pirate-battle/core";
+import { createRng, resolveTurn } from "@pirate-battle/core";
 import { describe, expect, it } from "vitest";
 
 import {
+  affinityEmoji,
   buildBattleStartEmbed,
   buildCaptainListEmbed,
   buildStatsEmbed,
   buildTeamEmbed,
+  formatEffectiveness,
+  renderBattleEmbed,
+  splitLogIntoTurns,
 } from "./embeds.js";
 import type { CaptainTeam, StatsResponse } from "./serverClient.js";
 
@@ -203,5 +208,302 @@ describe("buildStatsEmbed", () => {
     );
     expect(embed.fields).toBeUndefined();
     expect(embed.description ?? "").toMatch(/No finished battles/i);
+  });
+});
+
+describe("affinityEmoji", () => {
+  it("maps each affinity to a distinct emoji", () => {
+    const all = [
+      affinityEmoji("kraken"),
+      affinityEmoji("ironclad"),
+      affinityEmoji("phantom"),
+      affinityEmoji("bloodborne"),
+    ];
+    expect(new Set(all).size).toBe(4);
+  });
+});
+
+describe("formatEffectiveness", () => {
+  it("flags super-effective when multiplier > 1", () => {
+    expect(formatEffectiveness(2)).toBe("super effective!");
+  });
+  it("returns null on a neutral multiplier", () => {
+    expect(formatEffectiveness(1)).toBeNull();
+  });
+});
+
+const tackle: MoveDef = {
+  key: "tackle",
+  name: "Tackle",
+  affinity: "kraken",
+  basePower: 30,
+  accuracy: 100,
+  kind: "damage",
+};
+
+function battleCrew(overrides: Partial<CrewSnapshot> = {}): CrewSnapshot {
+  return {
+    templateKey: "tide_brawler",
+    hp: 100,
+    maxHp: 100,
+    atk: 50,
+    def: 50,
+    spd: 50,
+    level: 5,
+    affinity: "kraken",
+    statuses: [],
+    moves: [tackle],
+    ...overrides,
+  };
+}
+
+function initialBattleState(overrides: Partial<BattleState> = {}): BattleState {
+  return {
+    turn: 0,
+    activeA: battleCrew({ spd: 60 }),
+    activeB: battleCrew({ spd: 40, affinity: "ironclad" }),
+    benchA: [battleCrew(), battleCrew()],
+    benchB: [battleCrew({ affinity: "ironclad" }), battleCrew({ affinity: "ironclad" })],
+    log: [],
+    rngSeed: 1,
+    rngState: 1,
+    pendingSwapA: false,
+    pendingSwapB: false,
+    winner: null,
+    ...overrides,
+  };
+}
+
+describe("splitLogIntoTurns", () => {
+  it("returns no chunks for an empty log", () => {
+    expect(splitLogIntoTurns([])).toEqual([]);
+  });
+
+  it("splits at the boundary where a side acts twice", () => {
+    const log: BattleEvent[] = [
+      {
+        kind: "move",
+        side: "A",
+        moveKey: "tackle",
+        damage: 10,
+        targetHpAfter: 90,
+        crit: false,
+        effective: 1,
+      },
+      {
+        kind: "move",
+        side: "B",
+        moveKey: "tackle",
+        damage: 8,
+        targetHpAfter: 92,
+        crit: false,
+        effective: 1,
+      },
+      {
+        kind: "move",
+        side: "A",
+        moveKey: "tackle",
+        damage: 10,
+        targetHpAfter: 80,
+        crit: false,
+        effective: 1,
+      },
+      {
+        kind: "move",
+        side: "B",
+        moveKey: "tackle",
+        damage: 8,
+        targetHpAfter: 84,
+        crit: false,
+        effective: 1,
+      },
+    ];
+    const turns = splitLogIntoTurns(log);
+    expect(turns).toHaveLength(2);
+    expect(turns[0]).toHaveLength(2);
+    expect(turns[1]).toHaveLength(2);
+  });
+
+  it("ends a chunk on victory", () => {
+    const log: BattleEvent[] = [
+      {
+        kind: "move",
+        side: "A",
+        moveKey: "tackle",
+        damage: 10,
+        targetHpAfter: 0,
+        crit: false,
+        effective: 1,
+      },
+      { kind: "faint", side: "B" },
+      { kind: "victory", side: "A" },
+    ];
+    const turns = splitLogIntoTurns(log);
+    expect(turns).toHaveLength(1);
+    expect(turns[0]?.at(-1)?.kind).toBe("victory");
+  });
+
+  it("ends a chunk after a swap_required so the next switch starts a new turn", () => {
+    const log: BattleEvent[] = [
+      {
+        kind: "move",
+        side: "A",
+        moveKey: "tackle",
+        damage: 10,
+        targetHpAfter: 0,
+        crit: false,
+        effective: 1,
+      },
+      { kind: "faint", side: "B" },
+      { kind: "swap_required", side: "B" },
+      { kind: "switch", side: "B", toIndex: 0 },
+      {
+        kind: "move",
+        side: "A",
+        moveKey: "tackle",
+        damage: 10,
+        targetHpAfter: 90,
+        crit: false,
+        effective: 1,
+      },
+    ];
+    const turns = splitLogIntoTurns(log);
+    expect(turns).toHaveLength(2);
+    expect(turns[0]?.map((e) => e.kind)).toEqual(["move", "faint", "swap_required"]);
+    expect(turns[1]?.map((e) => e.kind)).toEqual(["switch", "move"]);
+  });
+
+  it("attributes a status_apply event to the moving side, not the defender", () => {
+    const log: BattleEvent[] = [
+      { kind: "status_apply", side: "B", status: "poison" },
+      {
+        kind: "move",
+        side: "B",
+        moveKey: "tackle",
+        damage: 8,
+        targetHpAfter: 92,
+        crit: false,
+        effective: 1,
+      },
+      { kind: "status_apply", side: "B", status: "poison" },
+    ];
+    const turns = splitLogIntoTurns(log);
+    expect(turns).toHaveLength(2);
+  });
+
+  it("matches state.turn for a real multi-turn engine run", () => {
+    let state = initialBattleState();
+    const rng = createRng(state.rngState);
+    for (let i = 0; i < 4; i++) {
+      state = resolveTurn(
+        state,
+        { type: "move", moveKey: "tackle" },
+        { type: "move", moveKey: "tackle" },
+        rng,
+      );
+    }
+    expect(splitLogIntoTurns(state.log)).toHaveLength(state.turn);
+  });
+});
+
+describe("renderBattleEmbed", () => {
+  function withTurnEvents(): BattleState {
+    let state = initialBattleState();
+    const rng = createRng(state.rngState);
+    state = resolveTurn(
+      state,
+      { type: "move", moveKey: "tackle" },
+      { type: "move", moveKey: "tackle" },
+      rng,
+    );
+    return state;
+  }
+
+  it("titles the embed by turn number when no winner", () => {
+    const embed = renderBattleEmbed(withTurnEvents());
+    expect(embed.data.title).toBe("⚔️ Turn 1");
+  });
+
+  it("titles the embed for victory when winner=A", () => {
+    const state = initialBattleState({ winner: "A", turn: 3 });
+    expect(renderBattleEmbed(state).data.title).toBe("🏆 Victory!");
+  });
+
+  it("titles the embed for defeat when winner=B", () => {
+    const state = initialBattleState({ winner: "B", turn: 3 });
+    expect(renderBattleEmbed(state).data.title).toBe("💀 Defeat.");
+  });
+
+  it("includes a graphical HP bar for each active crew", () => {
+    const state = initialBattleState({
+      activeA: battleCrew({ hp: 60, maxHp: 100 }),
+      activeB: battleCrew({ hp: 30, maxHp: 100, affinity: "ironclad" }),
+    });
+    const fields = renderBattleEmbed(state).data.fields ?? [];
+    const yourActive = fields.find((f) => f.name === "Your active")?.value ?? "";
+    const opponentActive = fields.find((f) => f.name === "Opponent active")?.value ?? "";
+    expect(yourActive).toMatch(/[█]+[░]+\s+60\/100/);
+    expect(opponentActive).toMatch(/[█]+[░]+\s+30\/100/);
+  });
+
+  it("prefixes each active crew with its affinity emoji", () => {
+    const state = initialBattleState({
+      activeA: battleCrew({ affinity: "kraken" }),
+      activeB: battleCrew({ affinity: "ironclad" }),
+    });
+    const fields = renderBattleEmbed(state).data.fields ?? [];
+    const yourActive = fields.find((f) => f.name === "Your active")?.value ?? "";
+    const opponentActive = fields.find((f) => f.name === "Opponent active")?.value ?? "";
+    expect(yourActive.startsWith(affinityEmoji("kraken"))).toBe(true);
+    expect(opponentActive.startsWith(affinityEmoji("ironclad"))).toBe(true);
+  });
+
+  it("annotates the move log with 'super effective!' when a hit had effective>1", () => {
+    let state = initialBattleState();
+    const rng = createRng(state.rngState);
+    state = resolveTurn(
+      state,
+      { type: "move", moveKey: "tackle" },
+      { type: "move", moveKey: "tackle" },
+      rng,
+    );
+    const moveLog =
+      renderBattleEmbed(state).data.fields?.find((f) => f.name === "Move log")?.value ?? "";
+    expect(moveLog).toContain("super effective!");
+  });
+
+  it("shows up to the last 3 turn chunks in the move log", () => {
+    let state = initialBattleState();
+    const rng = createRng(state.rngState);
+    for (let i = 0; i < 5; i++) {
+      state = resolveTurn(
+        state,
+        { type: "move", moveKey: "tackle" },
+        { type: "move", moveKey: "tackle" },
+        rng,
+      );
+    }
+    const moveLog =
+      renderBattleEmbed(state).data.fields?.find((f) => f.name === "Move log")?.value ?? "";
+    const turnHeaderMatches = moveLog.match(/\*\*Turn \d+\*\*/g) ?? [];
+    expect(turnHeaderMatches.length).toBe(3);
+    expect(moveLog).toContain("**Turn 5**");
+    expect(moveLog).toContain("**Turn 4**");
+    expect(moveLog).toContain("**Turn 3**");
+    expect(moveLog).not.toContain("**Turn 2**");
+  });
+
+  it("is deterministic — same state in produces byte-equal embed JSON", () => {
+    const state = withTurnEvents();
+    const a = JSON.stringify(renderBattleEmbed(state).toJSON());
+    const b = JSON.stringify(renderBattleEmbed(state).toJSON());
+    expect(a).toBe(b);
+  });
+
+  it("renders a placeholder move-log when the log is empty", () => {
+    const state = initialBattleState();
+    const moveLog =
+      renderBattleEmbed(state).data.fields?.find((f) => f.name === "Move log")?.value ?? "";
+    expect(moveLog).toMatch(/no events yet/i);
   });
 });

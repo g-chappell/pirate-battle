@@ -1,6 +1,6 @@
 import { CREWS_BY_KEY, MOVES_BY_KEY } from "@pirate-battle/content";
-import type { BattleEvent, BattleState, CrewSnapshot } from "@pirate-battle/core";
-import type { APIEmbed } from "discord.js";
+import type { Affinity, BattleEvent, BattleState, CrewSnapshot, Side } from "@pirate-battle/core";
+import { type APIEmbed, EmbedBuilder } from "discord.js";
 
 import type { CaptainSummary, CaptainTeam, StatsResponse } from "./serverClient.js";
 
@@ -12,6 +12,17 @@ const FACTION_ICON: Record<string, string> = {
   wraith: "👻",
   crimson: "🩸",
 };
+
+const AFFINITY_EMOJI: Record<Affinity, string> = {
+  kraken: "🦑",
+  ironclad: "🛡️",
+  phantom: "👻",
+  bloodborne: "🩸",
+};
+
+export function affinityEmoji(affinity: Affinity): string {
+  return AFFINITY_EMOJI[affinity];
+}
 
 function factionLabel(factionId: string): string {
   const icon = FACTION_ICON[factionId] ?? "🏴‍☠️";
@@ -106,12 +117,19 @@ function activeLineForBattle(c: CrewSnapshot): string {
   return `${crewDisplayName(c.templateKey)} (Lv ${c.level})\n${hpBar(c.hp, c.maxHp)} ${c.hp}/${c.maxHp}`;
 }
 
+export function formatEffectiveness(effective: number): string | null {
+  if (effective > 1) return "super effective!";
+  return null;
+}
+
 function formatEvent(event: BattleEvent): string | null {
   switch (event.kind) {
     case "move": {
       const actor = event.side === "A" ? "You" : "Opponent";
-      const note = event.crit ? " (crit!)" : "";
-      return `${actor} used ${moveDisplayName(event.moveKey)} — ${event.damage} dmg${note}`;
+      const critNote = event.crit ? " (crit!)" : "";
+      const eff = formatEffectiveness(event.effective);
+      const effNote = eff ? ` — ${eff}` : "";
+      return `${actor} used ${moveDisplayName(event.moveKey)} — ${event.damage} dmg${critNote}${effNote}`;
     }
     case "miss": {
       const actor = event.side === "A" ? "You" : "Opponent";
@@ -201,6 +219,93 @@ export function buildAvailableActionsHint(state: BattleState): string {
 
 function formatPercent(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
+}
+
+function attributedSide(event: BattleEvent): Side | null {
+  switch (event.kind) {
+    case "switch":
+    case "move":
+    case "miss":
+    case "stun_skip":
+    case "forfeit":
+      return event.side;
+    case "status_apply":
+      return event.side === "A" ? "B" : "A";
+    default:
+      return null;
+  }
+}
+
+export function splitLogIntoTurns(log: readonly BattleEvent[]): BattleEvent[][] {
+  const turns: BattleEvent[][] = [];
+  let current: BattleEvent[] = [];
+  let actorsThisTurn = new Set<Side>();
+  const finish = () => {
+    turns.push(current);
+    current = [];
+    actorsThisTurn = new Set<Side>();
+  };
+  for (let i = 0; i < log.length; i++) {
+    const event = log[i]!;
+    const actor = attributedSide(event);
+    if (actor !== null && actorsThisTurn.has(actor) && current.length > 0) {
+      finish();
+    }
+    current.push(event);
+    if (actor !== null) actorsThisTurn.add(actor);
+    if (event.kind === "victory") {
+      finish();
+      continue;
+    }
+    if (event.kind === "swap_required") {
+      const next = log[i + 1];
+      if (!next || next.kind !== "swap_required") finish();
+    }
+  }
+  if (current.length > 0) turns.push(current);
+  return turns;
+}
+
+function renderActiveCrewLine(crew: CrewSnapshot): string {
+  const emoji = affinityEmoji(crew.affinity);
+  return `${emoji} ${crewDisplayName(crew.templateKey)} (Lv ${crew.level})\n${hpBar(crew.hp, crew.maxHp)} ${crew.hp}/${crew.maxHp}`;
+}
+
+function renderTurnLines(events: readonly BattleEvent[]): string[] {
+  return events.map(formatEvent).filter((s): s is string => s !== null);
+}
+
+function renderMoveLog(state: BattleState): string {
+  const turns = splitLogIntoTurns(state.log);
+  if (turns.length === 0) return "_no events yet_";
+  const recent = turns.slice(-3);
+  const firstTurnNumber = Math.max(1, state.turn - recent.length + 1);
+  const sections: string[] = [];
+  for (let i = 0; i < recent.length; i++) {
+    const lines = renderTurnLines(recent[i]!);
+    if (lines.length === 0) continue;
+    const turnNum = firstTurnNumber + i;
+    sections.push(`**Turn ${turnNum}**\n${lines.join("\n")}`);
+  }
+  if (sections.length === 0) return "_no events yet_";
+  return sections.join("\n\n");
+}
+
+function renderBattleTitle(state: BattleState): string {
+  if (state.winner === "A") return "🏆 Victory!";
+  if (state.winner === "B") return "💀 Defeat.";
+  return `⚔️ Turn ${state.turn}`;
+}
+
+export function renderBattleEmbed(state: BattleState): EmbedBuilder {
+  return new EmbedBuilder()
+    .setColor(EMBED_COLOR)
+    .setTitle(renderBattleTitle(state))
+    .addFields(
+      { name: "Your active", value: renderActiveCrewLine(state.activeA) },
+      { name: "Opponent active", value: renderActiveCrewLine(state.activeB) },
+      { name: "Move log", value: renderMoveLog(state) },
+    );
 }
 
 export function buildStatsEmbed(stats: StatsResponse, opts: { isSelf: boolean }): APIEmbed {
