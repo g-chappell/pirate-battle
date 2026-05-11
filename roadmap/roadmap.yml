@@ -812,7 +812,7 @@ epics:
             attempt_count: 1
           - id: TASK-034
             title: 'Web: replay viewer (re-render BattleEvents through engine)'
-            status: ready
+            status: in-progress
             priority: med
             complexity: large
             workspaces:
@@ -830,8 +830,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-11T11:02:00Z'
+            attempt_count: 1
   - id: EPIC-05
     title: Discord bot — fully playable battles
     description: |
