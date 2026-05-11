@@ -749,3 +749,14 @@ gaps.
 
 ---
 
+### Run [2026-05-11 15:02]
+- Task: n/a (no eligible tasks)
+- Outcome: skipped
+- Reason: no_ready_tasks
+- Ready tasks (1): TASK-043 — Mobile wallet UX (depends on TASK-042 which is blocked)
+- Blocked tasks (1): TASK-042 — Capacitor scaffold (needs macOS + CocoaPods + JDK; autonomous Linux VPS cannot generate `cap add ios|android` artefacts)
+- Hint: roadmap running low — only 1 ready task remains and it cannot advance until TASK-042's native-scaffold split is performed by a human. Consider running `/pm-brainstorm` to seed new epics, or split TASK-042 per its `blocked_reason` so TASK-043 unblocks.
+- Open auto/review-* PR: #29 (owned by /autonomous-review; not actioned here)
+
+---
+
