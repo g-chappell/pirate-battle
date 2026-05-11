@@ -678,3 +678,13 @@ gaps.
 
 ---
 
+### Run [2026-05-11 09:01]
+- Task: n/a (precheck skip)
+- Outcome: skipped
+- Reason: dirty_tree
+- Branch: feat/serve-web-app (non-auto, user WIP)
+- Dirty files: apps/server/package.json, apps/server/src/index.ts, package-lock.json, apps/server/src/staticWeb.test.ts (untracked)
+- Action: skipped without touching WIP; cycle will resume once branch is merged/cleaned
+
+---
+
