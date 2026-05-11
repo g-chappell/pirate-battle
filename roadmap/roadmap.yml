@@ -749,7 +749,7 @@ epics:
         tasks:
           - id: TASK-031
             title: 'Server: item drops on battle win + inventory endpoint'
-            status: ready
+            status: in-progress
             priority: med
             complexity: medium
             workspaces:
@@ -768,8 +768,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-11T01:05:00Z'
+            attempt_count: 1
           - id: TASK-032
             title: 'Web: inventory UI + apply flow'
             status: ready
