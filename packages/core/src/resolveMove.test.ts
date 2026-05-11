@@ -15,6 +15,7 @@ function constantRng(value: number): Rng {
 }
 
 const baseAttacker: CrewSnapshot = {
+  templateKey: "test_attacker",
   hp: 100,
   maxHp: 100,
   atk: 50,

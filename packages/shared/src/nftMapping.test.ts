@@ -65,6 +65,7 @@ describe("deriveCrewStats", () => {
     const result = deriveCrewStats(metadata({}), BASELINE_RULES);
 
     expect(result).toEqual({
+      templateKey: `${POLICY_ID}.asset`,
       hp: 70,
       maxHp: 70,
       atk: 50,

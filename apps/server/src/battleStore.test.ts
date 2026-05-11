@@ -7,6 +7,7 @@ function emptyState(seed = 1): BattleState {
   return {
     turn: 0,
     activeA: {
+      templateKey: "test_a",
       hp: 100,
       maxHp: 100,
       atk: 50,
@@ -18,6 +19,7 @@ function emptyState(seed = 1): BattleState {
       moves: [],
     },
     activeB: {
+      templateKey: "test_b",
       hp: 100,
       maxHp: 100,
       atk: 50,

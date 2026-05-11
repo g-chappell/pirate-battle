@@ -69,6 +69,7 @@ export function deriveCrewStats(metadata: NftMetadata, rules: CollectionRules): 
 
   const hp = clampStat(stats.hp);
   return {
+    templateKey: `${metadata.policyId}.${metadata.assetName}`,
     hp,
     maxHp: hp,
     atk: clampStat(stats.atk),

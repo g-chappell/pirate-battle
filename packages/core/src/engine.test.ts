@@ -54,6 +54,7 @@ const venomFangs: MoveDef = {
 
 function crew(overrides: Partial<CrewSnapshot> = {}): CrewSnapshot {
   return {
+    templateKey: "test_crew",
     hp: 100,
     maxHp: 100,
     atk: 50,

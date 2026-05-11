@@ -31,6 +31,7 @@ export function crewSnapshotFromTemplate(
   const level = inputs.level ?? DEFAULT_LEVEL;
   const stats = effectiveStats(template.baseStats, level, inputs.attrs);
   return {
+    templateKey,
     hp: stats.hp,
     maxHp: stats.hp,
     atk: stats.atk,
