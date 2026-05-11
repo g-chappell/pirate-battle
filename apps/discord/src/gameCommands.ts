@@ -54,9 +54,16 @@ function friendly(reason: string): string {
   return ERROR_MESSAGES[reason] ?? UNKNOWN_ERROR_MESSAGE;
 }
 
+export interface BattleChannelHook {
+  battleId: string;
+  embed: APIEmbed;
+  transition: "create" | "update";
+}
+
 export interface CommandResult {
   content?: string;
   embeds?: APIEmbed[];
+  battleHook?: BattleChannelHook;
 }
 
 function asError<T>(result: Extract<ApiResult<T>, { ok: false }>): CommandResult {
@@ -106,14 +113,18 @@ export async function handleBattleCommand(
     opponent: "ai",
   });
   if (!battle.ok) return asError(battle);
+  const embed = buildBattleStartEmbed({
+    captainName: battle.data.captainName,
+    state: battle.data.state,
+    battleId: battle.data.id,
+  });
   return {
-    embeds: [
-      buildBattleStartEmbed({
-        captainName: battle.data.captainName,
-        state: battle.data.state,
-        battleId: battle.data.id,
-      }),
-    ],
+    embeds: [embed],
+    battleHook: {
+      battleId: battle.data.id,
+      embed,
+      transition: "create",
+    },
   };
 }
 
@@ -171,15 +182,19 @@ async function submitAndRender(
   const result = await submitBattleAction(env, { discordUserId, action });
   if (!result.ok) return asError(result);
   const recentEvents = result.data.state.log.slice(beforeLogLen);
+  const embed = buildBattleTurnEmbed({
+    captainName,
+    state: result.data.state,
+    battleId: result.data.id,
+    recentEvents,
+  });
   return {
-    embeds: [
-      buildBattleTurnEmbed({
-        captainName,
-        state: result.data.state,
-        battleId: result.data.id,
-        recentEvents,
-      }),
-    ],
+    embeds: [embed],
+    battleHook: {
+      battleId: result.data.id,
+      embed,
+      transition: "update",
+    },
   };
 }
 

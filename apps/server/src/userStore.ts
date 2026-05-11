@@ -101,6 +101,7 @@ export interface UserStore {
   findCrewForUser(userId: string, crewId: string): Promise<CrewRef | null>;
   applyXpRewards(awards: readonly XpAward[]): Promise<CrewProgress[]>;
   setDiscordUserId(userId: string, discordUserId: string): Promise<SetDiscordUserIdResult>;
+  getDiscordUserIdById(userId: string): Promise<string | null>;
   getInventory(userId: string): Promise<InventoryEntry[]>;
   grantItems(userId: string, templateKey: string, qty: number): Promise<InventoryEntry | null>;
   consumeItem(userId: string, templateKey: string, qty: number): Promise<ConsumeItemResult>;
@@ -355,6 +356,14 @@ export class PrismaUserStore implements UserStore {
       await tx.user.update({ where: { id: userId }, data: { discordUserId } });
       return { ok: true };
     });
+  }
+
+  async getDiscordUserIdById(userId: string): Promise<string | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { discordUserId: true },
+    });
+    return user?.discordUserId ?? null;
   }
 
   async getInventory(userId: string): Promise<InventoryEntry[]> {
@@ -662,6 +671,10 @@ export class InMemoryUserStore implements UserStore {
       if (owner === userId) return discord;
     }
     return undefined;
+  }
+
+  async getDiscordUserIdById(userId: string): Promise<string | null> {
+    return this.getDiscordUserId(userId) ?? null;
   }
 
   private findCaptainByCrewId(crewId: string): InMemoryCaptain | undefined {

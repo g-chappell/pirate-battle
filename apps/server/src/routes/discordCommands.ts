@@ -28,6 +28,18 @@ interface BattleActionBody {
   action?: unknown;
 }
 
+interface SetBattleMessageBody {
+  discordUserId?: unknown;
+  channelId?: unknown;
+  messageId?: unknown;
+  guildId?: unknown;
+  sentAtMs?: unknown;
+}
+
+interface ClearBattleMessageBody {
+  discordUserId?: unknown;
+}
+
 interface DiscordUserQuery {
   discordUserId?: string;
 }
@@ -67,6 +79,29 @@ interface DiscordActionResponse {
 interface DiscordStatsResponse {
   user: UserStats;
   discordUserId: string;
+}
+
+export interface DiscordBattleMessageRef {
+  battleId: string;
+  channelId: string;
+  messageId: string;
+  guildId: string | null;
+  sentAtMs: number;
+  discordUserId: string;
+}
+
+interface DiscordInProgressBattlesResponse {
+  battles: DiscordBattleMessageRef[];
+}
+
+const DISCORD_SNOWFLAKE_RE = /^[0-9]{1,32}$/;
+
+function isValidSnowflake(value: unknown): value is string {
+  return typeof value === "string" && DISCORD_SNOWFLAKE_RE.test(value);
+}
+
+function isValidSentAtMs(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
 
 function defaultSeedFactory(): number {
@@ -198,6 +233,96 @@ export const discordCommandRoutes: FastifyPluginCallback<DiscordCommandsPluginOp
       id: result.summary.id,
       state: result.summary.state,
     };
+    return reply.send(payload);
+  });
+
+  fastify.post<{ Params: { id: string } }>(
+    "/api/discord/battle/:id/message",
+    async (req, reply) => {
+      const body = (req.body ?? {}) as SetBattleMessageBody;
+      if (!isValidDiscordUserId(body.discordUserId)) {
+        return reply.code(400).send({ error: "invalid_discord_user_id" });
+      }
+      if (!isValidSnowflake(body.channelId)) {
+        return reply.code(400).send({ error: "invalid_channel_id" });
+      }
+      if (!isValidSnowflake(body.messageId)) {
+        return reply.code(400).send({ error: "invalid_message_id" });
+      }
+      if (body.guildId !== null && body.guildId !== undefined && !isValidSnowflake(body.guildId)) {
+        return reply.code(400).send({ error: "invalid_guild_id" });
+      }
+      if (!isValidSentAtMs(body.sentAtMs)) {
+        return reply.code(400).send({ error: "invalid_sent_at" });
+      }
+
+      const user = await userStore.findByDiscordUserId(body.discordUserId);
+      if (!user) return reply.code(404).send({ error: "not_linked" });
+      const summary = await battleStore.get(req.params.id);
+      if (!summary) return reply.code(404).send({ error: "battle_not_found" });
+      if (summary.ownerUserId !== user.id) {
+        return reply.code(403).send({ error: "forbidden" });
+      }
+
+      const updated = await battleStore.setDiscordMessage(req.params.id, {
+        channelId: body.channelId,
+        messageId: body.messageId,
+        guildId: typeof body.guildId === "string" ? body.guildId : null,
+        sentAtMs: body.sentAtMs,
+      });
+      return reply.send({
+        ok: true,
+        id: updated.id,
+        discordChannelId: updated.discordChannelId,
+        discordMessageId: updated.discordMessageId,
+        discordGuildId: updated.discordGuildId,
+        discordMessageSentAt: updated.discordMessageSentAt,
+      });
+    },
+  );
+
+  fastify.delete<{ Params: { id: string } }>(
+    "/api/discord/battle/:id/message",
+    async (req, reply) => {
+      const body = (req.body ?? {}) as ClearBattleMessageBody;
+      if (!isValidDiscordUserId(body.discordUserId)) {
+        return reply.code(400).send({ error: "invalid_discord_user_id" });
+      }
+      const user = await userStore.findByDiscordUserId(body.discordUserId);
+      if (!user) return reply.code(404).send({ error: "not_linked" });
+      const summary = await battleStore.get(req.params.id);
+      if (!summary) return reply.code(404).send({ error: "battle_not_found" });
+      if (summary.ownerUserId !== user.id) {
+        return reply.code(403).send({ error: "forbidden" });
+      }
+      await battleStore.clearDiscordMessage(req.params.id);
+      return reply.send({ ok: true, id: req.params.id });
+    },
+  );
+
+  fastify.get("/api/discord/battles/in-progress", async (_req, reply) => {
+    const summaries = await battleStore.listInProgressWithDiscordMessage();
+    const battles: DiscordBattleMessageRef[] = [];
+    for (const s of summaries) {
+      if (
+        s.discordChannelId === null ||
+        s.discordMessageId === null ||
+        s.discordMessageSentAt === null
+      ) {
+        continue;
+      }
+      const discordUserId = await userStore.getDiscordUserIdById(s.ownerUserId);
+      if (!discordUserId) continue;
+      battles.push({
+        battleId: s.id,
+        channelId: s.discordChannelId,
+        messageId: s.discordMessageId,
+        guildId: s.discordGuildId,
+        sentAtMs: s.discordMessageSentAt,
+        discordUserId,
+      });
+    }
+    const payload: DiscordInProgressBattlesResponse = { battles };
     return reply.send(payload);
   });
 

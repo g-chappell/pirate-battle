@@ -1,6 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { fetchMe, fetchStats, fetchTeam, startBattle } from "./serverClient.js";
+import {
+  clearBattleMessage,
+  fetchMe,
+  fetchStats,
+  fetchTeam,
+  listInProgressBattleMessages,
+  setBattleMessage,
+  startBattle,
+} from "./serverClient.js";
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -76,6 +84,91 @@ describe("startBattle", () => {
       captainId: "cap-1",
       opponent: "ai",
     });
+  });
+});
+
+describe("setBattleMessage", () => {
+  it("POSTs JSON body with discordUserId, channelId, messageId, guildId, sentAtMs", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(200, { ok: true, id: "b-1" }));
+    await setBattleMessage(
+      { serverUrl: "https://api.example", fetchImpl },
+      {
+        battleId: "b-1",
+        discordUserId: "9999",
+        channelId: "100",
+        messageId: "200",
+        guildId: "300",
+        sentAtMs: 1_700_000_000_000,
+      },
+    );
+    const url = fetchImpl.mock.calls[0]?.[0] as string;
+    expect(url).toBe("https://api.example/api/discord/battle/b-1/message");
+    const init = fetchImpl.mock.calls[0]?.[1] as RequestInit;
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({
+      discordUserId: "9999",
+      channelId: "100",
+      messageId: "200",
+      guildId: "300",
+      sentAtMs: 1_700_000_000_000,
+    });
+  });
+
+  it("sends null guildId for DM channels", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(200, { ok: true, id: "b-1" }));
+    await setBattleMessage(
+      { serverUrl: "https://api.example", fetchImpl },
+      {
+        battleId: "b-1",
+        discordUserId: "9999",
+        channelId: "100",
+        messageId: "200",
+        guildId: null,
+        sentAtMs: 1,
+      },
+    );
+    const body = JSON.parse(fetchImpl.mock.calls[0]?.[1]?.body as string);
+    expect(body.guildId).toBeNull();
+  });
+});
+
+describe("clearBattleMessage", () => {
+  it("DELETEs with discordUserId in the body", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(200, { ok: true, id: "b-1" }));
+    await clearBattleMessage(
+      { serverUrl: "https://api.example", fetchImpl },
+      { battleId: "b-1", discordUserId: "9999" },
+    );
+    const init = fetchImpl.mock.calls[0]?.[1] as RequestInit;
+    expect(init.method).toBe("DELETE");
+    expect(JSON.parse(init.body as string)).toEqual({ discordUserId: "9999" });
+  });
+});
+
+describe("listInProgressBattleMessages", () => {
+  it("GETs the in-progress endpoint and returns the parsed list", async () => {
+    const battles = [
+      {
+        battleId: "b-1",
+        channelId: "100",
+        messageId: "200",
+        guildId: "300",
+        sentAtMs: 1,
+        discordUserId: "9999",
+      },
+    ];
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(200, { battles }));
+    const result = await listInProgressBattleMessages({
+      serverUrl: "https://api.example",
+      fetchImpl,
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.battles).toEqual(battles);
+    }
+    expect(fetchImpl.mock.calls[0]?.[0]).toBe(
+      "https://api.example/api/discord/battles/in-progress",
+    );
   });
 });
 

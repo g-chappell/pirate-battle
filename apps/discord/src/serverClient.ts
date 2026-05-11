@@ -121,6 +121,69 @@ export async function submitBattleAction(
   });
 }
 
+export interface SetBattleMessageInput {
+  battleId: string;
+  discordUserId: string;
+  channelId: string;
+  messageId: string;
+  guildId: string | null;
+  sentAtMs: number;
+}
+
+export async function setBattleMessage(
+  env: ApiCallEnv,
+  args: SetBattleMessageInput,
+): Promise<ApiResult<{ ok: true; id: string }>> {
+  const url = new URL(
+    `/api/discord/battle/${encodeURIComponent(args.battleId)}/message`,
+    env.serverUrl,
+  );
+  return request<{ ok: true; id: string }>(env.fetchImpl ?? fetch, url.toString(), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      discordUserId: args.discordUserId,
+      channelId: args.channelId,
+      messageId: args.messageId,
+      guildId: args.guildId,
+      sentAtMs: args.sentAtMs,
+    }),
+  });
+}
+
+export async function clearBattleMessage(
+  env: ApiCallEnv,
+  args: { battleId: string; discordUserId: string },
+): Promise<ApiResult<{ ok: true; id: string }>> {
+  const url = new URL(
+    `/api/discord/battle/${encodeURIComponent(args.battleId)}/message`,
+    env.serverUrl,
+  );
+  return request<{ ok: true; id: string }>(env.fetchImpl ?? fetch, url.toString(), {
+    method: "DELETE",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ discordUserId: args.discordUserId }),
+  });
+}
+
+export interface InProgressBattleMessage {
+  battleId: string;
+  channelId: string;
+  messageId: string;
+  guildId: string | null;
+  sentAtMs: number;
+  discordUserId: string;
+}
+
+export async function listInProgressBattleMessages(
+  env: ApiCallEnv,
+): Promise<ApiResult<{ battles: InProgressBattleMessage[] }>> {
+  const url = new URL("/api/discord/battles/in-progress", env.serverUrl);
+  return request<{ battles: InProgressBattleMessage[] }>(env.fetchImpl ?? fetch, url.toString(), {
+    method: "GET",
+  });
+}
+
 export async function fetchStats(
   env: ApiCallEnv,
   discordUserId: string,
