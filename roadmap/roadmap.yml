@@ -1015,7 +1015,7 @@ epics:
         tasks:
           - id: TASK-042
             title: 'apps/mobile: Capacitor scaffold pointing at apps/web build'
-            status: ready
+            status: blocked
             priority: high
             complexity: medium
             workspaces:
@@ -1032,9 +1032,20 @@ epics:
               - TASK-021
             pr: null
             completed: null
-            blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            blocked_reason: |
+              Autonomous Linux VPS lacks the toolchain to generate the
+              native scaffolds the task requires to commit: `npx cap add
+              ios` needs macOS + CocoaPods (neither present and iOS cannot
+              be hosted on Linux), and `npx cap add android` needs a JDK
+              (no `java`/`javac` on the VPS). Verifying the projects "open
+              in Xcode/Android Studio without errors" also requires a
+              human dev machine. Suggested split: a follow-up task does
+              the install + capacitor.config.ts + scripts on the
+              autonomous runner; the native `cap add` step is performed
+              once by a human on a Mac (iOS) and any JDK-equipped machine
+              (Android) and committed via a regular PR.
+            last_attempted: '2026-05-11T00:02:00Z'
+            attempt_count: 1
           - id: TASK-043
             title: 'Mobile wallet UX: CIP-45/WalletConnect bridge + fallback'
             status: ready
