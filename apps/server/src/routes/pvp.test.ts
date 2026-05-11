@@ -2,9 +2,11 @@ import { CREWS } from "@pirate-battle/content";
 import { describe, expect, it } from "vitest";
 
 import { InMemoryBattleStore } from "../battleStore.js";
+import { DEFAULT_ELO } from "../elo.js";
 import { buildServer } from "../index.js";
 import { InMemoryPvpChallengeStore, type PvpChallengeRecord } from "../pvpChallengeStore.js";
 import { InMemoryPvpQueueStore } from "../pvpQueueStore.js";
+import { InMemorySeasonStore } from "../seasonStore.js";
 import { InMemoryUserStore } from "../userStore.js";
 
 import { TEAM_SIZE } from "./captain.js";
@@ -28,24 +30,34 @@ function makeClock(start = 1_700_000_000_000): TestClock {
   return clock;
 }
 
-function makeApp(seed = 12345, clock: TestClock = makeClock()) {
+interface MakeAppOpts {
+  seed?: number;
+  clock?: TestClock;
+  seasonStore?: InMemorySeasonStore;
+}
+
+function makeApp(opts: MakeAppOpts = {}) {
+  const seed = opts.seed ?? 12345;
+  const clock = opts.clock ?? makeClock();
   const userStore = new InMemoryUserStore();
   const battleStore = new InMemoryBattleStore();
   const challengeStore = new InMemoryPvpChallengeStore({
     nowFn: clock.read,
   });
   const queueStore = new InMemoryPvpQueueStore({ nowFn: clock.read });
+  const seasonStore = opts.seasonStore;
   const app = buildServer({
     sessionSecret: "test-secret-not-used-in-prod",
     userStore,
     battleStore,
     pvpChallengeStore: challengeStore,
     pvpQueueStore: queueStore,
+    seasonStore,
     seedFactory: () => seed,
     nowFn: clock.read,
     logger: false,
   });
-  return { app, userStore, battleStore, challengeStore, queueStore, clock };
+  return { app, userStore, battleStore, challengeStore, queueStore, seasonStore, clock };
 }
 
 function extractCookieHeader(setCookieHeader: string | string[] | undefined) {
@@ -230,7 +242,7 @@ describe("POST /api/pvp/challenge/:token/accept", () => {
 
   it("rejects an expired token", async () => {
     const clock = makeClock();
-    const harness = makeApp(12345, clock);
+    const harness = makeApp({ seed: 12345, clock });
     await harness.app.ready();
     const { token } = await issueChallenge(harness.app);
 
@@ -268,7 +280,7 @@ describe("POST /api/pvp/challenge/:token/accept", () => {
 describe("PvP turn submission", () => {
   async function setupBattle() {
     const clock = makeClock();
-    const harness = makeApp(424242, clock);
+    const harness = makeApp({ seed: 424242, clock });
     await harness.app.ready();
 
     const { cookie: hostCookie } = await authedSession(harness.app);
@@ -396,7 +408,7 @@ describe("PvP turn submission", () => {
   it("returns the same byte-for-byte log given the same actions and seed", async () => {
     async function runOnce(seed: number) {
       const clock = makeClock();
-      const harness = makeApp(seed, clock);
+      const harness = makeApp({ seed, clock });
       await harness.app.ready();
       const { cookie: hostCookie } = await authedSession(harness.app);
       const hostCaptain = await createCaptain(harness.app, hostCookie, "Host");
@@ -660,6 +672,155 @@ describe("GET /api/pvp/battles", () => {
     expect((aliceList.json() as { battles: unknown[] }).battles).toHaveLength(0);
     expect(aliceId).toBeTruthy();
 
+    await harness.app.close();
+  });
+});
+
+describe("PvP ELO updates", () => {
+  async function setupBattleWithSeason() {
+    const clock = makeClock();
+    const seasonStore = new InMemorySeasonStore({ nowFn: clock.read });
+    const season = await seasonStore.open({
+      name: "TEST_SEASON",
+      startsAt: clock.read() - 1000,
+      endsAt: clock.read() + 1_000_000_000,
+    });
+    const harness = makeApp({ seed: 424242, clock, seasonStore });
+    await harness.app.ready();
+
+    const { cookie: hostCookie, userId: hostUserId } = await authedSession(harness.app);
+    const hostCaptain = await createCaptain(harness.app, hostCookie, "Host");
+    const issue = await harness.app.inject({
+      method: "POST",
+      url: "/api/pvp/challenge",
+      headers: { cookie: hostCookie },
+      payload: { captainId: hostCaptain },
+    });
+    const { token } = issue.json() as { token: string };
+
+    const { cookie: guestCookie, userId: guestUserId } = await authedSession(harness.app);
+    const guestCaptain = await createCaptain(harness.app, guestCookie, "Guest");
+    const accept = await harness.app.inject({
+      method: "POST",
+      url: `/api/pvp/challenge/${token}/accept`,
+      headers: { cookie: guestCookie },
+      payload: { captainId: guestCaptain },
+    });
+    const { id: battleId } = accept.json() as { id: string };
+    return {
+      harness,
+      season,
+      seasonStore,
+      hostCookie,
+      guestCookie,
+      hostUserId,
+      guestUserId,
+      battleId,
+    };
+  }
+
+  async function forfeitGuest(ctx: Awaited<ReturnType<typeof setupBattleWithSeason>>) {
+    const stored = await ctx.harness.battleStore.get(ctx.battleId);
+    const aMove = stored!.state.activeA.moves[0]!.key;
+    await ctx.harness.app.inject({
+      method: "POST",
+      url: `/api/pvp/battle/${ctx.battleId}/action`,
+      headers: { cookie: ctx.hostCookie },
+      payload: { action: { type: "move", moveKey: aMove } },
+    });
+    ctx.harness.clock.advance(PVP_ACTION_TIMEOUT_MS + 1);
+    const view = await ctx.harness.app.inject({
+      method: "GET",
+      url: `/api/pvp/battle/${ctx.battleId}`,
+      headers: { cookie: ctx.hostCookie },
+    });
+    if (view.statusCode !== 200) {
+      throw new Error(`unexpected view status ${view.statusCode}`);
+    }
+    return (view.json() as { state: { winner: "A" | "B" | null } }).state.winner;
+  }
+
+  it("applies ELO when a PvP battle ends, awarding the winner +16 at parity", async () => {
+    const ctx = await setupBattleWithSeason();
+    const winner = await forfeitGuest(ctx);
+    expect(winner).toBe("A");
+
+    const winnerRating = await ctx.seasonStore!.getRating(ctx.hostUserId, ctx.season.id);
+    const loserRating = await ctx.seasonStore!.getRating(ctx.guestUserId, ctx.season.id);
+    expect(winnerRating?.elo).toBe(DEFAULT_ELO + 16);
+    expect(loserRating?.elo).toBe(DEFAULT_ELO - 16);
+    expect(winnerRating?.wins).toBe(1);
+    expect(loserRating?.losses).toBe(1);
+    await ctx.harness.app.close();
+  });
+
+  it("only applies ELO once per battle, even if the state is re-read", async () => {
+    const ctx = await setupBattleWithSeason();
+    const winner = await forfeitGuest(ctx);
+    expect(winner).toBe("A");
+
+    for (let i = 0; i < 3; i++) {
+      const view = await ctx.harness.app.inject({
+        method: "GET",
+        url: `/api/pvp/battle/${ctx.battleId}`,
+        headers: { cookie: ctx.guestCookie },
+      });
+      expect(view.statusCode).toBe(200);
+    }
+
+    const winnerRating = await ctx.seasonStore!.getRating(ctx.hostUserId, ctx.season.id);
+    expect(winnerRating?.wins).toBe(1);
+    expect(winnerRating?.elo).toBe(DEFAULT_ELO + 16);
+    await ctx.harness.app.close();
+  });
+
+  it("skips ELO when no season is open", async () => {
+    const clock = makeClock();
+    const seasonStore = new InMemorySeasonStore({ nowFn: clock.read });
+    const harness = makeApp({ seed: 12345, clock, seasonStore });
+    await harness.app.ready();
+
+    const { cookie: hostCookie, userId: hostUserId } = await authedSession(harness.app);
+    const hostCaptain = await createCaptain(harness.app, hostCookie, "Host");
+    const issue = await harness.app.inject({
+      method: "POST",
+      url: "/api/pvp/challenge",
+      headers: { cookie: hostCookie },
+      payload: { captainId: hostCaptain },
+    });
+    const { token } = issue.json() as { token: string };
+
+    const { cookie: guestCookie } = await authedSession(harness.app);
+    const guestCaptain = await createCaptain(harness.app, guestCookie, "Guest");
+    const accept = await harness.app.inject({
+      method: "POST",
+      url: `/api/pvp/challenge/${token}/accept`,
+      headers: { cookie: guestCookie },
+      payload: { captainId: guestCaptain },
+    });
+    const { id: battleId } = accept.json() as { id: string };
+    const stored = await harness.battleStore.get(battleId);
+    const aMove = stored!.state.activeA.moves[0]!.key;
+
+    await harness.app.inject({
+      method: "POST",
+      url: `/api/pvp/battle/${battleId}/action`,
+      headers: { cookie: hostCookie },
+      payload: { action: { type: "move", moveKey: aMove } },
+    });
+    harness.clock.advance(PVP_ACTION_TIMEOUT_MS + 1);
+    const status = await harness.app.inject({
+      method: "GET",
+      url: `/api/pvp/battle/${battleId}`,
+      headers: { cookie: guestCookie },
+    });
+    expect(status.statusCode).toBe(200);
+    expect((status.json() as { state: { winner: string } }).state.winner).toBe("A");
+
+    const lb = await seasonStore.listLeaderboard("nope", { limit: 10, offset: 0 });
+    expect(lb.total).toBe(0);
+    expect(await seasonStore.findCurrent()).toBeNull();
+    expect(hostUserId).toBeTruthy();
     await harness.app.close();
   });
 });

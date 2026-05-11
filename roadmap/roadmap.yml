@@ -1120,7 +1120,7 @@ epics:
         tasks:
           - id: TASK-046
             title: 'Server: ELO calc + Season + per-season leaderboard endpoint'
-            status: ready
+            status: done
             priority: med
             complexity: medium
             workspaces:
@@ -1135,11 +1135,11 @@ epics:
               later — out of scope here).
             depends_on:
               - TASK-044
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/60
+            completed: '2026-05-11T12:15:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-11T12:04:00Z'
+            attempt_count: 1
           - id: TASK-047
             title: 'Web + Discord: leaderboard views'
             status: ready
