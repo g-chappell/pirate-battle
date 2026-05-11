@@ -34,6 +34,7 @@ const INK_CLOUD: MoveDef = {
 
 function makeCrew(over: Partial<CrewSnapshot> = {}): CrewSnapshot {
   return {
+    templateKey: "test_crew",
     hp: 100,
     maxHp: 100,
     atk: 50,

@@ -82,6 +82,12 @@ export type TrainCrewResult =
       reason: "not_found" | "no_chips" | "at_cap" | "unknown_template";
     };
 
+export interface CrewRef {
+  id: string;
+  templateKey: string;
+  captainId: string;
+}
+
 export interface UserStore {
   createAnonymous(): Promise<UserSummary>;
   findById(id: string): Promise<UserSummary | null>;
@@ -91,6 +97,7 @@ export interface UserStore {
   mergeAnonymousIntoWallet(anonUserId: string, walletUserId: string): Promise<UserSummary | null>;
   createCaptain(userId: string, input: CreateCaptainInput): Promise<CaptainSummary | null>;
   getCaptainTeam(userId: string, captainId: string): Promise<CaptainTeam | null>;
+  findCrewForUser(userId: string, crewId: string): Promise<CrewRef | null>;
   applyXpRewards(awards: readonly XpAward[]): Promise<CrewProgress[]>;
   setDiscordUserId(userId: string, discordUserId: string): Promise<SetDiscordUserIdResult>;
   getInventory(userId: string): Promise<InventoryEntry[]>;
@@ -284,6 +291,15 @@ export class PrismaUserStore implements UserStore {
         attrs: parseAttrs(c.attrs),
       })),
     };
+  }
+
+  async findCrewForUser(userId: string, crewId: string): Promise<CrewRef | null> {
+    const crew = await this.prisma.crew.findUnique({
+      where: { id: crewId },
+      include: { captain: { select: { userId: true } } },
+    });
+    if (!crew || crew.captain.userId !== userId) return null;
+    return { id: crew.id, templateKey: crew.templateKey, captainId: crew.captainId };
   }
 
   async applyXpRewards(awards: readonly XpAward[]): Promise<CrewProgress[]> {
@@ -567,6 +583,17 @@ export class InMemoryUserStore implements UserStore {
         attrs: c.attrs,
       })),
     };
+  }
+
+  async findCrewForUser(userId: string, crewId: string): Promise<CrewRef | null> {
+    for (const captain of this.captains.values()) {
+      if (captain.userId !== userId) continue;
+      const crew = captain.crews.find((c) => c.id === crewId);
+      if (crew) {
+        return { id: crew.id, templateKey: crew.templateKey, captainId: captain.id };
+      }
+    }
+    return null;
   }
 
   async applyXpRewards(awards: readonly XpAward[]): Promise<CrewProgress[]> {

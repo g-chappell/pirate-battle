@@ -1,6 +1,8 @@
 import type { Action, BattleEvent, BattleState, Side } from "@pirate-battle/core";
 import { BattleMode, Prisma, type PrismaClient } from "@pirate-battle/db";
 
+import type { FinishedBattleStats } from "./statsAggregator.js";
+
 export interface BattleSummary {
   id: string;
   mode: BattleMode;
@@ -56,6 +58,7 @@ export interface BattleStore {
   clearPendingActions(battleId: string): Promise<BattleSummary>;
   listInProgressPvpForUser(userId: string): Promise<BattleSummary[]>;
   listFinishedForUser(userId: string, limit: number): Promise<FinishedBattleRow[]>;
+  getFinishedStatsForUser(userId: string): Promise<FinishedBattleStats[]>;
 }
 
 function seedToBuffer(seed: number): Uint8Array<ArrayBuffer> {
@@ -236,6 +239,27 @@ export class PrismaBattleStore implements BattleStore {
     }
     return out;
   }
+
+  async getFinishedStatsForUser(userId: string): Promise<FinishedBattleStats[]> {
+    const rows = await this.prisma.battle.findMany({
+      where: {
+        endedAt: { not: null },
+        OR: [{ participantAId: userId }, { participantBId: userId }],
+      },
+      orderBy: { endedAt: "desc" },
+      include: { events: { orderBy: { idx: "asc" } } },
+    });
+    const out: FinishedBattleStats[] = [];
+    for (const row of rows) {
+      if (row.resultJson === null) continue;
+      const state = row.resultJson as unknown as BattleState;
+      if (state.winner === null) continue;
+      const userSide: Side = row.participantAId === userId ? "A" : "B";
+      const events = row.events.map((e) => e.payloadJson as unknown as BattleEvent);
+      out.push({ state, userSide, events });
+    }
+    return out;
+  }
 }
 
 interface InMemoryBattleRow {
@@ -396,6 +420,21 @@ export class InMemoryBattleStore implements BattleStore {
     }
     matches.sort((a, b) => b.endedAt - a.endedAt);
     return matches.slice(0, limit);
+  }
+
+  async getFinishedStatsForUser(userId: string): Promise<FinishedBattleStats[]> {
+    const out: FinishedBattleStats[] = [];
+    const rows = Array.from(this.battles.values()).sort(
+      (a, b) => (b.endedAt ?? 0) - (a.endedAt ?? 0),
+    );
+    for (const row of rows) {
+      if (row.endedAt === null) continue;
+      if (row.state.winner === null) continue;
+      if (row.ownerUserId !== userId && row.participantBId !== userId) continue;
+      const userSide: Side = row.ownerUserId === userId ? "A" : "B";
+      out.push({ state: row.state, userSide, events: row.events });
+    }
+    return out;
   }
 
   getEvents(battleId: string): readonly BattleEvent[] {

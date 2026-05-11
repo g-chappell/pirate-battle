@@ -14,6 +14,7 @@ export interface MoveDef {
 }
 
 export interface CrewSnapshot {
+  templateKey: string;
   hp: number;
   maxHp: number;
   atk: number;

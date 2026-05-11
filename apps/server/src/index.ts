@@ -32,6 +32,7 @@ import { inventoryRoutes } from "./routes/inventory.js";
 import { pvpRoutes } from "./routes/pvp.js";
 import { rosterRoutes } from "./routes/roster.js";
 import { sessionRoutes } from "./routes/session.js";
+import { statsRoutes } from "./routes/stats.js";
 import { InMemoryUserStore, PrismaUserStore, type UserStore } from "./userStore.js";
 import { CardanoWalletAuthVerifier, type WalletAuthVerifier } from "./walletAuth.js";
 
@@ -87,6 +88,11 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
     challengeStore: opts.pvpChallengeStore ?? new InMemoryPvpChallengeStore(),
     queueStore: opts.pvpQueueStore ?? new InMemoryPvpQueueStore(),
     seedFactory: opts.seedFactory,
+    nowFn: opts.nowFn,
+  });
+  app.register(statsRoutes, {
+    userStore: opts.userStore,
+    battleStore: opts.battleStore,
     nowFn: opts.nowFn,
   });
 
