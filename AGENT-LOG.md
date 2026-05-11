@@ -688,3 +688,15 @@ gaps.
 
 ---
 
+### Run [2026-05-11 10:38]
+- Task: TASK-041 — Async match state machine (Battle messageId, edit lifecycle)
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/58
+- Test counts: core=66, content=22, web=146, server=296, shared=9, discord=123
+- Files changed: packages/db/prisma/schema.prisma + new migration; apps/server/src/{battleStore.ts, routes/discordCommands.ts, userStore.ts}; apps/discord/src/{bot.ts, channelOps.ts, battleMessageState.ts, reconcileBattleMessages.ts, gameCommands.ts, interactions.ts, serverClient.ts} + tests for each
+- Regression alert: false
+- Review proposed: pending Step 15
+- Deploy: pending Step 14
+
+---
+
