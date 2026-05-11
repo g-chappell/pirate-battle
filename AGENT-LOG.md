@@ -672,7 +672,7 @@ gaps.
 - Test counts: core=66, content=22, web=146, server=278, shared=9, discord=98
 - Files changed: apps/discord/src/embeds.ts, apps/discord/src/embeds.test.ts
 - Regression alert: false
-- Review proposed: (filled in Step 15)
+- Review proposed: false
 - Deploy: success
 - Lessons learned: yaml-lite parser silently truncates at the first `>-` folded scalar — rendered ROADMAP.md has reported "Total tasks: 0" for many commits but the autonomous workflow keeps working because new-branch.sh/finalize-task.sh use a line-based mutator (roadmap-update-task.mjs), not yaml-lite. Used a line-scan to pick the next ready task.
 
