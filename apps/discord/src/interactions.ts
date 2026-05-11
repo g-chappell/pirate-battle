@@ -11,6 +11,7 @@ import type { ChannelOps } from "./channelOps.js";
 import {
   handleBattleCommand,
   handleForfeitCommand,
+  handleLeaderboardCommand,
   handleMoveCommand,
   handleStatsCommand,
   handleSwitchCommand,
@@ -140,6 +141,15 @@ export async function handleInteraction(
     );
     await interaction.reply(toPayload(result));
     await maybeUpdateBattleMessage(interaction, deps, result.battleHook);
+    return;
+  }
+  if (interaction.commandName === "leaderboard") {
+    const season = interaction.getStringOption("season");
+    const result = await handleLeaderboardCommand(
+      { serverUrl: deps.env.serverUrl, fetchImpl: deps.fetchImpl },
+      season,
+    );
+    await interaction.reply(toPayload(result));
     return;
   }
 }

@@ -5,6 +5,7 @@ import { type CaptainSummary, type UserSummary, createAnonymousSession, getMe } 
 import { BattleHistoryPage } from "./BattleHistoryPage";
 import { CaptainCrewsView } from "./CaptainCrewsView";
 import { InventoryPage } from "./InventoryPage";
+import { LeaderboardPage } from "./LeaderboardPage";
 import { PvpBattlePage } from "./PvpBattlePage";
 import { PvpPage } from "./PvpPage";
 import { readChallengeFromUrl } from "./pvpView";
@@ -93,7 +94,8 @@ type View =
   | { kind: "history" }
   | { kind: "replay"; battleId: string }
   | { kind: "inventory" }
-  | { kind: "inventoryCaptain"; captain: CaptainSummary };
+  | { kind: "inventoryCaptain"; captain: CaptainSummary }
+  | { kind: "leaderboard" };
 
 function initialView(captainCount: number): View {
   if (typeof window !== "undefined" && readChallengeFromUrl(window.location.search)) {
@@ -128,6 +130,12 @@ function SessionView({ user, onCaptainCreated }: SessionViewProps): ReactElement
         </NavButton>
         <NavButton active={view.kind === "history"} onClick={() => setView({ kind: "history" })}>
           History
+        </NavButton>
+        <NavButton
+          active={view.kind === "leaderboard"}
+          onClick={() => setView({ kind: "leaderboard" })}
+        >
+          Leaderboard
         </NavButton>
       </nav>
       {view.kind === "captains" ? (
@@ -165,6 +173,7 @@ function SessionView({ user, onCaptainCreated }: SessionViewProps): ReactElement
       {view.kind === "inventoryCaptain" ? (
         <CaptainCrewsView captain={view.captain} onBack={() => setView({ kind: "inventory" })} />
       ) : null}
+      {view.kind === "leaderboard" ? <LeaderboardPage /> : null}
     </>
   );
 }
