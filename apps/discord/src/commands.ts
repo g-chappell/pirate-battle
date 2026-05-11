@@ -14,6 +14,27 @@ export const commandDefinitions: SlashCommandBuilder[] = [
     .addStringOption((opt) =>
       opt.setName("token").setDescription("One-time link token from the web app").setRequired(true),
     ) as SlashCommandBuilder,
+  new SlashCommandBuilder()
+    .setName("team")
+    .setDescription("Show your linked captain and crew roster"),
+  new SlashCommandBuilder()
+    .setName("battle")
+    .setDescription("Start a battle against the AI opponent")
+    .addStringOption((opt) =>
+      opt
+        .setName("opponent")
+        .setDescription("Use 'ai' for a PvE match (PvP via Discord coming soon)")
+        .setRequired(true),
+    ) as SlashCommandBuilder,
+  new SlashCommandBuilder()
+    .setName("stats")
+    .setDescription("Show wins / losses for yourself or another linked captain")
+    .addUserOption((opt) =>
+      opt
+        .setName("user")
+        .setDescription("Another linked Discord user (defaults to yourself)")
+        .setRequired(false),
+    ) as SlashCommandBuilder,
 ];
 
 export function buildCommandsPayload(): RESTPostAPIApplicationCommandsJSONBody[] {
