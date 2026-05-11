@@ -1120,7 +1120,7 @@ epics:
         tasks:
           - id: TASK-046
             title: 'Server: ELO calc + Season + per-season leaderboard endpoint'
-            status: ready
+            status: in-progress
             priority: med
             complexity: medium
             workspaces:
@@ -1138,8 +1138,8 @@ epics:
             pr: null
             completed: null
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-11T12:04:00Z'
+            attempt_count: 1
           - id: TASK-047
             title: 'Web + Discord: leaderboard views'
             status: ready
