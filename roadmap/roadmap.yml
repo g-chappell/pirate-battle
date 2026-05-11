@@ -793,7 +793,7 @@ epics:
         tasks:
           - id: TASK-033
             title: 'Server: aggregate per-crew W/L, K/D + GET /api/stats'
-            status: in-progress
+            status: done
             priority: med
             complexity: medium
             workspaces:
@@ -805,8 +805,8 @@ epics:
               Cached for 60s per user.
             depends_on:
               - TASK-029
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/53
+            completed: '2026-05-11T05:23:00Z'
             blocked_reason: null
             last_attempted: '2026-05-11T05:06:00Z'
             attempt_count: 1
