@@ -1,4 +1,9 @@
+import { existsSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import fastifyCookie from "@fastify/cookie";
+import fastifyStatic from "@fastify/static";
 import Fastify, { type FastifyInstance } from "fastify";
 
 import { InMemoryBattleStore, PrismaBattleStore, type BattleStore } from "./battleStore.js";
@@ -51,6 +56,7 @@ export interface BuildServerOptions {
   seedFactory?: () => number;
   nowFn?: () => number;
   logger?: boolean;
+  webDistPath?: string;
 }
 
 export function buildServer(opts: BuildServerOptions): FastifyInstance {
@@ -102,6 +108,29 @@ export function buildServer(opts: BuildServerOptions): FastifyInstance {
     nowFn: opts.nowFn,
   });
 
+  if (opts.webDistPath) {
+    app.register(fastifyStatic, {
+      root: opts.webDistPath,
+      wildcard: false,
+    });
+    app.setNotFoundHandler((req, reply) => {
+      const accept = req.headers.accept ?? "";
+      const isHtmlNav =
+        req.method === "GET" &&
+        !req.url.startsWith("/api/") &&
+        req.url !== "/health" &&
+        accept.includes("text/html");
+      if (isHtmlNav) {
+        return reply.type("text/html").sendFile("index.html");
+      }
+      return reply.code(404).send({
+        message: `Route ${req.method}:${req.url} not found`,
+        error: "Not Found",
+        statusCode: 404,
+      });
+    });
+  }
+
   return app;
 }
 
@@ -131,6 +160,13 @@ export type {
   WalletAuthVerifier,
   CollectionStore,
 };
+
+function resolveWebDistPath(): string | undefined {
+  if (process.env.WEB_DIST_PATH) return process.env.WEB_DIST_PATH;
+  const here = dirname(fileURLToPath(import.meta.url));
+  const candidates = [resolve(here, "../../web/dist"), resolve(here, "../../../web/dist")];
+  return candidates.find((p) => existsSync(resolve(p, "index.html")));
+}
 
 const isMain = import.meta.url === `file://${process.argv[1]}`;
 if (isMain) {
@@ -168,6 +204,7 @@ if (isMain) {
   const collections = await collectionStore.listAll();
   const derivationService = new RosterDerivationService(collections);
 
+  const webDistPath = resolveWebDistPath();
   const app = buildServer({
     sessionSecret,
     userStore,
@@ -176,7 +213,13 @@ if (isMain) {
     derivationService,
     pvpChallengeStore,
     pvpQueueStore,
+    webDistPath,
   });
+  if (webDistPath) {
+    app.log.info({ webDistPath }, "serving web client");
+  } else {
+    app.log.warn("web client dist not found; SPA will not be served");
+  }
   app.listen({ port, host }).catch((err) => {
     app.log.error(err);
     process.exit(1);
