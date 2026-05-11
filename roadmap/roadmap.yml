@@ -1005,16 +1005,17 @@ epics:
   - id: EPIC-06
     title: Mobile delivery + Async PvP
     description: |
-      Wrap the web build for iOS + Android via Capacitor; sort out mobile
-      wallet UX (CIP-45 / WalletConnect). Add async PvP — challenge a friend
+      Wrap the web build for Android via Capacitor (iOS deferred — no
+      macOS access in the autonomous pipeline); sort out mobile wallet
+      UX (CIP-45 / WalletConnect). Add async PvP — challenge a friend
       by link, leaderboard, ranked-lite. All against the existing backend
       engine; no new authority anywhere.
     stories:
       - id: STORY-17
-        title: Capacitor wrap (iOS + Android) + mobile wallet UX
+        title: Capacitor wrap (Android) + mobile wallet UX
         tasks:
           - id: TASK-042
-            title: 'apps/mobile: Capacitor scaffold pointing at apps/web build'
+            title: 'apps/mobile: Capacitor Android scaffold pointing at apps/web build'
             status: blocked
             priority: high
             complexity: medium
@@ -1022,32 +1023,32 @@ epics:
               - apps/mobile
               - apps/web
             description: |
-              apps/mobile: install @capacitor/core + cli, capacitor.config.ts
-              with webDir = "../web/dist" and appId/appName set. Run
-              `npx cap add ios` + `npx cap add android` (results
-              committed). Add scripts: build (npm run build -w apps/web
-              && npx cap sync), open:ios, open:android. Verify both native
-              projects open in Xcode/Android Studio without errors.
+              apps/mobile: install @capacitor/core + @capacitor/cli +
+              @capacitor/android. Add capacitor.config.ts with
+              webDir = "../web/dist" and appId/appName set. Run
+              `npx cap add android` (results committed). Add scripts:
+              build (npm run build -w apps/web && npx cap sync),
+              open:android. Add the Android generated-artefact paths
+              from CLAUDE.md → Scaffolding hygiene to .gitignore in the
+              same PR (android/build/, android/.gradle/,
+              android/app/build/). iOS is intentionally out of scope —
+              no macOS in the autonomous pipeline; revisit only if/when
+              that changes. Verification: `npx cap sync android` exits 0
+              and android/ contains a valid Gradle project layout.
             depends_on:
               - TASK-021
             pr: null
             completed: null
             blocked_reason: |
-              Autonomous Linux VPS lacks the toolchain to generate the
-              native scaffolds the task requires to commit: `npx cap add
-              ios` needs macOS + CocoaPods (neither present and iOS cannot
-              be hosted on Linux), and `npx cap add android` needs a JDK
-              (no `java`/`javac` on the VPS). Verifying the projects "open
-              in Xcode/Android Studio without errors" also requires a
-              human dev machine. Suggested split: a follow-up task does
-              the install + capacitor.config.ts + scripts on the
-              autonomous runner; the native `cap add` step is performed
-              once by a human on a Mac (iOS) and any JDK-equipped machine
-              (Android) and committed via a regular PR.
+              Needs a JDK on the autonomous VPS — `java`/`javac` are
+              absent, so `npx cap add android` cannot generate the
+              Gradle project. One-time fix: install openjdk-17-jdk on
+              the VPS (`sudo apt install openjdk-17-jdk`), then flip
+              this task to `ready`.
             last_attempted: '2026-05-11T00:02:00Z'
             attempt_count: 1
           - id: TASK-043
-            title: 'Mobile wallet UX: CIP-45/WalletConnect bridge + fallback'
+            title: 'Mobile wallet UX: CIP-45/WalletConnect bridge + fallback (Android)'
             status: ready
             priority: high
             complexity: large
@@ -1055,12 +1056,14 @@ epics:
               - apps/mobile
               - apps/web
             description: |
-              Detect mobile user agent; switch wallet-connect path from
-              window.cardano (browser ext) to CIP-45 / WalletConnect
-              session. Use @walletconnect/universal-provider with the
-              Cardano namespace adapter. For wallets without CIP-45
-              support, deep-link to a known dApp browser (e.g. Eternl
-              mobile) via custom scheme; document fallback in docs/MOBILE.md.
+              Detect mobile user agent on Android; switch wallet-connect
+              path from window.cardano (browser ext) to CIP-45 /
+              WalletConnect session. Use @walletconnect/universal-provider
+              with the Cardano namespace adapter. For Android wallets
+              without CIP-45 support, deep-link to a known dApp browser
+              (e.g. Eternl mobile) via Android intent / custom scheme;
+              document fallback in docs/MOBILE.md. iOS path is out of
+              scope (see EPIC-06 note).
             depends_on:
               - TASK-042
               - TASK-024
