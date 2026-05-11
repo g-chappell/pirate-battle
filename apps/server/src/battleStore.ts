@@ -57,6 +57,7 @@ export interface BattleStore {
   ): Promise<BattleSummary>;
   clearPendingActions(battleId: string): Promise<BattleSummary>;
   listInProgressPvpForUser(userId: string): Promise<BattleSummary[]>;
+  findActivePveForUser(userId: string): Promise<BattleSummary | null>;
   listFinishedForUser(userId: string, limit: number): Promise<FinishedBattleRow[]>;
   getFinishedStatsForUser(userId: string): Promise<FinishedBattleStats[]>;
 }
@@ -211,6 +212,19 @@ export class PrismaBattleStore implements BattleStore {
       orderBy: { startedAt: "desc" },
     });
     return rows.filter((r) => r.resultJson !== null).map(toSummary);
+  }
+
+  async findActivePveForUser(userId: string): Promise<BattleSummary | null> {
+    const row = await this.prisma.battle.findFirst({
+      where: {
+        mode: BattleMode.PVE,
+        endedAt: null,
+        participantAId: userId,
+      },
+      orderBy: { startedAt: "desc" },
+    });
+    if (!row || row.resultJson === null) return null;
+    return toSummary(row);
   }
 
   async listFinishedForUser(userId: string, limit: number): Promise<FinishedBattleRow[]> {
@@ -400,6 +414,19 @@ export class InMemoryBattleStore implements BattleStore {
       out.push(rowToSummary(row));
     }
     return out;
+  }
+
+  async findActivePveForUser(userId: string): Promise<BattleSummary | null> {
+    const matches: InMemoryBattleRow[] = [];
+    for (const row of this.battles.values()) {
+      if (row.mode !== BattleMode.PVE) continue;
+      if (row.endedAt !== null) continue;
+      if (row.ownerUserId !== userId) continue;
+      matches.push(row);
+    }
+    matches.sort((a, b) => b.startedAt - a.startedAt);
+    const latest = matches[0];
+    return latest ? rowToSummary(latest) : null;
   }
 
   async listFinishedForUser(userId: string, limit: number): Promise<FinishedBattleRow[]> {

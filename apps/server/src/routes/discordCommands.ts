@@ -4,6 +4,7 @@ import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 import { buildAIOpponentTeam } from "../aiTeam.js";
 import type { BattleStore } from "../battleStore.js";
 import { buildInitialBattleState, teamToSnapshots } from "../crewSnapshot.js";
+import { applyAuthorizedPveTurn } from "../pveTurn.js";
 import { computeUserStats, type UserStats, type FinishedBattleStats } from "../statsAggregator.js";
 import type { CaptainTeam, UserStore, UserSummary } from "../userStore.js";
 
@@ -20,6 +21,11 @@ interface BattleStartBody {
   discordUserId?: unknown;
   captainId?: unknown;
   opponent?: unknown;
+}
+
+interface BattleActionBody {
+  discordUserId?: unknown;
+  action?: unknown;
 }
 
 interface DiscordUserQuery {
@@ -46,6 +52,16 @@ interface DiscordBattleResponse {
   id: string;
   state: BattleState;
   captainName: string;
+}
+
+interface DiscordActiveBattleResponse {
+  id: string;
+  state: BattleState;
+}
+
+interface DiscordActionResponse {
+  id: string;
+  state: BattleState;
 }
 
 interface DiscordStatsResponse {
@@ -138,6 +154,51 @@ export const discordCommandRoutes: FastifyPluginCallback<DiscordCommandsPluginOp
       captainName: team.name,
     };
     return reply.code(201).send(payload);
+  });
+
+  fastify.get<{ Querystring: DiscordUserQuery }>(
+    "/api/discord/battle/active",
+    async (req, reply) => {
+      const discordUserId = req.query.discordUserId;
+      if (!isValidDiscordUserId(discordUserId)) {
+        return reply.code(400).send({ error: "invalid_discord_user_id" });
+      }
+      const user = await userStore.findByDiscordUserId(discordUserId);
+      if (!user) return reply.code(404).send({ error: "not_linked" });
+      const summary = await battleStore.findActivePveForUser(user.id);
+      if (!summary) return reply.code(404).send({ error: "no_active_battle" });
+      const payload: DiscordActiveBattleResponse = {
+        id: summary.id,
+        state: summary.state,
+      };
+      return reply.send(payload);
+    },
+  );
+
+  fastify.post("/api/discord/battle/action", async (req, reply) => {
+    const body = (req.body ?? {}) as BattleActionBody;
+    if (!isValidDiscordUserId(body.discordUserId)) {
+      return reply.code(400).send({ error: "invalid_discord_user_id" });
+    }
+    const user = await userStore.findByDiscordUserId(body.discordUserId);
+    if (!user) return reply.code(404).send({ error: "not_linked" });
+    const summary = await battleStore.findActivePveForUser(user.id);
+    if (!summary) return reply.code(404).send({ error: "no_active_battle" });
+
+    const result = await applyAuthorizedPveTurn({
+      userStore,
+      battleStore,
+      summary,
+      rawAction: body.action,
+    });
+    if (!result.ok) {
+      return reply.code(result.code).send({ error: result.error });
+    }
+    const payload: DiscordActionResponse = {
+      id: result.summary.id,
+      state: result.summary.state,
+    };
+    return reply.send(payload);
   });
 
   fastify.get<{ Querystring: StatsQuery }>("/api/discord/stats", async (req, reply) => {

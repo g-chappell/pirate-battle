@@ -367,3 +367,203 @@ describe("GET /api/discord/stats", () => {
     await h.app.close();
   });
 });
+
+async function startBattleFor(h: Harness, discordUserId: string, captainId: string) {
+  const res = await h.app.inject({
+    method: "POST",
+    url: "/api/discord/battle",
+    payload: { discordUserId, captainId, opponent: "ai" },
+  });
+  if (res.statusCode !== 201) {
+    throw new Error(`battle start failed: ${res.statusCode} ${res.body}`);
+  }
+  return res.json() as { id: string; state: BattleState; captainName: string };
+}
+
+describe("GET /api/discord/battle/active", () => {
+  it("returns 400 when discordUserId is missing", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const res = await h.app.inject({ method: "GET", url: "/api/discord/battle/active" });
+    expect(res.statusCode).toBe(400);
+    await h.app.close();
+  });
+
+  it("returns 404 when the discord user is not linked", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const res = await h.app.inject({
+      method: "GET",
+      url: "/api/discord/battle/active?discordUserId=55512",
+    });
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({ error: "not_linked" });
+    await h.app.close();
+  });
+
+  it("returns 404 no_active_battle when the user has no in-progress PvE", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    await seedLinkedUser(h, "55512");
+    const res = await h.app.inject({
+      method: "GET",
+      url: "/api/discord/battle/active?discordUserId=55512",
+    });
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({ error: "no_active_battle" });
+    await h.app.close();
+  });
+
+  it("returns the latest in-progress PvE battle", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const { captainId } = await seedLinkedUser(h, "55512");
+    const started = await startBattleFor(h, "55512", captainId);
+    const res = await h.app.inject({
+      method: "GET",
+      url: "/api/discord/battle/active?discordUserId=55512",
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.id).toBe(started.id);
+    expect(body.state.winner).toBeNull();
+    await h.app.close();
+  });
+
+  it("does not return finished battles", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const { userId } = await seedLinkedUser(h, "55512");
+    await seedFinishedBattle({
+      store: h.battleStore,
+      userId,
+      captainId: null,
+      winner: "A",
+    });
+    const res = await h.app.inject({
+      method: "GET",
+      url: "/api/discord/battle/active?discordUserId=55512",
+    });
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({ error: "no_active_battle" });
+    await h.app.close();
+  });
+});
+
+describe("POST /api/discord/battle/action", () => {
+  it("returns 400 when discordUserId is missing", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const res = await h.app.inject({
+      method: "POST",
+      url: "/api/discord/battle/action",
+      payload: { action: { type: "forfeit" } },
+    });
+    expect(res.statusCode).toBe(400);
+    await h.app.close();
+  });
+
+  it("returns 404 not_linked for an unlinked user", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const res = await h.app.inject({
+      method: "POST",
+      url: "/api/discord/battle/action",
+      payload: { discordUserId: "55512", action: { type: "forfeit" } },
+    });
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({ error: "not_linked" });
+    await h.app.close();
+  });
+
+  it("returns 404 no_active_battle when the user has none", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    await seedLinkedUser(h, "55512");
+    const res = await h.app.inject({
+      method: "POST",
+      url: "/api/discord/battle/action",
+      payload: { discordUserId: "55512", action: { type: "forfeit" } },
+    });
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({ error: "no_active_battle" });
+    await h.app.close();
+  });
+
+  it("returns 400 when the action shape is invalid", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const { captainId } = await seedLinkedUser(h, "55512");
+    await startBattleFor(h, "55512", captainId);
+    const res = await h.app.inject({
+      method: "POST",
+      url: "/api/discord/battle/action",
+      payload: { discordUserId: "55512", action: { type: "nope" } },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: "invalid_action_type" });
+    await h.app.close();
+  });
+
+  it("returns 400 unknown_move when the active crew doesn't know the move", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const { captainId } = await seedLinkedUser(h, "55512");
+    await startBattleFor(h, "55512", captainId);
+    const res = await h.app.inject({
+      method: "POST",
+      url: "/api/discord/battle/action",
+      payload: {
+        discordUserId: "55512",
+        action: { type: "move", moveKey: "definitely_not_a_move" },
+      },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: "unknown_move" });
+    await h.app.close();
+  });
+
+  it("ends the battle on forfeit and clears the active battle", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const { captainId } = await seedLinkedUser(h, "55512");
+    await startBattleFor(h, "55512", captainId);
+    const res = await h.app.inject({
+      method: "POST",
+      url: "/api/discord/battle/action",
+      payload: { discordUserId: "55512", action: { type: "forfeit" } },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.state.winner).toBe("B");
+
+    const after = await h.app.inject({
+      method: "GET",
+      url: "/api/discord/battle/active?discordUserId=55512",
+    });
+    expect(after.statusCode).toBe(404);
+    expect(after.json()).toEqual({ error: "no_active_battle" });
+    await h.app.close();
+  });
+
+  it("returns 409 battle_ended when acting on a finished battle", async () => {
+    const h = makeApp();
+    await h.app.ready();
+    const { captainId } = await seedLinkedUser(h, "55512");
+    await startBattleFor(h, "55512", captainId);
+    await h.app.inject({
+      method: "POST",
+      url: "/api/discord/battle/action",
+      payload: { discordUserId: "55512", action: { type: "forfeit" } },
+    });
+    // a fresh action attempt finds no active battle now
+    const res = await h.app.inject({
+      method: "POST",
+      url: "/api/discord/battle/action",
+      payload: { discordUserId: "55512", action: { type: "forfeit" } },
+    });
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({ error: "no_active_battle" });
+    await h.app.close();
+  });
+});

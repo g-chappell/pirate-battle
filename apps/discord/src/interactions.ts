@@ -3,7 +3,10 @@ import { MessageFlags } from "discord.js";
 
 import {
   handleBattleCommand,
+  handleForfeitCommand,
+  handleMoveCommand,
   handleStatsCommand,
+  handleSwitchCommand,
   handleTeamCommand,
   type CommandResult,
 } from "./gameCommands.js";
@@ -90,6 +93,34 @@ export async function handleInteraction(
       { serverUrl: deps.env.serverUrl, fetchImpl: deps.fetchImpl },
       interaction.user.id,
       targetDiscordUserId,
+    );
+    await interaction.reply(toPayload(result));
+    return;
+  }
+  if (interaction.commandName === "move") {
+    const name = interaction.getStringOption("name") ?? "";
+    const result = await handleMoveCommand(
+      { serverUrl: deps.env.serverUrl, fetchImpl: deps.fetchImpl },
+      interaction.user.id,
+      name,
+    );
+    await interaction.reply(toPayload(result));
+    return;
+  }
+  if (interaction.commandName === "switch") {
+    const crew = interaction.getStringOption("crew") ?? "";
+    const result = await handleSwitchCommand(
+      { serverUrl: deps.env.serverUrl, fetchImpl: deps.fetchImpl },
+      interaction.user.id,
+      crew,
+    );
+    await interaction.reply(toPayload(result));
+    return;
+  }
+  if (interaction.commandName === "forfeit") {
+    const result = await handleForfeitCommand(
+      { serverUrl: deps.env.serverUrl, fetchImpl: deps.fetchImpl },
+      interaction.user.id,
     );
     await interaction.reply(toPayload(result));
     return;
