@@ -721,7 +721,7 @@ gaps.
 - Files changed: apps/server/src/elo.ts, apps/server/src/elo.test.ts, apps/server/src/seasonStore.ts, apps/server/src/seasonStore.test.ts, apps/server/src/routes/leaderboard.ts, apps/server/src/routes/leaderboard.test.ts, apps/server/src/routes/pvp.ts, apps/server/src/routes/pvp.test.ts, apps/server/src/index.ts, apps/server/scripts/open-season.ts, packages/db/prisma/schema.prisma, packages/db/prisma/migrations/20260512000000_pvp_season/migration.sql, scripts/season-cron.sh
 - Regression alert: false
 - Review proposed: false
-- Deploy: pending
+- Deploy: success
 
 ---
 
