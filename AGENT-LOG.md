@@ -587,3 +587,17 @@ gaps.
 
 ---
 
+### Run [2026-05-11 00:04]
+- Task: TASK-042 — apps/mobile: Capacitor scaffold pointing at apps/web build
+- Outcome: blocked
+- PR: N/A
+- Test counts: N/A — cycle stopped at Step 5 (task selection / environment check)
+- Files changed: roadmap/roadmap.yml (status → blocked, blocked_reason set)
+- Regression alert: false
+- Review proposed: false
+- Deploy: n/a
+- Lessons learned: Linux VPS lacks the toolchain to fulfil the literal task ("results committed"): no `java`/`javac` (so `npx cap add android` fails) and no CocoaPods (and iOS scaffolding requires macOS regardless). Verifying "opens in Xcode/Android Studio" is also a human-machine step. Future Capacitor / native-scaffold tasks should split into (a) install + `capacitor.config.ts` + scripts (doable on the autonomous runner) and (b) one-off `cap add ios|android` performed on a Mac/JDK dev machine and committed via a manual PR — autonomous-review may want to encode this as a project convention so the same wall is not re-hit at TASK-043.
+- Notes: Branch `auto/TASK-042-apps-mobile-capacitor-scaffold-pointing-at-apps-we` was created (Step 6) then deleted; the in-progress flip never reached origin. Block recorded directly on main per Step 8 escape-hatch.
+
+---
+
