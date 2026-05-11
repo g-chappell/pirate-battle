@@ -725,3 +725,16 @@ gaps.
 
 ---
 
+### Run [2026-05-11 13:17]
+- Task: TASK-047 — Web + Discord: leaderboard views
+- Outcome: success
+- PR: https://github.com/g-chappell/pirate-battle/pull/61
+- Test counts: core=74, content=22, web=165, server=322, shared=9, discord=130
+- Files changed: apps/web/src/api.ts, apps/web/src/App.tsx, apps/web/src/LeaderboardPage.tsx, apps/web/src/leaderboardView.ts, apps/web/src/leaderboardView.test.ts, apps/discord/src/commands.ts, apps/discord/src/embeds.ts, apps/discord/src/gameCommands.ts, apps/discord/src/gameCommands.test.ts, apps/discord/src/interactions.ts, apps/discord/src/serverClient.ts
+- Regression alert: false
+- Review proposed: (filled in Step 15 if applicable)
+- Deploy: (filled in Step 14 if applicable)
+- Lessons learned: Splitting pagination + formatting helpers into apps/web/src/leaderboardView.ts kept the React component thin and made the offset/limit math directly testable under Vitest, matching the established battleSummary/pvpView pattern.
+
+---
+
