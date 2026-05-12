@@ -1,0 +1,17 @@
+{
+  "name": "@pirate-battle/mobile",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm run build -w @pirate-battle/web && cap sync android",
+    "open:android": "cap open android",
+    "sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/core": "^6.2.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.1"
+  }
+}
