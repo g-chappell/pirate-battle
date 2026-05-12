@@ -836,3 +836,13 @@ gaps.
 
 ---
 
+### Run [2026-05-12 00:01]
+- Task: none — no eligible ready tasks
+- Outcome: skipped
+- Reason: no_ready_tasks
+- Detail: TASK-043 is `ready` but blocked by TASK-042 (Capacitor Android scaffold) which needs `openjdk-17-jdk` installed on the VPS — out of scope for the autonomous loop.
+- Roadmap status: 45 done, 1 blocked (TASK-042), 1 ready-but-gated (TASK-043). 0 actionable.
+- Hint: roadmap running low — consider running `/pm-brainstorm` to add new epics, or unblock TASK-042 by installing openjdk-17-jdk on srv1604573.
+
+---
+
