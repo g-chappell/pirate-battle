@@ -4,7 +4,9 @@
 //   - key: value   (string, number, true/false, null)
 //   - key: "quoted string"   (double quotes, escape support: \" \\ \n)
 //   - key: 'quoted string'   (single quotes)
-//   - key: |      (block scalar — preserves newlines, strips common indent)
+//   - key: |      (literal block scalar — preserves newlines, strips common indent)
+//   - key: >      (folded block scalar — newlines become spaces; blank lines preserved)
+//                 Both styles accept chomping indicators: |-, |+, >-, >+.
 //   - key: []     (empty inline array)
 //   - key:
 //       - item    (block-style list of mappings or scalars)
@@ -79,7 +81,7 @@ function splitTopLevel(s, delim) {
   return out;
 }
 
-function parseBlockScalar(ctx, baseIndent) {
+function parseBlockScalar(ctx, baseIndent, style, chomp) {
   const out = [];
   while (ctx.i < ctx.lines.length) {
     const raw = ctx.lines[ctx.i];
@@ -89,9 +91,25 @@ function parseBlockScalar(ctx, baseIndent) {
     out.push(raw.slice(baseIndent + 2));
     ctx.i++;
   }
-  // trim trailing blank lines
-  while (out.length && out[out.length - 1] === '') out.pop();
-  return out.join('\n');
+  let trailingBlanks = 0;
+  while (out.length && out[out.length - 1] === '') { out.pop(); trailingBlanks++; }
+  let body;
+  if (style === '>') {
+    const parts = [];
+    for (const line of out) {
+      if (line === '') parts.push('\n');
+      else {
+        if (parts.length && parts[parts.length - 1] !== '\n') parts.push(' ');
+        parts.push(line);
+      }
+    }
+    body = parts.join('');
+  } else {
+    body = out.join('\n');
+  }
+  if (chomp === '+') body += '\n'.repeat(trailingBlanks);
+  else if (chomp !== '-' && out.length) body += '\n';
+  return body;
 }
 
 function parseMapping(ctx, indent) {
@@ -109,8 +127,9 @@ function parseMapping(ctx, indent) {
     const key = m[1];
     const rest = m[2];
     ctx.i++;
-    if (rest === '|') {
-      obj[key] = parseBlockScalar(ctx, indent);
+    const blockMatch = rest.match(/^([|>])([-+]?)\s*$/);
+    if (blockMatch) {
+      obj[key] = parseBlockScalar(ctx, indent, blockMatch[1], blockMatch[2]);
     } else if (rest === '' || rest === undefined) {
       // nested mapping or list
       // look ahead at next non-blank line
