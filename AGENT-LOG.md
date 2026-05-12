@@ -911,7 +911,7 @@ gaps.
 - Files changed: apps/mobile/package.json (new), apps/mobile/capacitor.config.ts (new), apps/mobile/android/ (53 files, npx cap add android scaffold), apps/mobile/README.md, .gitignore (gradle artefacts + local.properties), eslint.config.js (ignore apps/mobile/android/**), package-lock.json
 - Regression alert: false
 - Review proposed: (filled in Step 15 if applicable)
-- Deploy: (filled in Step 14 if applicable)
+- Deploy: success (pirate-battle.blacksail.dev, health ok attempt 2)
 - Lessons learned: Capacitor's android/.gitignore covers cap sync outputs (assets/public/, capacitor.*.json, res/xml/config.xml, capacitor-cordova-android-plugins/). Root .gitignore picks up the Gradle-build paths CLAUDE.md scaffolding hygiene flags. ESLint flat config needs `apps/mobile/android/**` in ignores so the cap-sync-copied web bundle doesn't get linted as source.
 
 ---
