@@ -9,9 +9,9 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 45 (96%)
+- **Done:** 46 (98%)
 - **Ready:** 1
-- **In progress:** 1
+- **In progress:** 0
 - **Blocked:** 0
 
 ---
@@ -432,7 +432,7 @@ by link, leaderboard, ranked-lite. All against the existing backend
 engine; no new authority anywhere.
 
 - **STORY-17** — Capacitor wrap (Android) + mobile wallet UX
-  - :large_orange_diamond: **TASK-042** — apps/mobile: Capacitor Android scaffold pointing at apps/web build  `high` `medium` _(apps/mobile, apps/web)_  
+  - :white_check_mark: **TASK-042** — apps/mobile: Capacitor Android scaffold pointing at apps/web build  `high` `medium` _(apps/mobile, apps/web)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/64)  
     _depends on: TASK-021_
     > apps/mobile: install @capacitor/core + @capacitor/cli +
     > @capacitor/android. Add capacitor.config.ts with
