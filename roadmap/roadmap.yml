@@ -1016,7 +1016,7 @@ epics:
         tasks:
           - id: TASK-042
             title: 'apps/mobile: Capacitor Android scaffold pointing at apps/web build'
-            status: ready
+            status: done
             priority: high
             complexity: medium
             workspaces:
@@ -1037,11 +1037,11 @@ epics:
               and android/ contains a valid Gradle project layout.
             depends_on:
               - TASK-021
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/64
+            completed: '2026-05-12T07:36:00Z'
             blocked_reason: null
-            last_attempted: null
-            attempt_count: 0
+            last_attempted: '2026-05-12T07:27:00Z'
+            attempt_count: 1
           - id: TASK-043
             title: 'Mobile wallet UX: CIP-45/WalletConnect bridge + fallback (Android)'
             status: ready

@@ -24,6 +24,7 @@ export default [
       "**/*.tsbuildinfo",
       "packages/db/generated/**",
       "roadmap/viewer/**",
+      "apps/mobile/android/**",
     ],
   },
   js.configs.recommended,
