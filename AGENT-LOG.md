@@ -923,7 +923,7 @@ gaps.
 - Test counts: discord=130, server=322, web=194, content=22, core=74, shared=9
 - Files changed: apps/web/src/mobileDetect.ts + .test.ts, apps/web/src/mobileDeepLink.ts + .test.ts, apps/web/src/walletConnectBridge.ts + .test.ts, apps/web/src/WalletChooser.tsx, docs/MOBILE.md
 - Regression alert: false
-- Deploy: pending
+- Deploy: success (pirate-battle.blacksail.dev, health ok attempt 3)
 - Lessons learned: Heavy mobile-wallet SDK (`@walletconnect/universal-provider`, 86 transitive deps + Vite polyfills) is its own follow-up — shipping the bridge interface + working Eternl deep-link in this PR delivers usable Android UX today, and the SDK plug-in is a one-call factory registration when WalletConnect Cloud is provisioned.
 
 ---
