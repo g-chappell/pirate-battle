@@ -1016,7 +1016,7 @@ epics:
         tasks:
           - id: TASK-042
             title: 'apps/mobile: Capacitor Android scaffold pointing at apps/web build'
-            status: blocked
+            status: ready
             priority: high
             complexity: medium
             workspaces:
@@ -1039,14 +1039,9 @@ epics:
               - TASK-021
             pr: null
             completed: null
-            blocked_reason: |
-              Needs a JDK on the autonomous VPS — `java`/`javac` are
-              absent, so `npx cap add android` cannot generate the
-              Gradle project. One-time fix: install openjdk-17-jdk on
-              the VPS (`sudo apt install openjdk-17-jdk`), then flip
-              this task to `ready`.
-            last_attempted: '2026-05-11T00:02:00Z'
-            attempt_count: 1
+            blocked_reason: null
+            last_attempted: null
+            attempt_count: 0
           - id: TASK-043
             title: 'Mobile wallet UX: CIP-45/WalletConnect bridge + fallback (Android)'
             status: ready
