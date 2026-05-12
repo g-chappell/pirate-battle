@@ -10,8 +10,8 @@ _Created: 2026-05-08_
 
 - **Total tasks:** 47
 - **Done:** 46 (98%)
-- **Ready:** 1
-- **In progress:** 0
+- **Ready:** 0
+- **In progress:** 1
 - **Blocked:** 0
 
 ---
@@ -446,7 +446,7 @@ engine; no new authority anywhere.
     > no macOS in the autonomous pipeline; revisit only if/when
     > that changes. Verification: `npx cap sync android` exits 0
     > and android/ contains a valid Gradle project layout.
-  - :black_circle: **TASK-043** — Mobile wallet UX: CIP-45/WalletConnect bridge + fallback (Android)  `high` `large` _(apps/mobile, apps/web)_  
+  - :large_orange_diamond: **TASK-043** — Mobile wallet UX: CIP-45/WalletConnect bridge + fallback (Android)  `high` `large` _(apps/mobile, apps/web)_  
     _depends on: TASK-042, TASK-024_
     > Detect mobile user agent on Android; switch wallet-connect
     > path from window.cardano (browser ext) to CIP-45 /
