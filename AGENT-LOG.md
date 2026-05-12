@@ -856,3 +856,12 @@ gaps.
 
 ---
 
+### Run [2026-05-12 02:02]
+- Outcome: skipped
+- Reason: no_ready_tasks
+- Notes: TASK-043 (only ready task) blocked behind TASK-042 (status=blocked; needs `openjdk-17-jdk` installed on VPS to unstick `npx cap add android`). Until a human installs the JDK and flips TASK-042 → ready, EPIC-06 cannot progress.
+- Roadmap depth: 1 ready / 1 blocked / 0 eligible — roadmap running low, consider running `/pm-brainstorm` to queue non-mobile work
+- Deploy: n/a
+
+---
+
