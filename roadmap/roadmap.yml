@@ -1044,7 +1044,7 @@ epics:
             attempt_count: 1
           - id: TASK-043
             title: 'Mobile wallet UX: CIP-45/WalletConnect bridge + fallback (Android)'
-            status: in-progress
+            status: done
             priority: high
             complexity: large
             workspaces:
@@ -1062,8 +1062,8 @@ epics:
             depends_on:
               - TASK-042
               - TASK-024
-            pr: null
-            completed: null
+            pr: https://github.com/g-chappell/pirate-battle/pull/65
+            completed: '2026-05-12T08:04:00Z'
             blocked_reason: null
             last_attempted: '2026-05-12T07:53:00Z'
             attempt_count: 1
