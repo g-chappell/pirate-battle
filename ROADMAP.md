@@ -9,8 +9,8 @@ _Created: 2026-05-08_
 ## Summary
 
 - **Total tasks:** 47
-- **Done:** 46 (98%)
-- **Ready:** 1
+- **Done:** 47 (100%)
+- **Ready:** 0
 - **In progress:** 0
 - **Blocked:** 0
 
@@ -446,7 +446,7 @@ engine; no new authority anywhere.
     > no macOS in the autonomous pipeline; revisit only if/when
     > that changes. Verification: `npx cap sync android` exits 0
     > and android/ contains a valid Gradle project layout.
-  - :black_circle: **TASK-043** — Mobile wallet UX: CIP-45/WalletConnect bridge + fallback (Android)  `high` `large` _(apps/mobile, apps/web)_  
+  - :white_check_mark: **TASK-043** — Mobile wallet UX: CIP-45/WalletConnect bridge + fallback (Android)  `high` `large` _(apps/mobile, apps/web)_ · [PR](https://github.com/g-chappell/pirate-battle/pull/65)  
     _depends on: TASK-042, TASK-024_
     > Detect mobile user agent on Android; switch wallet-connect
     > path from window.cardano (browser ext) to CIP-45 /

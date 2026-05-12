@@ -1,7 +1,14 @@
 import type { ReactElement } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { requestNonce, submitWalletAuth, type UserSummary } from "./api";
+import { buildEternlDappBrowserDeepLink } from "./mobileDeepLink";
+import {
+  detectMobilePlatform,
+  pickWalletEntryMode,
+  type MobilePlatform,
+  type WalletEntryMode,
+} from "./mobileDetect";
 import { type SignInError, runWalletSignIn } from "./walletAuth";
 import {
   type CardanoNamespace,
@@ -15,6 +22,7 @@ import {
   truncateBech32,
   tryReconnectStored,
 } from "./walletChooser";
+import { attemptCip45Connect } from "./walletConnectBridge";
 
 type SignInState = { kind: "idle" } | { kind: "signing" } | { kind: "error"; error: SignInError };
 
@@ -24,11 +32,17 @@ type ChooserState =
   | { kind: "idle"; wallets: WalletInfo[] }
   | { kind: "connecting"; wallets: WalletInfo[]; key: string }
   | { kind: "connected"; result: ConnectResult; signIn: SignInState }
-  | { kind: "error"; wallets: WalletInfo[]; message: string };
+  | { kind: "error"; wallets: WalletInfo[]; message: string }
+  | { kind: "mobile-bridge"; bridge: BridgeState }
+  | { kind: "ios-unsupported" };
+
+type BridgeState = { kind: "idle" } | { kind: "connecting" } | { kind: "error"; message: string };
 
 interface WalletChooserProps {
   namespace?: CardanoNamespace | null;
   storage?: WalletStorage | null;
+  userAgent?: string | null;
+  currentUrl?: string | null;
   onConnected?: (result: ConnectResult) => void;
   onSignedIn?: (user: UserSummary) => void;
 }
@@ -49,18 +63,58 @@ function getDefaultStorage(): WalletStorage | null {
   }
 }
 
+function getDefaultUserAgent(): string | null {
+  if (typeof navigator === "undefined") return null;
+  return navigator.userAgent ?? null;
+}
+
+function getDefaultCurrentUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.location?.href ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function WalletChooser({
   namespace,
   storage,
+  userAgent,
+  currentUrl,
   onConnected,
   onSignedIn,
 }: WalletChooserProps): ReactElement {
   const [state, setState] = useState<ChooserState>({ kind: "detecting" });
+  const ua = userAgent !== undefined ? userAgent : getDefaultUserAgent();
+  const platform: MobilePlatform = useMemo(() => detectMobilePlatform(ua), [ua]);
+  const url = currentUrl !== undefined ? currentUrl : getDefaultCurrentUrl();
+  const deepLink = useMemo(() => {
+    if (platform !== "android" || !url) return null;
+    try {
+      return buildEternlDappBrowserDeepLink(url);
+    } catch {
+      return null;
+    }
+  }, [platform, url]);
 
   useEffect(() => {
     let cancelled = false;
     const ns = namespace !== undefined ? namespace : getDefaultNamespace();
     const store = storage !== undefined ? storage : getDefaultStorage();
+    const entry: WalletEntryMode = pickWalletEntryMode(platform, ns);
+    if (entry === "ios-out-of-scope") {
+      setState({ kind: "ios-unsupported" });
+      return () => {
+        cancelled = true;
+      };
+    }
+    if (entry === "android-needs-bridge") {
+      setState({ kind: "mobile-bridge", bridge: { kind: "idle" } });
+      return () => {
+        cancelled = true;
+      };
+    }
     const wallets = detectWallets(ns);
     if (wallets.length === 0) {
       setState({ kind: "no-wallets" });
@@ -86,7 +140,22 @@ export function WalletChooser({
     return () => {
       cancelled = true;
     };
-  }, [namespace, storage, onConnected]);
+  }, [namespace, storage, platform, onConnected]);
+
+  async function handleBridgeConnect(): Promise<void> {
+    if (state.kind !== "mobile-bridge") return;
+    setState({ kind: "mobile-bridge", bridge: { kind: "connecting" } });
+    try {
+      const result = await attemptCip45Connect({ walletKey: "walletconnect" });
+      const store = storage !== undefined ? storage : getDefaultStorage();
+      saveStoredWalletKey(store, "walletconnect");
+      setState({ kind: "connected", result, signIn: { kind: "idle" } });
+      onConnected?.(result);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "WalletConnect failed";
+      setState({ kind: "mobile-bridge", bridge: { kind: "error", message } });
+    }
+  }
 
   async function handlePick(walletKey: string): Promise<void> {
     if (state.kind !== "idle" && state.kind !== "error") return;
@@ -171,6 +240,62 @@ export function WalletChooser({
         <p style={{ margin: 0 }}>
           No Cardano wallet detected. Install Nami, Eternl, Lace, or Typhon to link a stake address.
         </p>
+      </section>
+    );
+  }
+
+  if (state.kind === "ios-unsupported") {
+    return (
+      <section aria-label="Wallet" style={sectionStyle}>
+        <p style={{ margin: 0 }}>
+          Cardano wallet linking on iOS is not yet supported. Play as a guest, or open this app on
+          Android or desktop to connect a wallet.
+        </p>
+      </section>
+    );
+  }
+
+  if (state.kind === "mobile-bridge") {
+    const { bridge } = state;
+    const connecting = bridge.kind === "connecting";
+    return (
+      <section aria-label="Wallet" style={sectionStyle}>
+        <p style={{ margin: "0 0 0.5rem" }}>Connect a Cardano wallet (Android):</p>
+        {deepLink ? (
+          <p style={{ margin: "0 0 0.5rem" }}>
+            <a
+              href={deepLink.intentUrl}
+              style={{ ...buttonStyle, display: "inline-block", textDecoration: "none" }}
+            >
+              Open in Eternl Mobile
+            </a>{" "}
+            <a
+              href={deepLink.playStoreUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              style={{ marginLeft: "0.5rem", fontSize: "0.85em" }}
+            >
+              (don&apos;t have Eternl?)
+            </a>
+          </p>
+        ) : null}
+        <p style={{ margin: "0 0 0.5rem" }}>
+          <button
+            type="button"
+            onClick={() => {
+              void handleBridgeConnect();
+            }}
+            disabled={connecting}
+            style={buttonStyle}
+          >
+            {connecting ? "Connecting via WalletConnect…" : "Try WalletConnect (CIP-45)"}
+          </button>
+        </p>
+        {bridge.kind === "error" ? (
+          <p role="alert" style={{ color: "#b00", margin: "0.4rem 0 0" }}>
+            {bridge.message}
+          </p>
+        ) : null}
       </section>
     );
   }
